@@ -19,7 +19,8 @@
  */
 
 import {computed, ComputedRef, ref, Ref, watch, WatchStopHandle} from "vue";
-import {SystemContractEntry, systemContractRegistry} from "@/schemas/SystemContractRegistry";
+import {systemContractRegistry} from "@/schemas/SystemContractRegistry";
+import {ContractEntry} from "@/schemas/ContractEntry";
 import {ethers} from "ethers";
 
 export class FunctionCallAnalyzer {
@@ -100,7 +101,7 @@ export class FunctionCallAnalyzer {
     // Private
     //
 
-    private readonly systemContractEntry: ComputedRef<SystemContractEntry|null> = computed(() => {
+    private readonly systemContractEntry: ComputedRef<ContractEntry|null> = computed(() => {
         return this.contractId.value ? systemContractRegistry.lookup(this.contractId.value) : null
     })
 
