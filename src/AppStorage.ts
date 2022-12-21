@@ -86,13 +86,54 @@ export class AppStorage {
     }
 
     //
+    // solidity sources
+    //
+
+    private static readonly SOLIDITY_SOURCE_KEY = 'solidity'
+
+    public static getSoliditySource(fileId: string): string | null {
+        return this.getLocalStorageItem(this.SOLIDITY_SOURCE_KEY + "/" + fileId)
+    }
+
+    public static setSoliditySource(fileId: string, newValue: string | null ): void {
+        this.setLocalStorageItem(this.SOLIDITY_SOURCE_KEY + "/" + fileId, newValue)
+    }
+
+    public static getSolidityFileIds(): string[] {
+        const result: string[] = []
+        const keyPrefix = this.makeKey(this.SOLIDITY_SOURCE_KEY) + "/"
+        for (let i = 0; i < window.localStorage.length; i += 1) {
+            const key = window.localStorage.key(i)
+            if (key !== null && key.startsWith(keyPrefix)) {
+                const fileId = key.slice(keyPrefix.length)
+                result.push(fileId)
+            }
+        }
+        return result
+    }
+
+    //
+    // solidity sources
+    //
+
+    private static readonly SOLIDITY_NAME_KEY = 'solidity'
+
+    public static getSolidityName(fileId: string): string | null {
+        return this.getLocalStorageItem(this.SOLIDITY_NAME_KEY + "/" + fileId + "/name")
+    }
+
+    public static setSolidityName(fileId: string, newValue: string | null ): void {
+        this.setLocalStorageItem(this.SOLIDITY_NAME_KEY + "/" + fileId + "/name", newValue)
+    }
+
+    //
     // Private
     //
 
     private static getLocalStorageItem(keySuffix: string): string|null {
         let result: string|null
         try {
-            result = localStorage.getItem(AppStorage.VERSION + "/" + keySuffix)
+            result = localStorage.getItem(this.makeKey(keySuffix))
         } catch {
             result = null
         }
@@ -100,7 +141,7 @@ export class AppStorage {
     }
 
     private static setLocalStorageItem(keySuffix: string, value: string|null) {
-        const key = AppStorage.VERSION + "/" + keySuffix
+        const key = this.makeKey(keySuffix)
         try {
             if (value != null) {
                 localStorage.setItem(key, value);
@@ -110,5 +151,9 @@ export class AppStorage {
         } catch {
             // Ignored
         }
+    }
+
+    private static makeKey(keySuffix: string): string {
+        return AppStorage.VERSION + "/" + keySuffix
     }
 }
