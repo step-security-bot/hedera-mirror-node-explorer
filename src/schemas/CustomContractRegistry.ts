@@ -21,7 +21,6 @@
 import {ethers} from "ethers";
 import {solidityCompiler} from "@agnostico/browser-solidity-compiler";
 import {AppStorage} from "@/AppStorage";
-import {FormatTypes} from "ethers/lib.esm/utils";
 import {ContractEntry} from "@/schemas/ContractEntry";
 
 export class CustomContractRegistry {
@@ -128,10 +127,6 @@ class CustomContractEntry extends ContractEntry {
         if (abi !== null) {
             try {
                 result = new ethers.utils.Interface(abi)
-                console.log("deploy=" + result.deploy.format(FormatTypes.full))
-                for (const f of result.fragments) {
-                    console.log("f=" + f.name)
-                }
             } catch(error) {
                 console.log("Failed to load ABI for fileId " + fileId )
                 console.log("error=" + error)
