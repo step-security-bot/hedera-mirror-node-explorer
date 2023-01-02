@@ -20,6 +20,7 @@
 
 import {computed, ComputedRef, ref, Ref, watch, WatchStopHandle} from "vue";
 import {systemContractRegistry} from "@/schemas/SystemContractRegistry";
+import {customContractRegistry} from "@/schemas/CustomContractRegistry";
 import {ContractEntry} from "@/schemas/ContractEntry";
 import {ethers} from "ethers";
 
@@ -28,6 +29,7 @@ export class FunctionCallAnalyzer {
     public readonly input: Ref<string|null>
     public readonly output: Ref<string|null>
     public readonly contractId: Ref<string|null>
+    public readonly fileId: Ref<string|null>
     private readonly watchHandles: WatchStopHandle[] = []
     private readonly transactionDescription = ref<ethers.utils.TransactionDescription|null>(null)
     private readonly decodedFunctionResult = ref<ethers.utils.Result|null>(null)
@@ -36,10 +38,12 @@ export class FunctionCallAnalyzer {
     // Public
     //
 
-    public constructor(input: Ref<string|null>, output: Ref<string|null>, contractId: Ref<string|null>) {
+    public constructor(input: Ref<string|null>, output: Ref<string|null>,
+                       contractId: Ref<string|null>, fileId: Ref<string|null>) {
         this.input = input
         this.output = output
         this.contractId = contractId
+        this.fileId = fileId
     }
 
     public mount(): void {
@@ -102,7 +106,9 @@ export class FunctionCallAnalyzer {
     //
 
     private readonly systemContractEntry: ComputedRef<ContractEntry|null> = computed(() => {
-        return this.contractId.value ? systemContractRegistry.lookup(this.contractId.value) : null
+        const c1 = this.contractId.value !== null ? systemContractRegistry.lookup(this.contractId.value) : null
+        const c2 = this.fileId.value !== null ? customContractRegistry.lookup(this.fileId.value) : null
+        return c1 ?? c2
     })
 
     private readonly updateTransactionDescription = () => {

@@ -143,6 +143,7 @@ import {EntityID} from "@/utils/EntityID";
 import FunctionInput from "@/components/values/FunctionInput.vue";
 import FunctionResult from "@/components/values/FunctionResult.vue";
 import SignatureValue from "@/components/values/SignatureValue.vue";
+import {ContractLoader} from "@/components/contract/ContractLoader";
 
 export default defineComponent({
 
@@ -230,10 +231,16 @@ export default defineComponent({
 
     const filter0x = (value: string|null|undefined) => value === '0x' ? '0' : value
 
+    const contractId = computed(() => props.contractId ?? null)
+    const contractLoader = new ContractLoader(contractId)
+    onMounted(() => contractLoader.requestLoad())
+
+    const fileId = computed(() => contractLoader.entity.value?.file_id ?? null)
     const functionCallAnalyzer = new FunctionCallAnalyzer(
         contractResultDetailsLoader.functionParameters,
         contractResultDetailsLoader.callResult,
-        contractResultDetailsLoader.actualContractId)
+        contractResultDetailsLoader.actualContractId,
+        fileId)
     onMounted(() => functionCallAnalyzer.mount())
     onBeforeUnmount(() => functionCallAnalyzer.unmount())
 

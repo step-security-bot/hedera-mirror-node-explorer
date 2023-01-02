@@ -140,6 +140,7 @@ import EVMAddress from "@/components/values/EVMAddress.vue";
 import {FunctionCallAnalyzer} from "@/utils/FunctionCallAnalyzer";
 import FunctionInput from "@/components/values/FunctionInput.vue";
 import FunctionResult from "@/components/values/FunctionResult.vue";
+import {ContractLoader} from "@/components/contract/ContractLoader";
 
 export default defineComponent({
   name: 'ContractActionDetails',
@@ -175,10 +176,14 @@ export default defineComponent({
 
     const isNullByteCodeValue = (value: string | null) => value == null || value == "0x"
 
+    const contractId = computed(() => props.action?.recipient ?? null)
+    const contractLoader = new ContractLoader(contractId)
+    onMounted(() => contractLoader.requestLoad())
+
     const input = computed(() => props.action?.input ?? null)
     const output = computed(() => null)
-    const contractId = computed(() => props.action?.recipient ?? null)
-    const functionCallAnalyzer = new FunctionCallAnalyzer(input, output, contractId)
+    const fileId = computed(() => contractLoader.entity.value?.file_id ?? null)
+    const functionCallAnalyzer = new FunctionCallAnalyzer(input, output, contractId, fileId)
     onMounted(() => functionCallAnalyzer.mount())
     onBeforeUnmount(() => functionCallAnalyzer.unmount())
 
