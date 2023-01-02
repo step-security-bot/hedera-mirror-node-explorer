@@ -12,5 +12,10 @@ module.exports = {
 
     transformIgnorePatterns: [
         "node_modules/(?!hashconnect|@bladelabs)"
+    ],
+
+    setupFiles: [
+        "jsdom-worker-fix"
     ]
+
 }
