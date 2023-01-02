@@ -124,7 +124,7 @@
             <Property id="code">
               <template v-slot:name>Initcode</template>
               <template v-slot:value>
-                <ByteCodeValue :byte-code="contract?.bytecode"/>
+                <ByteCodeValue :init-code-analyzer="initCodeAnalyzer"/>
               </template>
             </Property>
       </template>
@@ -221,6 +221,7 @@ import {networkRegistry} from "@/schemas/NetworkRegistry";
 import router, {routeManager} from "@/router";
 import TransactionLink from "@/components/values/TransactionLink.vue";
 import EVMAddress from "@/components/values/EVMAddress.vue";
+import {InitCodeAnalyzer} from "@/utils/InitCodeAnalyzer";
 
 const MAX_TOKEN_BALANCES = 3
 
@@ -320,6 +321,16 @@ export default defineComponent({
       return normalizedContractId.value !== null ?  routeManager.makeRouteToAccount(normalizedContractId.value) : null
     })
 
+    //
+    // InitCodeAnalyzer
+    //
+
+    const initCode = computed(() => contractLoader.entity.value?.bytecode ?? null)
+    const fileId = computed(() => contractLoader.entity.value?.file_id ?? null)
+    const initCodeAnalyzer = new InitCodeAnalyzer(initCode, fileId)
+    onMounted(() => initCodeAnalyzer.mount())
+    onBeforeUnmount(() => initCodeAnalyzer.unmount())
+
     return {
       isSmallScreen,
       isMediumScreen,
@@ -337,7 +348,9 @@ export default defineComponent({
       obtainerId: contractLoader.obtainerId,
       proxyAccountId: contractLoader.proxyAccountId,
       normalizedContractId,
-      accountRoute
+      accountRoute,
+      aliasByteString: accountLoader.aliasByteString,
+      initCodeAnalyzer,
     }
   },
 });
