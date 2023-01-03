@@ -29,7 +29,7 @@ export class CustomContractRegistry {
 
     constructor() {
         for (const fileId of AppStorage.getSolidityFileIds()) {
-            this.addEntry(fileId, "")
+            this.addEntry(fileId, AppStorage.getSolidityName(fileId) ?? "")
         }
     }
 
