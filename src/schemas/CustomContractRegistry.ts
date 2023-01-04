@@ -28,13 +28,17 @@ export class CustomContractRegistry {
     private readonly entries = new Map<string, CustomContractEntry>()
 
     constructor() {
-        for (const fileId of AppStorage.getSolidityFileIds()) {
-            this.addEntry(fileId, AppStorage.getSolidityName(fileId) ?? "")
-        }
+        this.reload()
     }
 
     public lookup(fileId: string): CustomContractEntry | null {
         return this.entries.get(fileId) ?? null
+    }
+
+    public reload(): void {
+        for (const fileId of AppStorage.getSolidityFileIds()) {
+            this.addEntry(fileId, AppStorage.getSolidityName(fileId) ?? "")
+        }
     }
 
     //
@@ -54,6 +58,7 @@ class CustomContractEntry extends ContractEntry {
     public readonly fileId: string
 
     private compileOutput: CompileOutput|null = null
+    private compilePromise: Promise<CompileOutput|null>|null = null
 
     //
     // Exported
@@ -64,6 +69,37 @@ class CustomContractEntry extends ContractEntry {
         this.fileId = fileId
     }
 
+    async getByteCode(): Promise<string|null> {
+        let result: string|null
+        const compileOutput = await this.getCompileOutput()
+        if (compileOutput !== null) {
+            result = compileOutput.fetchByteCode(this.description)
+        } else {
+            result = null
+        }
+        return Promise.resolve(result)
+    }
+
+    async verifyByteCode(deployedByteCode: string): Promise<boolean> {
+        let result: boolean
+
+        deployedByteCode = deployedByteCode.startsWith("0x") ? deployedByteCode.slice(2) : deployedByteCode
+
+        const compiledByteCode = await this.getByteCode()
+        if (compiledByteCode !== null) {
+            // Compares deployedByteCode and compiledByteCode
+            // Comparison logic excludes last 43 bytes of each bytecode (which represent metadata hash)
+            // // https://docs.soliditylang.org/en/v0.4.25/metadata.html#encoding-of-the-metadata-hash-in-the-bytecode
+            const hashSize = 43
+            const deployedByteCodeNoHash = deployedByteCode.slice(0, deployedByteCode.length - hashSize * 2)
+            const compiledByteCodeNoHash = compiledByteCode.slice(0, compiledByteCode.length - hashSize * 2)
+            result = compiledByteCodeNoHash == deployedByteCodeNoHash
+        } else {
+            result = false
+        }
+        return Promise.resolve(result)
+    }
+
     //
     // ContractEntry
     //
@@ -71,11 +107,9 @@ class CustomContractEntry extends ContractEntry {
     protected async buildInterface(): Promise<ethers.utils.Interface|null> {
         let result: ethers.utils.Interface|null
 
-        if (this.compileOutput === null) {
-            this.compileOutput = await CustomContractEntry.compile(this.fileId)
-        }
-        if (this.compileOutput !== null) {
-            result = await CustomContractEntry.loadInterface(this.fileId, this.compileOutput)
+        const compileOutput = await this.getCompileOutput()
+        if (compileOutput !== null) {
+            result = await CustomContractEntry.loadInterface(this.fileId, compileOutput)
         } else {
             result = null
         }
@@ -86,6 +120,22 @@ class CustomContractEntry extends ContractEntry {
     //
     // Private
     //
+
+    private async getCompileOutput(): Promise<CompileOutput|null> {
+        let result: CompileOutput|null
+
+        if (this.compilePromise !== null) {
+            result = await this.compilePromise
+        } else if (this.compileOutput !== null) {
+            result = this.compileOutput
+        } else {
+            this.compilePromise = CustomContractEntry.compile(this.fileId)
+            this.compileOutput = await this.compilePromise
+            result = this.compileOutput
+        }
+
+        return result
+    }
 
     private static async compile(fileId: string): Promise<CompileOutput|null> {
         let result: CompileOutput|null
@@ -153,6 +203,11 @@ class CompileOutput {
     fetchABI(name: string): ethers.utils.Fragment[] {
         const result = CompileOutput.fetch(this.rawOutput, ["contracts", "Compiled_Contracts", name, "abi"])
         return result as ethers.utils.Fragment[]
+    }
+
+    fetchByteCode(name: string): string|null {
+        const result = CompileOutput.fetch(this.rawOutput, ["contracts", "Compiled_Contracts", name, "evm", "deployedBytecode", "object"])
+        return result as string|null
     }
 
     private static fetch(container: unknown, keys: string[]): unknown {
