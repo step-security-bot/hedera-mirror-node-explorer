@@ -41,6 +41,18 @@ export class CustomContractRegistry {
         }
     }
 
+    public update(fileId: string, contractSource: string, contractName: string): void {
+        AppStorage.setSolidityName(fileId, contractName)
+        AppStorage.setSoliditySource(fileId, contractSource)
+        this.entries.set(fileId, new CustomContractEntry(fileId, contractName))
+    }
+
+    public forget(fileId: string): void {
+        AppStorage.setSolidityName(fileId, null)
+        AppStorage.setSoliditySource(fileId, null)
+        this.entries.delete(fileId)
+    }
+
     //
     // Private
     //
@@ -53,7 +65,7 @@ export class CustomContractRegistry {
 }
 
 
-class CustomContractEntry extends ContractEntry {
+export class CustomContractEntry extends ContractEntry {
 
     public readonly fileId: string
 
@@ -73,7 +85,7 @@ class CustomContractEntry extends ContractEntry {
         let result: string|null
         const compileOutput = await this.getCompileOutput()
         if (compileOutput !== null) {
-            result = compileOutput.fetchByteCode(this.description)
+            result = compileOutput.fetchByteCode(this.makeBaseName())
         } else {
             result = null
         }
@@ -120,6 +132,17 @@ class CustomContractEntry extends ContractEntry {
     //
     // Private
     //
+
+    private makeBaseName(): string {
+        let result: string
+        const fileType = ".sol"
+        if (this.description.toLowerCase().endsWith(fileType)) {
+            result = this.description.slice(0, this.description.length - fileType.length)
+        } else {
+            result = this.description
+        }
+        return result
+    }
 
     private async getCompileOutput(): Promise<CompileOutput|null> {
         let result: CompileOutput|null
