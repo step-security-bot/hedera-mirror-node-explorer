@@ -116,12 +116,29 @@ export class CustomContractEntry extends ContractEntry {
     // ContractEntry
     //
 
+    /*
+        https://docs.ethers.io/v5/api/utils/abi/interface/
+     */
+
     protected async buildInterface(): Promise<ethers.utils.Interface|null> {
         let result: ethers.utils.Interface|null
 
         const compileOutput = await this.getCompileOutput()
         if (compileOutput !== null) {
-            result = await CustomContractEntry.loadInterface(this.fileId, compileOutput)
+            const name = this.makeBaseName()
+            const abi = name !== null ? compileOutput.fetchABI(name) : null
+            if (abi !== null) {
+                try {
+                    result = new ethers.utils.Interface(abi)
+                } catch(error) {
+                    console.log("Failed to load ABI for fileId " + this.fileId )
+                    console.log("error=" + error)
+                    result = null
+                }
+            } else {
+                console.log("No ABI found for fileId " + this.fileId)
+                result = null
+            }
         } else {
             result = null
         }
@@ -183,30 +200,6 @@ export class CustomContractEntry extends ContractEntry {
             }
         } else {
             console.log("No source code found in local storage for fileId " + fileId)
-            result = null
-        }
-        return Promise.resolve(result)
-    }
-
-
-    /*
-        https://docs.ethers.io/v5/api/utils/abi/interface/
-     */
-
-    private static async loadInterface(fileId: string, compileOutput: CompileOutput): Promise<ethers.utils.Interface|null> {
-        let result: ethers.utils.Interface|null
-        const name = AppStorage.getSolidityName(fileId)
-        const abi = name !== null ? compileOutput.fetchABI(name) : null
-        if (abi !== null) {
-            try {
-                result = new ethers.utils.Interface(abi)
-            } catch(error) {
-                console.log("Failed to load ABI for fileId " + fileId )
-                console.log("error=" + error)
-                result = null
-            }
-        } else {
-            console.log("No ABI found for fileId " + fileId)
             result = null
         }
         return Promise.resolve(result)
