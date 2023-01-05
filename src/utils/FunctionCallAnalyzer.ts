@@ -105,15 +105,15 @@ export class FunctionCallAnalyzer {
     // Private
     //
 
-    private readonly systemContractEntry: ComputedRef<ContractEntry|null> = computed(() => {
+    private readonly contractEntry: ComputedRef<ContractEntry|null> = computed(() => {
         const c1 = this.contractId.value !== null ? systemContractRegistry.lookup(this.contractId.value) : null
         const c2 = this.fileId.value !== null ? customContractRegistry.lookup(this.fileId.value) : null
         return c1 ?? c2
     })
 
     private readonly updateTransactionDescription = () => {
-        if (this.systemContractEntry.value !== null && this.input.value !== null) {
-            this.systemContractEntry.value.parseTransaction(this.input.value)
+        if (this.contractEntry.value !== null && this.input.value !== null) {
+            this.contractEntry.value.parseTransaction(this.input.value)
                 .then((d: ethers.utils.TransactionDescription|null) => {
                     this.transactionDescription.value = d
                 })
@@ -126,9 +126,9 @@ export class FunctionCallAnalyzer {
     }
 
     private readonly updateDecodedFunctionResult = () => {
-        if (this.systemContractEntry.value !== null && this.transactionDescription.value !== null && this.output.value !== null) {
+        if (this.contractEntry.value !== null && this.transactionDescription.value !== null && this.output.value !== null) {
             const functionFragment = this.transactionDescription.value.functionFragment
-            this.systemContractEntry.value?.decodeFunctionResult(functionFragment, this.output.value)
+            this.contractEntry.value?.decodeFunctionResult(functionFragment, this.output.value)
                 .then((result: ethers.utils.Result|null) => {
                     this.decodedFunctionResult.value = result
                 })
