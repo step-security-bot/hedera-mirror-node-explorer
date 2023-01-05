@@ -124,7 +124,10 @@
             <Property id="code">
               <template v-slot:name>Initcode</template>
               <template v-slot:value>
-                <ByteCodeValue :init-code-analyzer="initCodeAnalyzer"/>
+                <div>
+                  <ByteCodeValue :init-code-analyzer="initCodeAnalyzer"/>
+                  <ContractToolBar :analyzer="contractAnalyzer"/>
+                </div>
               </template>
             </Property>
       </template>
@@ -222,6 +225,8 @@ import router, {routeManager} from "@/router";
 import TransactionLink from "@/components/values/TransactionLink.vue";
 import EVMAddress from "@/components/values/EVMAddress.vue";
 import {InitCodeAnalyzer} from "@/utils/InitCodeAnalyzer";
+import ContractToolBar from "@/components/ContractToolBar.vue";
+import {ContractAnalyzer} from "@/utils/ContractAnalyzer";
 
 const MAX_TOKEN_BALANCES = 3
 
@@ -232,6 +237,7 @@ export default defineComponent({
   components: {
     EVMAddress,
     TransactionLink,
+    ContractToolBar,
     TransactionFilterSelect,
     ByteCodeValue,
     Property,
@@ -322,6 +328,14 @@ export default defineComponent({
     })
 
     //
+    // ContractAnalyzer
+    //
+
+    const contractAnalyzer = new ContractAnalyzer(contractLoader.entity)
+    onMounted(() => contractAnalyzer.mount())
+    onBeforeUnmount(()=> contractAnalyzer.unmount())
+
+    //
     // InitCodeAnalyzer
     //
 
@@ -351,6 +365,7 @@ export default defineComponent({
       accountRoute,
       aliasByteString: accountLoader.aliasByteString,
       initCodeAnalyzer,
+      contractAnalyzer,
     }
   },
 });
