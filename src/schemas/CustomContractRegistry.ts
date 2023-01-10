@@ -18,10 +18,10 @@
  *
  */
 
-import {ethers} from "ethers";
-import {solidityCompiler} from "@agnostico/browser-solidity-compiler";
-import {AppStorage} from "@/AppStorage";
-import {ContractEntry} from "@/schemas/ContractEntry";
+import {ethers} from "ethers"
+import {AppStorage} from "@/AppStorage"
+import {ContractEntry} from "@/schemas/ContractEntry"
+import {SolidityLang} from "@/utils/solidity/SolidityLang"
 
 export class CustomContractRegistry {
 
@@ -186,10 +186,8 @@ export class CustomContractEntry extends ContractEntry {
         if (sourceCode !== null) {
             console.log("Starting compilation")
             try {
-                const rawOutput = await solidityCompiler({
-                    version: `https://binaries.soliditylang.org/bin/soljson-v0.8.17+commit.8df45f5f.js`,
-                    contractBody: sourceCode
-                })
+                const compilerURL = "https://binaries.soliditylang.org/bin/soljson-v0.8.17+commit.8df45f5f.js"
+                const rawOutput = await SolidityLang.compile(compilerURL, sourceCode)
                 result = new CompileOutput(rawOutput)
                 console.log("Compilation succeeded")
                 // console.log(JSON.stringify(result, null, " "))
