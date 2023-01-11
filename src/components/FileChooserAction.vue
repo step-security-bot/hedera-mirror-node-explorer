@@ -36,7 +36,7 @@
 
 <script lang="ts">
 
-import {defineComponent, ref} from "vue";
+import {defineComponent, PropType, ref} from "vue";
 
 export default defineComponent({
   name: "FileChooserAction",
@@ -44,8 +44,8 @@ export default defineComponent({
   props: {
     actionLabel: String,
     fileType: String,
-    fileContent: String,
-    fileName: String,
+    fileContent: String as PropType<string|null>,
+    fileName: String as PropType<string|null>,
     reading: Boolean
   },
 
@@ -70,8 +70,8 @@ export default defineComponent({
               context.emit("update:fileName", selectedFile.name)
             })
             .catch(() => {
-              context.emit("update:fileContent", undefined)
-              context.emit("update:fileName", undefined)
+              context.emit("update:fileContent", null)
+              context.emit("update:fileName", null)
             })
             .finally(() => {
               context.emit("update:reading", false)

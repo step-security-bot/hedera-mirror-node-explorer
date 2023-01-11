@@ -91,6 +91,8 @@ export default defineComponent({
       if (selectedFileContent.value !== null && selectedFileName.value !== null && fileId.value !== null) {
         customContractRegistry.update(fileId.value, selectedFileContent.value, selectedFileName.value)
         props.analyzer.registryDidChange()
+        selectedFileContent.value = null
+        selectedFileName.value = null
       }
     })
 
