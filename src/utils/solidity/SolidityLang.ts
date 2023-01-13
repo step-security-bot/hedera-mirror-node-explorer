@@ -19,6 +19,9 @@
  */
 
 import axios from "axios";
+import {CompilerInput} from "@/utils/solidity/CompilerInput";
+import {CompilerOutput} from "@/utils/solidity/CompilerOutput";
+import {CompilerRegistry} from "@/utils/solidity/CompilerRegistry";
 
 export class SolidityLang {
 
@@ -30,26 +33,25 @@ export class SolidityLang {
         return (await axios.get<CompilerRegistry>("https://binaries.soliditylang.org/bin/list.json")).data
     }
 
-    public static async compile(compilerURL: string, source: string): Promise<unknown> {
-        function executor(resolve: (value: unknown) => void, reject: (reason: unknown) => void) {
+    public static async compile(compilerURL: string, compilerInput: CompilerInput): Promise<CompilerOutput> {
+        function executor(resolve: (value: CompilerOutput) => void, reject: (reason: unknown) => void) {
             const workerURL = SolidityLang.makeWorkerURL()
-            const compilerInput = SolidityLang.makeInput(source)
             const worker = new Worker(workerURL)
-            worker.onmessage = (message: MessageEvent) => {
-                resolve(message.data)
+            const handleEvent = (e: MessageEvent<CompilerOutput> | ErrorEvent): void => {
+                if (e instanceof MessageEvent) {
+                    resolve(e.data)
+                } else {
+                    reject(e)
+                }
                 worker.terminate()
                 URL.revokeObjectURL(workerURL)
             }
-            worker.onerror = (error: ErrorEvent) => {
-                console.log("error = " + error.message)
-                reject(error)
-                worker.terminate()
-                URL.revokeObjectURL(workerURL)
-            }
+            worker.onmessage = handleEvent
+            worker.onerror = handleEvent
             worker.postMessage({ compilerURL, compilerInput })
         }
 
-        return new Promise<unknown>(executor)
+        return new Promise<CompilerOutput>(executor)
     }
 
     //
@@ -57,27 +59,13 @@ export class SolidityLang {
     //
 
     private static makeWorkerURL(): string {
-        const part = `(${SolidityLang.WORKER_SCRIPT})()`
+        const part = "(" + SolidityLang.WORKER_SCRIPT + ")()"
         return URL.createObjectURL(new Blob([part], { type: 'module' }))
     }
 
-    private static makeInput(source: string): unknown {
-        return {
-            language: 'Solidity',
-            sources: {
-                'Compiled_Contracts': {
-                    content: source
-                }
-            },
-            settings: {
-                outputSelection: {
-                    '*': {
-                        '*': ['*'],
-                    },
-                },
-            },
-        }
-    }
+    //
+    // Private (Worker Script)
+    //
 
     private static readonly WORKER_SCRIPT = "function workerBody() {\n" +
         "\n" +
@@ -106,25 +94,3 @@ export class SolidityLang {
         "    }\n" +
         "}"
 }
-
-
-export interface CompilerRegistry {
-    builds: CompilerBuild[]
-    releases: Record<string, string>
-    latestRelease: string
-}
-
-export interface CompilerBuild {
-    path: string
-    version: string
-    prerelease: string
-    build: string
-    longVersion: string
-    keccak256: string
-    sha256: string
-    urls: string[]
-}
-//
-// export interface CompilerOutput {
-//
-// }
