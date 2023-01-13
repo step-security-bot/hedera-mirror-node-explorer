@@ -67,7 +67,7 @@
 import {computed, defineComponent, PropType, ref, watch} from 'vue';
 import {ContractAnalyzer, ContractAnalyzerState} from "@/utils/ContractAnalyzer";
 import FileChooserAction from "@/components/FileChooserAction.vue";
-import {customContractRegistry} from "@/schemas/CustomContractRegistry";
+import {CustomContractRegistry, customContractRegistry} from "@/schemas/CustomContractRegistry";
 
 export default defineComponent({
   name: 'ContractToolBar',
@@ -89,7 +89,8 @@ export default defineComponent({
     const selectedFileName = ref<string|null>(null)
     watch(selectedFileContent, () => {
       if (selectedFileContent.value !== null && selectedFileName.value !== null && fileId.value !== null) {
-        customContractRegistry.update(fileId.value, selectedFileContent.value, selectedFileName.value)
+        const compilerURL = CustomContractRegistry.COMPILER_URL_FALLBACK
+        customContractRegistry.update(fileId.value, compilerURL, selectedFileContent.value, selectedFileName.value)
         props.analyzer.registryDidChange()
         selectedFileContent.value = null
         selectedFileName.value = null

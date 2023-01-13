@@ -27,6 +27,8 @@ import {CompilerInput} from "@/utils/solidity/CompilerInput";
 
 export class CustomContractRegistry {
 
+    public static readonly COMPILER_URL_FALLBACK = "https://binaries.soliditylang.org/bin/soljson-v0.8.17+commit.8df45f5f.js"
+
     private readonly entries = new Map<string, CustomContractEntry>()
 
     constructor() {
@@ -39,19 +41,23 @@ export class CustomContractRegistry {
 
     public reload(): void {
         for (const fileId of AppStorage.getSolidityFileIds()) {
-            this.addEntry(fileId, AppStorage.getSolidityName(fileId) ?? "")
+            const name = AppStorage.getSolidityName(fileId) ?? ""
+            const compilerURL = AppStorage.getSolidityCompilerURL(fileId) ?? CustomContractRegistry.COMPILER_URL_FALLBACK
+            this.addEntry(fileId, name, compilerURL)
         }
     }
 
-    public update(fileId: string, contractSource: string, contractName: string): void {
+    public update(fileId: string, compilerURL: string, contractSource: string, contractName: string): void {
         AppStorage.setSolidityName(fileId, contractName)
         AppStorage.setSoliditySource(fileId, contractSource)
-        this.entries.set(fileId, new CustomContractEntry(fileId, contractName))
+        AppStorage.setSolidityCompilerURL(fileId, compilerURL)
+        this.entries.set(fileId, new CustomContractEntry(fileId, contractName, compilerURL))
     }
 
     public forget(fileId: string): void {
         AppStorage.setSolidityName(fileId, null)
         AppStorage.setSoliditySource(fileId, null)
+        AppStorage.setSolidityCompilerURL(fileId, null)
         this.entries.delete(fileId)
     }
 
@@ -59,9 +65,9 @@ export class CustomContractRegistry {
     // Private
     //
 
-    private addEntry(fileId: string, description: string) {
+    private addEntry(fileId: string, description: string, compilerURL: string) {
         if(!this.entries.get(fileId)) {
-            this.entries.set(fileId, new CustomContractEntry(fileId, description))
+            this.entries.set(fileId, new CustomContractEntry(fileId, description, compilerURL))
         }
     }
 }
@@ -70,6 +76,7 @@ export class CustomContractRegistry {
 export class CustomContractEntry extends ContractEntry {
 
     public readonly fileId: string
+    public readonly compilerURL: string
 
     private compilationReport: CompilationReport|null = null
     private compilationPromise: Promise<CompilationReport>|null = null
@@ -78,9 +85,10 @@ export class CustomContractEntry extends ContractEntry {
     // Exported
     //
 
-    constructor(fileId: string, description: string) {
+    constructor(fileId: string, description: string, compilerURL: string) {
         super(description)
         this.fileId = fileId
+        this.compilerURL = compilerURL
     }
 
     async getCompilationReport(): Promise<CompilationReport> {
@@ -91,7 +99,7 @@ export class CustomContractEntry extends ContractEntry {
         } else if (this.compilationReport !== null) {
             result = this.compilationReport
         } else {
-            this.compilationPromise = CustomContractEntry.compile(this.fileId)
+            this.compilationPromise = CustomContractEntry.compile(this.fileId, this.compilerURL)
             this.compilationReport = await this.compilationPromise // (1)
             this.compilationPromise = null
             result = this.compilationReport
@@ -177,7 +185,7 @@ export class CustomContractEntry extends ContractEntry {
         return result
     }
 
-    private static async compile(fileId: string): Promise<CompilationReport> {
+    private static async compile(fileId: string, compilerURL: string): Promise<CompilationReport> {
         let result: CompilationReport
 
         // https://github.com/rexdavinci/browser-solidity-compiler
@@ -186,7 +194,6 @@ export class CustomContractEntry extends ContractEntry {
         if (sourceCode !== null) {
             console.log("Starting compilation")
             try {
-                const compilerURL = "https://binaries.soliditylang.org/bin/soljson-v0.8.17+commit.8df45f5f.js"
                 const compilerInput = CustomContractEntry.makeCompilerInput(sourceCode)
                 const compilerOutput = await SolidityLang.compile(compilerURL, compilerInput)
                 result = new CompilationReport(compilerOutput)
