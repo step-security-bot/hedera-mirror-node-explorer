@@ -22,6 +22,8 @@ import {ethers} from "ethers"
 import {AppStorage} from "@/AppStorage"
 import {ContractEntry} from "@/schemas/ContractEntry"
 import {SolidityLang} from "@/utils/solidity/SolidityLang"
+import {CompilerOutput, ContractDescription} from "@/utils/solidity/CompilerOutput";
+import {CompilerInput} from "@/utils/solidity/CompilerInput";
 
 export class CustomContractRegistry {
 
@@ -69,8 +71,8 @@ export class CustomContractEntry extends ContractEntry {
 
     public readonly fileId: string
 
-    private compileOutput: CompileOutput|null = null
-    private compilePromise: Promise<CompileOutput|null>|null = null
+    private compilationReport: CompilationReport|null = null
+    private compilationPromise: Promise<CompilationReport>|null = null
 
     //
     // Exported
@@ -81,36 +83,49 @@ export class CustomContractEntry extends ContractEntry {
         this.fileId = fileId
     }
 
-    async getByteCode(): Promise<string|null> {
-        let result: string|null
-        const compileOutput = await this.getCompileOutput()
-        if (compileOutput !== null) {
-            result = compileOutput.fetchByteCode(this.makeBaseName())
+    async getCompilationReport(): Promise<CompilationReport> {
+        let result: CompilationReport
+
+        if (this.compilationPromise !== null) {
+            result = await this.compilationPromise
+        } else if (this.compilationReport !== null) {
+            result = this.compilationReport
         } else {
-            result = null
+            this.compilationPromise = CustomContractEntry.compile(this.fileId)
+            this.compilationReport = await this.compilationPromise // (1)
+            this.compilationPromise = null
+            result = this.compilationReport
         }
-        return Promise.resolve(result)
+
+        return result
     }
 
-    async verifyByteCode(deployedByteCode: string): Promise<boolean> {
+
+    verifyBytecode(deployedByteCode: string, report: CompilationReport): boolean {
         let result: boolean
 
-        deployedByteCode = deployedByteCode.startsWith("0x") ? deployedByteCode.slice(2) : deployedByteCode
+        if (report !== null) {
+            const contractDescription = report.getContractDescription("Compiled_Contracts", this.makeBaseName())
+            const compiledByteCode = contractDescription?.evm?.deployedBytecode.object ?? null
 
-        const compiledByteCode = await this.getByteCode()
-        if (compiledByteCode !== null) {
-            // Compares deployedByteCode and compiledByteCode
-            // Comparison logic excludes last 43 bytes of each bytecode (which represent metadata hash)
-            // // https://docs.soliditylang.org/en/v0.4.25/metadata.html#encoding-of-the-metadata-hash-in-the-bytecode
-            const hashSize = 43
-            const deployedByteCodeNoHash = deployedByteCode.slice(0, deployedByteCode.length - hashSize * 2)
-            const compiledByteCodeNoHash = compiledByteCode.slice(0, compiledByteCode.length - hashSize * 2)
-            result = compiledByteCodeNoHash == deployedByteCodeNoHash
+            if (compiledByteCode !== null) {
+                // Compares deployedByteCode and compiledByteCode
+                // Comparison logic excludes last 43 bytes of each bytecode (which represent metadata hash)
+                // https://docs.soliditylang.org/en/v0.4.25/metadata.html#encoding-of-the-metadata-hash-in-the-bytecode
+                const hashSize = 43
+                const deployedByteCodeNoHash = deployedByteCode.slice(0, deployedByteCode.length - hashSize * 2)
+                const compiledByteCodeNoHash = compiledByteCode.slice(0, compiledByteCode.length - hashSize * 2)
+                result = compiledByteCodeNoHash == deployedByteCodeNoHash
+            } else {
+                result = false
+            }
         } else {
             result = false
         }
-        return Promise.resolve(result)
+
+        return result
     }
+
 
     //
     // ContractEntry
@@ -123,10 +138,11 @@ export class CustomContractEntry extends ContractEntry {
     protected async buildInterface(): Promise<ethers.utils.Interface|null> {
         let result: ethers.utils.Interface|null
 
-        const compileOutput = await this.getCompileOutput()
-        if (compileOutput !== null) {
+        const report = await this.getCompilationReport()
+        if (report !== null) {
             const name = this.makeBaseName()
-            const abi = name !== null ? compileOutput.fetchABI(name) : null
+            const contractDescription = report.getContractDescription("Compiled_Contracts", name)
+            const abi = contractDescription?.abi ?? null
             if (abi !== null) {
                 try {
                     result = new ethers.utils.Interface(abi)
@@ -161,24 +177,8 @@ export class CustomContractEntry extends ContractEntry {
         return result
     }
 
-    private async getCompileOutput(): Promise<CompileOutput|null> {
-        let result: CompileOutput|null
-
-        if (this.compilePromise !== null) {
-            result = await this.compilePromise
-        } else if (this.compileOutput !== null) {
-            result = this.compileOutput
-        } else {
-            this.compilePromise = CustomContractEntry.compile(this.fileId)
-            this.compileOutput = await this.compilePromise
-            result = this.compileOutput
-        }
-
-        return result
-    }
-
-    private static async compile(fileId: string): Promise<CompileOutput|null> {
-        let result: CompileOutput|null
+    private static async compile(fileId: string): Promise<CompilationReport> {
+        let result: CompilationReport
 
         // https://github.com/rexdavinci/browser-solidity-compiler
 
@@ -187,55 +187,78 @@ export class CustomContractEntry extends ContractEntry {
             console.log("Starting compilation")
             try {
                 const compilerURL = "https://binaries.soliditylang.org/bin/soljson-v0.8.17+commit.8df45f5f.js"
-                const rawOutput = await SolidityLang.compile(compilerURL, sourceCode)
-                result = new CompileOutput(rawOutput)
+                const compilerInput = CustomContractEntry.makeCompilerInput(sourceCode)
+                const compilerOutput = await SolidityLang.compile(compilerURL, compilerInput)
+                result = new CompilationReport(compilerOutput)
                 console.log("Compilation succeeded")
                 // console.log(JSON.stringify(result, null, " "))
             } catch(error) {
                 console.log("Compilation failed")
                 console.log("error=" + error)
-                result = null
+                result = new CompilationReport(null)
             }
         } else {
             console.log("No source code found in local storage for fileId " + fileId)
-            result = null
+            result = new CompilationReport(null)
         }
         return Promise.resolve(result)
     }
 
+
+    private static makeCompilerInput(source: string): CompilerInput {
+        return {
+            language: 'Solidity',
+            sources: {
+                'Compiled_Contracts': {
+                    content: source,
+                }
+            },
+            settings: {
+                remappings: [
+                    "./=https://raw.githubusercontent.com/hashgraph/hedera-smart-contracts/main/contracts/hts-precompile/"
+                ],
+                outputSelection: {
+                    '*': {
+                        '*': ['*'],
+                    },
+                },
+            },
+        }
+    }
+
+
 }
 
 
-class CompileOutput {
+export class CompilationReport {
 
-    readonly rawOutput: unknown
+    readonly output: CompilerOutput|null
 
-    constructor(rawOutput: unknown) {
-        this.rawOutput = rawOutput
+    constructor(output: CompilerOutput|null) {
+        this.output = output
     }
 
-    fetchABI(name: string): ethers.utils.Fragment[] {
-        const result = CompileOutput.fetch(this.rawOutput, ["contracts", "Compiled_Contracts", name, "abi"])
-        return result as ethers.utils.Fragment[]
+    getErrorCount(): number {
+        let result = 0
+        for (const e of this.output?.errors ?? []) {
+            if (e.severity == "error") {
+                result += 1
+            }
+        }
+        return result
     }
 
-    fetchByteCode(name: string): string|null {
-        const result = CompileOutput.fetch(this.rawOutput, ["contracts", "Compiled_Contracts", name, "evm", "deployedBytecode", "object"])
-        return result as string|null
-    }
-
-    private static fetch(container: unknown, keys: string[]): unknown {
-        let result: unknown
-        if (keys.length == 0) {
-            result = container
-        } else if (typeof container == "object" && container !== null) {
-            const nextContainer = (container as Record<string, unknown>)[keys[0]]
-            result = this.fetch(nextContainer, keys.slice(1))
+    getContractDescription(fileName: string, contractName: string): ContractDescription|null {
+        let result: ContractDescription|null
+        if (this.output !== null && this.output.contracts && fileName in this.output.contracts) {
+            result = this.output.contracts[fileName][contractName] ?? null
         } else {
             result = null
         }
         return result
     }
+
+
 }
 
 export const customContractRegistry = new CustomContractRegistry()

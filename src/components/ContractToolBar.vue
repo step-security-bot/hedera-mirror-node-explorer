@@ -45,7 +45,7 @@
         <span >Not conform to {{ contractName }}</span>
     </template>
     <template v-else>
-        <span class="icon fas fa-exclamation-triangle-circle has-text-warning"/>
+        <span class="icon fas fa-exclamation-triangle has-text-warning"/>
         <span >Conformance to {{ contractName }} cannot be checked</span>
     </template>
     <a v-if="contractAnalyzerState !== ContractAnalyzerState.Verifying" @click="handleForget">

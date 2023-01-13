@@ -19,7 +19,7 @@
  */
 
 import {computed, ComputedRef, ref, Ref, watch, WatchStopHandle} from "vue";
-import {CustomContractEntry, customContractRegistry} from "@/schemas/CustomContractRegistry";
+import {CompilationReport, CustomContractEntry, customContractRegistry} from "@/schemas/CustomContractRegistry";
 import {ContractResponse} from "@/schemas/HederaSchemas";
 
 export class ContractAnalyzer {
@@ -73,25 +73,29 @@ export class ContractAnalyzer {
 
     private contractDidChange = (): void => {
         const contract = this.contractRef.value
-        if (contract !== null && contract.file_id) {
-            this.contractEntryRef.value = customContractRegistry.lookup(contract.file_id)
-            if (this.contractEntryRef.value !== null) {
-                if (contract.runtime_bytecode) {
-                    this.stateRef.value = ContractAnalyzerState.Verifying
-                    this.contractEntryRef.value.verifyByteCode(contract.runtime_bytecode)
-                        .then((verified: boolean) => {
-                            if (this.contractRef.value == contract) {
+        const fileId = contract?.file_id ?? null
+        const runtimeByteCode = contract?.runtime_bytecode ?? null
+        if (fileId !== null && runtimeByteCode !== null) {
+            const contractEntry = customContractRegistry.lookup(fileId)
+            this.contractEntryRef.value = contractEntry
+            if (contractEntry !== null) {
+                this.stateRef.value = ContractAnalyzerState.Verifying
+                contractEntry.getCompilationReport()
+                    .then((report: CompilationReport) => {
+                        if (this.contractRef.value == contract) {
+                            if (report.getErrorCount() == 0) {
+                                const verified = contractEntry.verifyBytecode(runtimeByteCode, report)
                                 this.stateRef.value = verified ? ContractAnalyzerState.OK : ContractAnalyzerState.KO
-                            }
-                        })
-                        .catch(() => {
-                            if (this.contractRef.value == contract) {
+                            } else {
                                 this.stateRef.value = ContractAnalyzerState.Error
                             }
-                        })
-                } else {
-                    this.stateRef.value = ContractAnalyzerState.Error
-                }
+                        }
+                    })
+                    .catch(() => {
+                        if (this.contractRef.value == contract) {
+                            this.stateRef.value = ContractAnalyzerState.Error
+                        }
+                    })
             } else {
                 this.stateRef.value = ContractAnalyzerState.Unregistered
             }
