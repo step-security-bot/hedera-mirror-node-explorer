@@ -116,14 +116,24 @@ export class AppStorage {
     // solidity sources
     //
 
-    private static readonly SOLIDITY_NAME_KEY = 'solidity'
-
     public static getSolidityName(fileId: string): string | null {
-        return this.getLocalStorageItem(this.SOLIDITY_NAME_KEY + "/" + fileId + "/name")
+        return this.getLocalStorageItem(this.SOLIDITY_SOURCE_KEY + "/" + fileId + "/name")
     }
 
     public static setSolidityName(fileId: string, newValue: string | null ): void {
-        this.setLocalStorageItem(this.SOLIDITY_NAME_KEY + "/" + fileId + "/name", newValue)
+        this.setLocalStorageItem(this.SOLIDITY_SOURCE_KEY + "/" + fileId + "/name", newValue)
+    }
+
+    //
+    // solidity compiler url
+    //
+
+    public static getSolidityCompilerURL(fileId: string): string | null {
+        return this.getLocalStorageItem(this.SOLIDITY_SOURCE_KEY + "/" + fileId + "/compilerURL")
+    }
+
+    public static setSolidityCompilerURL(fileId: string, newValue: string | null ): void {
+        this.setLocalStorageItem(this.SOLIDITY_SOURCE_KEY + "/" + fileId + "/compilerURL", newValue)
     }
 
     //
