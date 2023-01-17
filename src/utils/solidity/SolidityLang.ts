@@ -67,6 +67,17 @@ export class SolidityLang {
     // Private (Worker Script)
     //
 
+    /*
+        Inspired from:
+            - https://github.com/ethereum/solc-js/blob/master/bindings/compile.ts
+            - https://github.com/rexdavinci/browser-solidity-compiler/blob/main/src/browser.solidity.worker.ts
+            - https://github.com/alincode/solc-import
+            - https://github.com/ericxtang/browser-solc
+            - https://github.com/zianksm/solc-browserify
+            - https://socket.dev/npm/package/solc-browserify
+
+     */
+
     private static readonly WORKER_SCRIPT = "function workerBody() {\n" +
         "\n" +
         "    if (typeof importScripts === 'function') {\n" +
