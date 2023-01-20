@@ -35,8 +35,7 @@ export class SolidityLang {
 
     public static async compile(compilerURL: string, compilerInput: CompilerInput): Promise<CompilerOutput> {
         function executor(resolve: (value: CompilerOutput) => void, reject: (reason: unknown) => void) {
-            const workerURL = SolidityLang.makeWorkerURL()
-            const worker = new Worker(workerURL)
+            const worker = new Worker("/worker/solidity-worker.js")
             const handleEvent = (e: MessageEvent<CompilerOutput> | ErrorEvent): void => {
                 if (e instanceof MessageEvent) {
                     resolve(e.data)
@@ -44,7 +43,6 @@ export class SolidityLang {
                     reject(e)
                 }
                 worker.terminate()
-                URL.revokeObjectURL(workerURL)
             }
             worker.onmessage = handleEvent
             worker.onerror = handleEvent
@@ -54,54 +52,13 @@ export class SolidityLang {
         return new Promise<CompilerOutput>(executor)
     }
 
-    //
-    // Private
-    //
-
-    private static makeWorkerURL(): string {
-        const part = "(" + SolidityLang.WORKER_SCRIPT + ")()"
-        return URL.createObjectURL(new Blob([part], { type: 'module' }))
-    }
-
-    //
-    // Private (Worker Script)
-    //
-
     /*
-        Inspired from:
+        References:
             - https://github.com/ethereum/solc-js/blob/master/bindings/compile.ts
             - https://github.com/rexdavinci/browser-solidity-compiler/blob/main/src/browser.solidity.worker.ts
             - https://github.com/alincode/solc-import
             - https://github.com/ericxtang/browser-solc
             - https://github.com/zianksm/solc-browserify
             - https://socket.dev/npm/package/solc-browserify
-
      */
-
-    private static readonly WORKER_SCRIPT = "function workerBody() {\n" +
-        "\n" +
-        "    if (typeof importScripts === 'function') {\n" +
-        "\n" +
-        "        const worker = self\n" +
-        "\n" +
-        "        worker.onmessage = (e) => {\n" +
-        "            const { compilerURL, compilerInput } = e.data\n" +
-        "\n" +
-        "            console.log(\"Importing compiler \" + compilerURL)\n" +
-        "            importScripts(compilerURL)\n" +
-        "\n" +
-        "            const soljson = worker.Module\n" +
-        "\n" +
-        "            if ('_solidity_compile' in soljson) {\n" +
-        "                console.log(\"Running compiler \" + compilerURL)\n" +
-        "                const compile = soljson.cwrap('solidity_compile', 'string', ['string', 'number'])\n" +
-        "                const output = JSON.parse(compile(JSON.stringify(compilerInput)))\n" +
-        "                worker.postMessage(output)\n" +
-        "            }\n" +
-        "        }\n" +
-        "\n" +
-        "    } else {\n" +
-        "        console.log(\"workerBody() aborts because importScripts() is not defined\")\n" +
-        "    }\n" +
-        "}"
 }
