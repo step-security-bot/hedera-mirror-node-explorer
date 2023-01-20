@@ -112,6 +112,8 @@ export class CustomContractEntry extends ContractEntry {
     verifyBytecode(deployedByteCode: string, report: CompilationReport): boolean {
         let result: boolean
 
+        deployedByteCode = deployedByteCode.startsWith("0x") ? deployedByteCode.slice(2) : deployedByteCode
+
         if (report !== null) {
             const contractDescription = report.getContractDescription("Compiled_Contracts", this.makeBaseName())
             const compiledByteCode = contractDescription?.evm?.deployedBytecode.object ?? null
