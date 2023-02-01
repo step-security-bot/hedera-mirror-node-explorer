@@ -25,7 +25,7 @@
 
  */
 
-export interface CompilerOutput {
+export interface SolcOutput {
 
     // Optional: not present if no errors/warnings/infos were encountered
     errors?: ErrorDescription[]

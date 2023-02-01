@@ -25,7 +25,7 @@
 
  */
 
-export interface CompilerInput {
+export interface SolcInput {
 
     // Reference
     //      https://docs.soliditylang.org/en/latest/using-the-compiler.html#input-description
