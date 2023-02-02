@@ -2,7 +2,7 @@
   -
   - Hedera Mirror Node Explorer
   -
-  - Copyright (C) 2021 - 2022 Hedera Hashgraph, LLC
+  - Copyright (C) 2021 - 2023 Hedera Hashgraph, LLC
   -
   - Licensed under the Apache License, Version 2.0 (the "License");
   - you may not use this file except in compliance with the License.
@@ -23,61 +23,57 @@
 <!-- --------------------------------------------------------------------------------------------------------------- -->
 
 <template>
+  <div :class="{'is-active': showWizard}" class="modal has-text-white">
+    <div class="modal-background"/>
+    <div class="modal-content" style="width: 768px; border-radius: 16px">
+      <div class="box">
 
-    <template v-if="contractName">
-      <span >Conform to {{ contractName }}</span>
-    </template>
+        <div class="h-is-primary-title">
+          Verify contract {{ contractId }}
+        </div>
 
+        <hr class="h-card-separator"/>
 
+        <div class="block h-is-tertiary-text mt-2">A few UI elements…</div>
+
+        <div class="is-flex is-justify-content-flex-end">
+          <button class="button is-white is-small" @click="handleCancel">CANCEL</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
 </template>
-
 
 <!-- --------------------------------------------------------------------------------------------------------------- -->
 <!--                                                      SCRIPT                                                     -->
 <!-- --------------------------------------------------------------------------------------------------------------- -->
 
-
 <script lang="ts">
 
-import {computed, defineComponent, onMounted, Ref, ref, watch} from 'vue';
-import {CustomContractEntry, customContractRegistry} from "@/schemas/CustomContractRegistry";
+import {defineComponent} from "vue";
 
 export default defineComponent({
-  name: 'ContractToolBar',
+  name: "RegistrationWizard",
   components: {},
   props: {
-    contractId: String
+    contractId: String,
+    showWizard: {
+      type: Boolean,
+      default: false
+    },
   },
+  emits: ["update:showWizard"],
 
-  setup(props) {
+  setup(props, context) {
 
-    const customContractEntry: Ref<CustomContractEntry|null> = ref(null)
-    const updateCustomContractEntry = () => {
-      if (props.contractId) {
-        customContractRegistry.lookup(props.contractId)
-            .then((e: CustomContractEntry) => {
-              customContractEntry.value = e
-            })
-            .catch(() => {
-              customContractEntry.value = null
-            })
-      } else {
-        customContractEntry.value = null
-      }
+    const handleCancel = () => {
+      console.log("handleCancel")
+      context.emit('update:showWizard', false)
     }
-    onMounted(() => {
-      updateCustomContractEntry()
-    })
-    watch(() => props.contractId, () => {
-      updateCustomContractEntry()
-    })
-
-    const contractName = computed(() => {
-      return customContractEntry.value?.registryEntry.compilationRequest.targetContract ?? null
-    })
 
     return {
-      contractName,
+      handleCancel,
     }
   }
 });
@@ -89,3 +85,4 @@ export default defineComponent({
 <!-- --------------------------------------------------------------------------------------------------------------- -->
 
 <style/>
+
