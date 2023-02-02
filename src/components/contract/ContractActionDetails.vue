@@ -182,8 +182,7 @@ export default defineComponent({
 
     const input = computed(() => props.action?.input ?? null)
     const output = computed(() => null)
-    const fileId = computed(() => contractLoader.entity.value?.file_id ?? null)
-    const functionCallAnalyzer = new FunctionCallAnalyzer(input, output, contractId, fileId)
+    const functionCallAnalyzer = new FunctionCallAnalyzer(input, output, contractId)
     onMounted(() => functionCallAnalyzer.mount())
     onBeforeUnmount(() => functionCallAnalyzer.unmount())
 

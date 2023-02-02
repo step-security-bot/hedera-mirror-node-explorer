@@ -20,16 +20,15 @@
 
 import {computed, ComputedRef, ref, Ref, watch, WatchStopHandle} from "vue";
 import {systemContractRegistry} from "@/schemas/SystemContractRegistry";
-import {customContractRegistry} from "@/schemas/CustomContractRegistry";
 import {ContractEntry} from "@/schemas/ContractEntry";
 import {ethers} from "ethers";
+import {CustomContractEntry, customContractRegistry} from "@/schemas/CustomContractRegistry";
 
 export class FunctionCallAnalyzer {
 
     public readonly input: Ref<string|null>
     public readonly output: Ref<string|null>
     public readonly contractId: Ref<string|null>
-    public readonly fileId: Ref<string|null>
     private readonly watchHandles: WatchStopHandle[] = []
     private readonly transactionDescription = ref<ethers.utils.TransactionDescription|null>(null)
     private readonly decodedFunctionResult = ref<ethers.utils.Result|null>(null)
@@ -38,17 +37,16 @@ export class FunctionCallAnalyzer {
     // Public
     //
 
-    public constructor(input: Ref<string|null>, output: Ref<string|null>,
-                       contractId: Ref<string|null>, fileId: Ref<string|null>) {
+    public constructor(input: Ref<string|null>, output: Ref<string|null>, contractId: Ref<string|null>) {
         this.input = input
         this.output = output
         this.contractId = contractId
-        this.fileId = fileId
     }
 
     public mount(): void {
         this.watchHandles.push(
-            watch([this.input, this.contractId], this.updateTransactionDescription, { immediate: true}),
+            watch(this.contractId, this.updateContractEntry, { immediate: true}),
+            watch([this.input, this.contractEntry], this.updateTransactionDescription, { immediate: true}),
             watch([this.output, this.transactionDescription], this.updateDecodedFunctionResult, { immediate: true}),
         )
     }
@@ -105,11 +103,33 @@ export class FunctionCallAnalyzer {
     // Private
     //
 
-    private readonly contractEntry: ComputedRef<ContractEntry|null> = computed(() => {
-        const c1 = this.contractId.value !== null ? systemContractRegistry.lookup(this.contractId.value) : null
-        const c2 = this.fileId.value !== null ? customContractRegistry.lookup(this.fileId.value) : null
-        return c1 ?? c2
-    })
+    private readonly contractEntry: Ref<ContractEntry|null> = ref(null)
+
+    private readonly updateContractEntry = () => {
+        if (this.contractId.value !== null) {
+            const systemContractEntry = systemContractRegistry.lookup(this.contractId.value)
+            if (systemContractEntry !== null) {
+                this.contractEntry.value = systemContractEntry
+            } else {
+                customContractRegistry.lookup(this.contractId.value)
+                    .then((e: CustomContractEntry) => {
+                        this.contractEntry.value = e
+                    })
+                    .catch(() => {
+                        this.contractEntry.value = null
+                    })
+            }
+        } else {
+            this.contractEntry.value = null
+        }
+    }
+
+    // private readonly contractEntry: ComputedRef<ContractEntry|null> = computed(() => {
+    //     const c1 = this.contractId.value !== null ? systemContractRegistry.lookup(this.contractId.value) : null
+    //     const c2 = this.fileId.value !== null ? customContractRegistry.lookup(this.fileId.value) : null
+    //     return c1 ?? c2
+    // })
+
 
     private readonly updateTransactionDescription = () => {
         if (this.contractEntry.value !== null && this.input.value !== null) {

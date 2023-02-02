@@ -106,8 +106,8 @@
               <template v-slot:name>Initcode</template>
               <template v-slot:value>
                 <div>
-                  <ByteCodeValue :init-code-analyzer="initCodeAnalyzer"/>
-                  <ContractToolBar :analyzer="contractAnalyzer"/>
+                  <ByteCodeValue :byte-code="initCode"/>
+                  <ContractToolBar :contract-id="normalizedContractId"/>
                 </div>
               </template>
             </Property>
@@ -210,7 +210,6 @@ import TransactionFilterSelect from "@/components/transaction/TransactionFilterS
 import {networkRegistry} from "@/schemas/NetworkRegistry";
 import router, {routeManager} from "@/router";
 import TransactionLink from "@/components/values/TransactionLink.vue";
-import {InitCodeAnalyzer} from "@/utils/InitCodeAnalyzer";
 import ContractToolBar from "@/components/ContractToolBar.vue";
 import {ContractAnalyzer} from "@/utils/ContractAnalyzer";
 
@@ -320,16 +319,6 @@ export default defineComponent({
     onMounted(() => contractAnalyzer.mount())
     onBeforeUnmount(()=> contractAnalyzer.unmount())
 
-    //
-    // InitCodeAnalyzer
-    //
-
-    const initCode = computed(() => contractLoader.entity.value?.bytecode ?? null)
-    const fileId = computed(() => contractLoader.entity.value?.file_id ?? null)
-    const initCodeAnalyzer = new InitCodeAnalyzer(initCode, fileId)
-    onMounted(() => initCodeAnalyzer.mount())
-    onBeforeUnmount(() => initCodeAnalyzer.unmount())
-
     return {
       isSmallScreen,
       isTouchDevice,
@@ -347,7 +336,7 @@ export default defineComponent({
       normalizedContractId,
       accountRoute,
       aliasByteString: accountLoader.aliasByteString,
-      initCodeAnalyzer,
+      initCode: contractLoader.bytecode,
       contractAnalyzer,
     }
   },
