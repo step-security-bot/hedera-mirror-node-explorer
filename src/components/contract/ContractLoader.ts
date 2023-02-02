@@ -53,6 +53,10 @@ export class ContractLoader extends EntityLoader<ContractResponse> {
         return this.entity.value?.proxy_account_id ?? null
     })
 
+    public readonly bytecode = computed(() => {
+        return this.entity.value?.bytecode ?? null
+    })
+
     //
     // EntityLoader
     //

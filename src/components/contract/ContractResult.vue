@@ -235,12 +235,10 @@ export default defineComponent({
     const contractLoader = new ContractLoader(contractId)
     onMounted(() => contractLoader.requestLoad())
 
-    const fileId = computed(() => contractLoader.entity.value?.file_id ?? null)
     const functionCallAnalyzer = new FunctionCallAnalyzer(
         contractResultDetailsLoader.functionParameters,
         contractResultDetailsLoader.callResult,
-        contractResultDetailsLoader.actualContractId,
-        fileId)
+        contractResultDetailsLoader.actualContractId)
     onMounted(() => functionCallAnalyzer.mount())
     onBeforeUnmount(() => functionCallAnalyzer.unmount())
 

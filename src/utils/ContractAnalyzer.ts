@@ -19,14 +19,13 @@
  */
 
 import {computed, ComputedRef, ref, Ref, watch, WatchStopHandle} from "vue";
-import {CompilationReport, CustomContractEntry, customContractRegistry} from "@/schemas/CustomContractRegistry";
 import {ContractResponse} from "@/schemas/HederaSchemas";
+import {CustomContractEntry, customContractRegistry} from "@/schemas/CustomContractRegistry";
 
 export class ContractAnalyzer {
 
     private readonly contractRef: Ref<ContractResponse|null>
     private readonly contractEntryRef: Ref<CustomContractEntry|null> = ref(null)
-    private readonly stateRef: Ref<ContractAnalyzerState> = ref(ContractAnalyzerState.Unknown)
     private watchHandle: WatchStopHandle|null = null
 
     //
@@ -47,24 +46,15 @@ export class ContractAnalyzer {
             this.watchHandle = null
         }
         this.contractEntryRef.value = null
-        this.stateRef.value = ContractAnalyzerState.Unknown
     }
 
     public readonly contract: ComputedRef<ContractResponse|null> = computed(() => {
         return this.contractRef.value
     })
 
-    public readonly state: ComputedRef<ContractAnalyzerState> = computed(() => {
-        return this.stateRef.value
-    })
-
     public readonly contractEntry: ComputedRef<CustomContractEntry|null> = computed(() => {
         return this.contractEntryRef.value
     })
-
-    public registryDidChange(): void {
-        this.contractDidChange()
-    }
 
 
     //
@@ -73,44 +63,19 @@ export class ContractAnalyzer {
 
     private contractDidChange = (): void => {
         const contract = this.contractRef.value
-        const fileId = contract?.file_id ?? null
+        const contractId = contract?.contract_id ?? null
         const runtimeByteCode = contract?.runtime_bytecode ?? null
-        if (fileId !== null && runtimeByteCode !== null) {
-            const contractEntry = customContractRegistry.lookup(fileId)
-            this.contractEntryRef.value = contractEntry
-            if (contractEntry !== null) {
-                this.stateRef.value = ContractAnalyzerState.Verifying
-                contractEntry.getCompilationReport()
-                    .then((report: CompilationReport) => {
-                        if (this.contractRef.value == contract) {
-                            if (report.getErrorCount() == 0) {
-                                const verified = contractEntry.verifyBytecode(runtimeByteCode, report)
-                                this.stateRef.value = verified ? ContractAnalyzerState.OK : ContractAnalyzerState.KO
-                            } else {
-                                this.stateRef.value = ContractAnalyzerState.Error
-                            }
-                        }
-                    })
-                    .catch(() => {
-                        if (this.contractRef.value == contract) {
-                            this.stateRef.value = ContractAnalyzerState.Error
-                        }
-                    })
-            } else {
-                this.stateRef.value = ContractAnalyzerState.Unregistered
-            }
+        if (contractId !== null && runtimeByteCode !== null) {
+            customContractRegistry.lookup(contractId)
+                .then((e: CustomContractEntry|null) => {
+                    this.contractEntryRef.value = e
+                })
+                .catch(() => {
+                    this.contractEntryRef.value = null
+                })
         } else {
-            this.stateRef.value = ContractAnalyzerState.Unknown
+            this.contractEntryRef.value = null
         }
     }
 
-}
-
-export enum ContractAnalyzerState {
-    Unknown,
-    Unregistered,
-    Verifying,
-    OK,
-    KO,
-    Error
 }

@@ -125,8 +125,8 @@
               <template v-slot:name>Initcode</template>
               <template v-slot:value>
                 <div>
-                  <ByteCodeValue :init-code-analyzer="initCodeAnalyzer"/>
-                  <ContractToolBar :analyzer="contractAnalyzer"/>
+                  <ByteCodeValue :byte-code="initCode"/>
+                  <ContractToolBar :contract-id="normalizedContractId"/>
                 </div>
               </template>
             </Property>
@@ -335,16 +335,6 @@ export default defineComponent({
     onMounted(() => contractAnalyzer.mount())
     onBeforeUnmount(()=> contractAnalyzer.unmount())
 
-    //
-    // InitCodeAnalyzer
-    //
-
-    const initCode = computed(() => contractLoader.entity.value?.bytecode ?? null)
-    const fileId = computed(() => contractLoader.entity.value?.file_id ?? null)
-    const initCodeAnalyzer = new InitCodeAnalyzer(initCode, fileId)
-    onMounted(() => initCodeAnalyzer.mount())
-    onBeforeUnmount(() => initCodeAnalyzer.unmount())
-
     return {
       isSmallScreen,
       isMediumScreen,
@@ -364,7 +354,7 @@ export default defineComponent({
       normalizedContractId,
       accountRoute,
       aliasByteString: accountLoader.aliasByteString,
-      initCodeAnalyzer,
+      initCode: contractLoader.bytecode,
       contractAnalyzer,
     }
   },

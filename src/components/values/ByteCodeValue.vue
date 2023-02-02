@@ -42,25 +42,21 @@
 
 <script lang="ts">
 
-import {computed, defineComponent, inject, PropType, ref} from 'vue';
+import {computed, defineComponent, inject, ref} from 'vue';
 import {initialLoadingKey} from "@/AppKeys";
-import {InitCodeAnalyzer} from "@/utils/InitCodeAnalyzer";
 
 export default defineComponent({
   name: 'ByteCodeValue',
 
   props: {
-    initCodeAnalyzer: {
-      type: Object as PropType<InitCodeAnalyzer>,
-      required: true
-    },
+    byteCode: String,
   },
 
   setup(props) {
     const initialLoading = inject(initialLoadingKey, ref(false))
 
     const textValue = computed(() => {
-      return props.initCodeAnalyzer.signature.value ?? props.initCodeAnalyzer.byteCode.value ?? ""
+      return props.byteCode ?? ""
     })
 
     // const textValue = computed(() => {

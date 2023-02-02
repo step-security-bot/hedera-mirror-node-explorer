@@ -31,6 +31,7 @@ import {NodeRegistry} from "@/components/node/NodeRegistry";
 import {AppStorage} from "@/AppStorage";
 import {nameServiceSetNetwork} from '@/utils/NameService';
 import axios from "axios";
+import {customContractRegistry} from "@/schemas/CustomContractRegistry";
 
 export class RouteManager {
 
@@ -353,6 +354,7 @@ export class RouteManager {
         TransactionByHashCollector.instance.clear()
         TransactionCollector.instance.clear()
         NodeRegistry?.instance.reload()
+        customContractRegistry.clear()
     }
 }
 

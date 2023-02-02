@@ -24,34 +24,9 @@
 
 <template>
 
-  <FileChooserAction
-      v-if="contractAnalyzerState === ContractAnalyzerState.Unregistered"
-      v-model:file-content="selectedFileContent"
-      v-model:file-name="selectedFileName"
-      action-label="Choose file to verify contract…"
-      fileType=".sol"/>
-
-  <span v-else class="h-is-property-text has-text-grey">
-    <template v-if="contractAnalyzerState === ContractAnalyzerState.Verifying">
-        <span class="icon fas fa-circle-notch fa-spin"/>
-        <span>Compiling {{ contractName }} ...</span>
+    <template v-if="contractName">
+      <span >Conform to {{ contractName }}</span>
     </template>
-    <template v-else-if="contractAnalyzerState === ContractAnalyzerState.OK">
-        <span class="icon fas fa-check-circle has-text-success"/>
-        <span >Conform to {{ contractName }}</span>
-    </template>
-    <template v-else-if="contractAnalyzerState === ContractAnalyzerState.KO">
-        <span class="icon fas fa-exclamation-triangle has-text-danger"/>
-        <span >Not conform to {{ contractName }}</span>
-    </template>
-    <template v-else>
-        <span class="icon fas fa-exclamation-triangle has-text-warning"/>
-        <span >Conformance to {{ contractName }} cannot be checked</span>
-    </template>
-    <a v-if="contractAnalyzerState !== ContractAnalyzerState.Verifying" @click="handleForget">
-      <span> <span class="icon fas fa-times"/></span>
-    </a>
-  </span>
 
 
 </template>
@@ -64,53 +39,45 @@
 
 <script lang="ts">
 
-import {computed, defineComponent, PropType, ref, watch} from 'vue';
-import {ContractAnalyzer, ContractAnalyzerState} from "@/utils/ContractAnalyzer";
-import FileChooserAction from "@/components/FileChooserAction.vue";
-import {CustomContractRegistry, customContractRegistry} from "@/schemas/CustomContractRegistry";
+import {computed, defineComponent, onMounted, Ref, ref, watch} from 'vue';
+import {CustomContractEntry, customContractRegistry} from "@/schemas/CustomContractRegistry";
 
 export default defineComponent({
   name: 'ContractToolBar',
-  components: {FileChooserAction},
+  components: {},
   props: {
-    analyzer: {
-      type: Object as PropType<ContractAnalyzer>,
-      required: true
-    },
+    contractId: String
   },
 
   setup(props) {
 
-    const fileId = computed(() => props.analyzer.contract.value?.file_id ?? null)
-
-    const contractName = computed(() => props.analyzer.contractEntry.value?.description ?? null)
-
-    const selectedFileContent = ref<string|null>(null)
-    const selectedFileName = ref<string|null>(null)
-    watch(selectedFileContent, () => {
-      if (selectedFileContent.value !== null && selectedFileName.value !== null && fileId.value !== null) {
-        const compilerURL = CustomContractRegistry.COMPILER_URL_FALLBACK
-        customContractRegistry.update(fileId.value, compilerURL, selectedFileContent.value, selectedFileName.value)
-        props.analyzer.registryDidChange()
-        selectedFileContent.value = null
-        selectedFileName.value = null
-      }
-    })
-
-    const handleForget = () => {
-      if (fileId.value !== null) {
-        customContractRegistry.forget(fileId.value)
-        props.analyzer.registryDidChange()
+    const customContractEntry: Ref<CustomContractEntry|null> = ref(null)
+    const updateCustomContractEntry = () => {
+      if (props.contractId) {
+        customContractRegistry.lookup(props.contractId)
+            .then((e: CustomContractEntry) => {
+              customContractEntry.value = e
+            })
+            .catch(() => {
+              customContractEntry.value = null
+            })
+      } else {
+        customContractEntry.value = null
       }
     }
+    onMounted(() => {
+      updateCustomContractEntry()
+    })
+    watch(() => props.contractId, () => {
+      updateCustomContractEntry()
+    })
+
+    const contractName = computed(() => {
+      return customContractEntry.value?.registryEntry.compilationRequest.targetContract ?? null
+    })
 
     return {
       contractName,
-      contractAnalyzerState: props.analyzer.state,
-      ContractAnalyzerState,
-      selectedFileContent,
-      selectedFileName,
-      handleForget
     }
   }
 });
