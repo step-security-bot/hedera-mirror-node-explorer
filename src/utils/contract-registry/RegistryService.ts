@@ -38,7 +38,7 @@ export class RegistryService {
     static async query(contractId: string,
                        network: string): Promise<RegistryEntry> {
         const url = this.REGISTRY_URL + "/query/" + network + "/" + contractId
-        const r = await axios.post<RegistryEntry>(url)
+        const r = await axios.get<RegistryEntry>(url)
         return Promise.resolve(r.data)
     }
 }
