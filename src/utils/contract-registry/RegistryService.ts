@@ -23,7 +23,7 @@ import axios from "axios";
 
 export class RegistryService {
 
-    static readonly REGISTRY_URL = "http://vps-4403a704.vps.ovh.net:8000"
+    static readonly REGISTRY_URL = "https://registry.simonvienot.fr"
 
     static async register(contractId: string,
                           network: string,
