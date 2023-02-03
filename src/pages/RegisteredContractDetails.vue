@@ -65,7 +65,7 @@
       </template>
 
       <template v-slot:content>
-        <pre class="h-has-box-background-color has-text-grey-light">
+        <pre class="h-has-box-background-color has-text-grey-light p-0">
           {{ source }}
         </pre>
       </template>
