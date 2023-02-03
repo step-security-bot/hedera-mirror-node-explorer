@@ -20,6 +20,9 @@
 
 import {computed, Ref, ref, watch} from "vue";
 import {SolcIndexLoader} from "@/components/registration/SolcIndexLoader";
+import {CompilationRequest, RegisterResponse, RegistrationStatus} from "@/utils/contract-registry/RegistrySchema";
+import {RegistryService} from "@/utils/contract-registry/RegistryService";
+import {routeManager} from "@/router";
 
 export class RegistrationController {
 
@@ -28,10 +31,13 @@ export class RegistrationController {
     public readonly sourceFileName: Ref<string|null> = ref(null)
     public readonly compilerVersion: Ref<string|null> = ref(null)
     public readonly importSpecs: Ref<Array<ImportSpec>> = ref([])
+    public readonly registerResponse: Ref<RegisterResponse|null> = ref(null)
 
 
     private readonly contractId: string
     private readonly solcIndexLoader = new SolcIndexLoader()
+    private readonly buzy: Ref<boolean> = ref(false)
+
 
     //
     // Public
@@ -43,6 +49,7 @@ export class RegistrationController {
         watch(this.source, () => {
             this.compilerVersion.value = this.guessedCompilerVersion.value
             this.importSpecs.value = this.guessedImportSpecs.value
+            this.registerResponse.value = null
         })
     }
 
@@ -73,14 +80,7 @@ export class RegistrationController {
         () => this.allCompilerVersions.value?.length ?? 0)
 
     public readonly latestCompilerVersion = computed(() => {
-        let result: string|null
-        if (this.allCompilerVersions.value !== null) {
-            const versionCount = this.allCompilerVersions.value.length
-            result = versionCount >= 1 ? this.allCompilerVersions.value[versionCount-1] : null
-        } else {
-            result = null
-        }
-        return result
+        return this.solcIndexLoader.entity.value?.latestRelease ?? null
     })
 
     public readonly guessedCompilerVersion = computed<string|null>(() => {
@@ -99,12 +99,37 @@ export class RegistrationController {
         return ImportSpec.countUnresolvedSpecs(this.importSpecs.value)
     })
 
+    public readonly readyForRegister = computed(() => {
+        return this.registerResponse.value?.status == RegistrationStatus.accepted
+    })
+
+    public readonly compilerRelease = computed(() => {
+        let result: string|null
+        if (this.compilerVersion.value !== null) {
+            result = this.solcIndexLoader.entity.value?.releases[this.compilerVersion.value] ?? null
+        } else {
+            result = null
+        }
+        return result
+    })
+
+    public readonly targetContract = computed(() => {
+        let result: string|null
+        const sourceFileName = this.sourceFileName.value
+        if (sourceFileName !== null) {
+            const extension = ".sol"
+            result = sourceFileName.endsWith(extension) ? sourceFileName.slice(0, -extension.length) : sourceFileName
+        } else {
+            result = null
+        }
+        return result
+    })
+
     //
     // Public (actions)
     //
 
     public readonly isNextDisabled = computed((): boolean => {
-        console.log("isNextDisabled() is computed")
         let enabled: boolean
         switch(this.currentStep.value) {
             case 1:
@@ -117,7 +142,7 @@ export class RegistrationController {
                 enabled = this.unresolvedSpecCount.value == 0
                 break
             case 4:
-                enabled = true
+                enabled = this.readyForRegister.value
                 break
             default:
                 enabled = false
@@ -133,6 +158,33 @@ export class RegistrationController {
 
     public handleNext(): void {
         this.currentStep.value += 1
+        if (this.currentStep.value == 4
+            && this.source.value !== null
+            && this.targetContract.value !== null
+            && this.compilerRelease.value !== null ) {
+            this.buzy.value = true
+            const compilationRequest: CompilationRequest = {
+                solcVersion: this.compilerRelease.value,
+                source: this.source.value,
+                targetContract: this.targetContract.value,
+                importSources: ImportSpec.makeImportSources(this.importSpecs.value)
+            }
+            RegistryService.register(
+                this.contractId,
+                routeManager.currentNetwork.value,
+                compilationRequest,
+                true)
+                .then((r: RegisterResponse) => {
+                    this.registerResponse.value = r
+                })
+                .catch((error) => {
+                    console.log("Register did fail with error: " + error)
+                    this.registerResponse.value = null
+                })
+                .finally(() => {
+                    this.buzy.value = false
+                })
+        }
     }
 
     public handleBack(): void {
@@ -156,6 +208,16 @@ export class ImportSpec {
         for (const s of specs) {
             if (s.source === null) {
                 result += 1
+            }
+        }
+        return result
+    }
+
+    static makeImportSources(specs: ImportSpec[]): Record<string, string> {
+        const result = {} as Record<string, string>
+        for (const s of specs) {
+            if (s.source !== null) {
+                result[s.path] = s.source
             }
         }
         return result
