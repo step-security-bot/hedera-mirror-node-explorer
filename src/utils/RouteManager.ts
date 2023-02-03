@@ -124,7 +124,7 @@ export class RouteManager {
 
     public testContractRoute(route: string|null = null): boolean {
         const r = route ?? this.currentRoute.value
-        return r === 'Contracts' || r === 'ContractDetails'
+        return r === 'Contracts' || r === 'ContractDetails' || r === 'RegisteredContractDetails'
     }
 
     public testAccountRoute(route: string|null = null): boolean {
@@ -248,6 +248,10 @@ export class RouteManager {
 
     public routeToContract(contractId: string): Promise<NavigationFailure | void | undefined> {
         return this.router.push(this.makeRouteToContract(contractId))
+    }
+
+    public makeRouteToRegisteredContract(contractId: string): RouteLocationRaw {
+        return {name: 'RegisteredContractDetails', params: { contractId: contractId}}
     }
 
     //
