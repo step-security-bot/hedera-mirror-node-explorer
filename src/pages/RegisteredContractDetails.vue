@@ -24,7 +24,7 @@
 
 <template>
 
-  <section class="section" :class="{'h-mobile-background': isTouchDevice || !isSmallScreen}">
+  <section :class="{'h-mobile-background': isTouchDevice || !isSmallScreen}" class="section">
 
     <DashboardCard>
       <template v-slot:title>
@@ -35,25 +35,25 @@
         <Property id="name" :full-width="true">
           <template v-slot:name>Name</template>
           <template v-slot:value>
-            <StringValue :string-value="contractName" />
+            <StringValue :string-value="contractName"/>
           </template>
         </Property>
         <Property id="fileId" :full-width="true">
           <template v-slot:name>Creation Time</template>
           <template v-slot:value>
-            <TimestampValue :timestamp="creationTime" :show-none="true"/>
+            <TimestampValue :show-none="true" :timestamp="creationTime"/>
           </template>
         </Property>
         <Property id="fileId" :full-width="true">
           <template v-slot:name>File ID</template>
           <template v-slot:value>
-            <StringValue :string-value="fileId" />
+            <StringValue :string-value="fileId"/>
           </template>
         </Property>
         <Property id="solcVersion" :full-width="true">
           <template v-slot:name>Compiler Version</template>
           <template v-slot:value>
-            <StringValue :string-value="solcVersion" />
+            <StringValue :string-value="solcVersion"/>
           </template>
         </Property>
       </template>
@@ -65,7 +65,9 @@
       </template>
 
       <template v-slot:content>
-        <StringValue :string-value="source"/>
+        <pre class="h-has-box-background-color has-text-grey-light">
+          {{ source }}
+        </pre>
       </template>
     </DashboardCard>
 
@@ -87,14 +89,12 @@ import {CustomContractEntry, customContractRegistry} from "@/schemas/CustomContr
 import StringValue from "@/components/values/StringValue.vue";
 import TimestampValue from "@/components/values/TimestampValue.vue";
 import Property from "@/components/Property.vue";
-import BlobValue from "@/components/values/BlobValue.vue";
 
 export default defineComponent({
 
   name: 'RegisteredContractDetails',
 
   components: {
-    BlobValue,
     Property,
     TimestampValue,
     StringValue,
@@ -110,7 +110,7 @@ export default defineComponent({
     const isSmallScreen = inject('isSmallScreen', true)
     const isTouchDevice = inject('isTouchDevice', false)
 
-    const contractEntry: Ref<CustomContractEntry|null> = ref(null)
+    const contractEntry: Ref<CustomContractEntry | null> = ref(null)
     const updateContractEntry = () => {
       if (props.contractId) {
         customContractRegistry.lookup(props.contractId)
@@ -137,7 +137,7 @@ export default defineComponent({
 
     const creationTime = computed(() => {
       const time = contractEntry.value?.registryEntry.creationTime ?? 0
-      return time ? (time/1000).toString() : null
+      return time ? (time / 1000).toString() : null
     })
 
     const fileId = computed(() => {
