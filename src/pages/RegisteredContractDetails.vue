@@ -32,6 +32,30 @@
         <span class="h-is-secondary-text">{{ contractId ?? "" }}</span>
       </template>
       <template v-slot:content>
+        <Property id="name" :full-width="true">
+          <template v-slot:name>Name</template>
+          <template v-slot:value>
+            <StringValue :string-value="contractName" />
+          </template>
+        </Property>
+        <Property id="fileId" :full-width="true">
+          <template v-slot:name>Creation Time</template>
+          <template v-slot:value>
+            <TimestampValue :timestamp="creationTime" :show-none="true"/>
+          </template>
+        </Property>
+        <Property id="fileId" :full-width="true">
+          <template v-slot:name>File ID</template>
+          <template v-slot:value>
+            <StringValue :string-value="fileId" />
+          </template>
+        </Property>
+        <Property id="solcVersion" :full-width="true">
+          <template v-slot:name>Compiler Version</template>
+          <template v-slot:value>
+            <StringValue :string-value="solcVersion" />
+          </template>
+        </Property>
       </template>
     </DashboardCard>
 
@@ -41,6 +65,7 @@
       </template>
 
       <template v-slot:content>
+        <StringValue :string-value="source"/>
       </template>
     </DashboardCard>
 
@@ -56,14 +81,23 @@
 
 <script lang="ts">
 
-import {defineComponent, inject} from 'vue';
+import {computed, defineComponent, inject, onMounted, ref, Ref, watch} from 'vue';
 import DashboardCard from "@/components/DashboardCard.vue";
+import {CustomContractEntry, customContractRegistry} from "@/schemas/CustomContractRegistry";
+import StringValue from "@/components/values/StringValue.vue";
+import TimestampValue from "@/components/values/TimestampValue.vue";
+import Property from "@/components/Property.vue";
+import BlobValue from "@/components/values/BlobValue.vue";
 
 export default defineComponent({
 
   name: 'RegisteredContractDetails',
 
   components: {
+    BlobValue,
+    Property,
+    TimestampValue,
+    StringValue,
     DashboardCard
   },
 
@@ -76,9 +110,56 @@ export default defineComponent({
     const isSmallScreen = inject('isSmallScreen', true)
     const isTouchDevice = inject('isTouchDevice', false)
 
+    const contractEntry: Ref<CustomContractEntry|null> = ref(null)
+    const updateContractEntry = () => {
+      if (props.contractId) {
+        customContractRegistry.lookup(props.contractId)
+            .then((e: CustomContractEntry) => {
+              contractEntry.value = e
+            })
+            .catch(() => {
+              contractEntry.value = null
+            })
+      } else {
+        contractEntry.value = null
+      }
+    }
+    onMounted(() => {
+      updateContractEntry()
+    })
+    watch(() => props.contractId, () => {
+      updateContractEntry()
+    })
+
+    const contractName = computed(() => {
+      return contractEntry.value?.registryEntry.compilationRequest.targetContract ?? null
+    })
+
+    const creationTime = computed(() => {
+      const time = contractEntry.value?.registryEntry.creationTime ?? 0
+      return time ? (time/1000).toString() : null
+    })
+
+    const fileId = computed(() => {
+      return contractEntry.value?.registryEntry.fileId ?? null
+    })
+
+    const solcVersion = computed(() => {
+      return contractEntry.value?.registryEntry.compilationRequest.solcVersion ?? null
+    })
+
+    const source = computed(() => {
+      return contractEntry.value?.registryEntry.compilationRequest.source ?? null
+    })
+
     return {
       isSmallScreen,
       isTouchDevice,
+      contractName,
+      creationTime,
+      fileId,
+      solcVersion,
+      source,
     }
   },
 });
