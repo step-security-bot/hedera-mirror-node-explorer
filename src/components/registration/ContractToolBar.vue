@@ -25,6 +25,10 @@
 <template>
 
     <template v-if="contractName">
+
+      <span class="icon has-text-success mr-1" style="font-size: 20px">
+        <i class="fas fa-check"></i>
+      </span>
       <span>Conform to
        <router-link :to="routeToSource">{{ contractName }}.sol</router-link>
       </span>
@@ -86,7 +90,7 @@ export default defineComponent({
     })
 
     const routeToSource = computed(() => {
-      return routeManager.blocksRoute
+      return routeManager.makeRouteToRegisteredContract(props.contractId ?? "")
     })
 
     const showWizard = ref(false)

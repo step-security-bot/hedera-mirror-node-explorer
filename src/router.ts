@@ -49,6 +49,7 @@ import Blocks from "@/pages/Blocks.vue";
 import {getEnv} from "@/utils/getEnv";
 import AccountsWithKey from "@/pages/AccountsWithKey.vue";
 import AdminKeyDetails from "@/pages/AdminKeyDetails.vue";
+import RegisteredContractDetails from "@/pages/RegisteredContractDetails.vue";
 import AddressDetails from "@/pages/AddressDetails.vue";
 
 const routes: Array<RouteRecordRaw> = [
@@ -152,6 +153,12 @@ const routes: Array<RouteRecordRaw> = [
     path: '/:network/contract/:contractId',
     name: 'ContractDetails',
     component: ContractDetails,
+    props: true
+  },
+  {
+    path: '/:network/registeredContract/:contractId',
+    name: 'RegisteredContractDetails',
+    component: RegisteredContractDetails,
     props: true
   },
   {
