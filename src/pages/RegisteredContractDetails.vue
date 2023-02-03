@@ -87,12 +87,14 @@ import {CustomContractEntry, customContractRegistry} from "@/schemas/CustomContr
 import StringValue from "@/components/values/StringValue.vue";
 import TimestampValue from "@/components/values/TimestampValue.vue";
 import Property from "@/components/Property.vue";
+import Footer from "@/components/Footer.vue";
 
 export default defineComponent({
 
   name: 'RegisteredContractDetails',
 
   components: {
+    Footer,
     Property,
     TimestampValue,
     StringValue,
