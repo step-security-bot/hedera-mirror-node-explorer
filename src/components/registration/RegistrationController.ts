@@ -103,28 +103,15 @@ export class RegistrationController {
         return this.registerResponse.value?.status == RegistrationStatus.accepted
     })
 
-    public readonly compilerRelease = computed(() => {
-        return "v0.8.17+commit.8df45f5f"
-        // let result: string|null
-        // if (this.compilerVersion.value !== null) {
-        //     result = this.solcIndexLoader.entity.value?.releases[this.compilerVersion.value] ?? null
-        // } else {
-        //     result = null
-        // }
-        // return result
+    public readonly compilerLongVersion = computed(() => {
+        let result: string|null
+        if (this.compilerVersion.value !== null) {
+            result = "v" + this.solcIndexLoader.fetchLongVersion(this.compilerVersion.value)
+        } else {
+            result = null
+        }
+        return result
     })
-    //
-    // public readonly contractName = computed(() => {
-    //     let result: string|null
-    //     const sourceFileName = this.sourceFileName.value
-    //     if (sourceFileName !== null) {
-    //         const extension = ".sol"
-    //         result = sourceFileName.endsWith(extension) ? sourceFileName.slice(0, -extension.length) : sourceFileName
-    //     } else {
-    //         result = null
-    //     }
-    //     return result
-    // })
 
     //
     // Public (actions)
@@ -161,10 +148,10 @@ export class RegistrationController {
         this.currentStep.value += 1
         if (this.currentStep.value == 4
             && this.source.value !== null
-            && this.compilerRelease.value !== null ) {
+            && this.compilerLongVersion.value !== null ) {
             this.buzy.value = true
             const compilationRequest: CompilationRequest = {
-                solcVersion: this.compilerRelease.value,
+                solcVersion: this.compilerLongVersion.value,
                 source: this.source.value,
                 importSources: ImportSpec.makeImportSources(this.importSpecs.value)
             }
