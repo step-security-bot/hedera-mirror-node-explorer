@@ -57,6 +57,7 @@ export class RegistrationController {
     public activate(): void {
         this.solcIndexLoader.requestLoad()
         this.currentStep.value = 1
+        this.sourceFileName.value = null
         this.source.value = null // => reset this.compilerVersion and this.importSpecs
     }
 
