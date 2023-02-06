@@ -104,7 +104,7 @@ export class RegistrationController {
     })
 
     public readonly compilerRelease = computed(() => {
-        return "0.8.17+commit.8df45f5f"
+        return "v0.8.17+commit.8df45f5f"
         // let result: string|null
         // if (this.compilerVersion.value !== null) {
         //     result = this.solcIndexLoader.entity.value?.releases[this.compilerVersion.value] ?? null
