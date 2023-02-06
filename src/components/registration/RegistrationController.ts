@@ -104,26 +104,27 @@ export class RegistrationController {
     })
 
     public readonly compilerRelease = computed(() => {
-        let result: string|null
-        if (this.compilerVersion.value !== null) {
-            result = this.solcIndexLoader.entity.value?.releases[this.compilerVersion.value] ?? null
-        } else {
-            result = null
-        }
-        return result
+        return "0.8.17+commit.8df45f5f"
+        // let result: string|null
+        // if (this.compilerVersion.value !== null) {
+        //     result = this.solcIndexLoader.entity.value?.releases[this.compilerVersion.value] ?? null
+        // } else {
+        //     result = null
+        // }
+        // return result
     })
-
-    public readonly targetContract = computed(() => {
-        let result: string|null
-        const sourceFileName = this.sourceFileName.value
-        if (sourceFileName !== null) {
-            const extension = ".sol"
-            result = sourceFileName.endsWith(extension) ? sourceFileName.slice(0, -extension.length) : sourceFileName
-        } else {
-            result = null
-        }
-        return result
-    })
+    //
+    // public readonly contractName = computed(() => {
+    //     let result: string|null
+    //     const sourceFileName = this.sourceFileName.value
+    //     if (sourceFileName !== null) {
+    //         const extension = ".sol"
+    //         result = sourceFileName.endsWith(extension) ? sourceFileName.slice(0, -extension.length) : sourceFileName
+    //     } else {
+    //         result = null
+    //     }
+    //     return result
+    // })
 
     //
     // Public (actions)
@@ -160,15 +161,14 @@ export class RegistrationController {
         this.currentStep.value += 1
         if (this.currentStep.value == 4
             && this.source.value !== null
-            && this.targetContract.value !== null
             && this.compilerRelease.value !== null ) {
             this.buzy.value = true
             const compilationRequest: CompilationRequest = {
                 solcVersion: this.compilerRelease.value,
                 source: this.source.value,
-                targetContract: this.targetContract.value,
                 importSources: ImportSpec.makeImportSources(this.importSpecs.value)
             }
+            console.log("compilationRequest=" + JSON.stringify(compilationRequest, null, "  "))
             RegistryService.register(
                 this.contractId,
                 routeManager.currentNetwork.value,
