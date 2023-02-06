@@ -30,7 +30,7 @@
         <i class="fas fa-check"></i>
       </span>
       <span>Conform to
-       <router-link :to="routeToSource">{{ contractName }}.sol</router-link>
+       <router-link :to="routeToSource">{{ contractName }}</router-link> contract
       </span>
 
     </template>
@@ -86,7 +86,7 @@ export default defineComponent({
     })
 
     const contractName = computed(() => {
-      return customContractEntry.value?.registryEntry.compilationRequest.targetContract ?? null
+      return customContractEntry.value?.registryEntry.contractName ?? null
     })
 
     const routeToSource = computed(() => {
