@@ -28,7 +28,7 @@ export interface SolcIndex {
 export interface CompilerBuild {
     path: string
     version: string
-    prerelease: string
+    prerelease?: string
     build: string
     longVersion: string
     keccak256: string
