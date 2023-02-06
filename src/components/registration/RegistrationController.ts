@@ -149,11 +149,11 @@ export class RegistrationController {
                 enabled = false
                 break
         }
-        return !enabled
+        return !enabled || this.buzy.value
     })
 
     public readonly isBackDisabled = computed(() => {
-        return this.currentStep.value == 1
+        return this.currentStep.value == 1 || this.buzy.value || this.currentStep.value == 5
     })
 
 
@@ -174,6 +174,24 @@ export class RegistrationController {
                 routeManager.currentNetwork.value,
                 compilationRequest,
                 true)
+                .then((r: RegisterResponse) => {
+                    this.registerResponse.value = r
+                })
+                .catch((error) => {
+                    console.log("Dry run did fail with error: " + error)
+                    this.registerResponse.value = null
+                })
+                .finally(() => {
+                    this.buzy.value = false
+                })
+        } else if (this.currentStep.value == 5
+            && this.registerResponse.value !== null
+            && this.registerResponse.value.entry) {
+            RegistryService.register(
+                this.contractId,
+                routeManager.currentNetwork.value,
+                this.registerResponse.value.entry.compilationRequest,
+                false)
                 .then((r: RegisterResponse) => {
                     this.registerResponse.value = r
                 })
