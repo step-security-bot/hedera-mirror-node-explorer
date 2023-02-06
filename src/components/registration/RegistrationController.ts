@@ -197,10 +197,12 @@ export class ImportSpec {
 
     public readonly path: string
     public readonly source: string|null
+    public readonly sourceFileName: string|null
 
-    constructor(path: string, source: string|null) {
+    constructor(path: string, source: string|null, sourceFileName: string|null) {
         this.path = path
         this.source = source
+        this.sourceFileName = sourceFileName
     }
 
     static countUnresolvedSpecs(specs: ImportSpec[]): number {
