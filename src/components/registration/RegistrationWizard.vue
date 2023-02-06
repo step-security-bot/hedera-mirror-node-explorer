@@ -34,41 +34,156 @@
 
         <hr class="h-card-separator"/>
 
-        <div class="block h-is-tertiary-text mt-2">
-          <div>currentStep: {{ controller.currentStep }}</div>
-          <div>source: {{ controller.sourceHead }}</div>
-          <div>sourceFileName: {{ controller.sourceFileName }}</div>
-          <div>compilerVersion: {{ controller.compilerVersion }}</div>
-          <div>importSpecs: {{ controller.importSpecs }}</div>
-        </div>
-        <div class="block h-is-tertiary-text mt-2">
-          <div>compilerVersions: {{ controller.compilerVersionCount}} version(s)</div>
-          <div>guessedCompilerVersion: {{ controller.guessedCompilerVersion}}</div>
-          <div>guessedImportSpecs: {{ controller.guessedImportSpecCount}} import spec(s)</div>
-          <div>unresolvedSpecCount: {{ controller.unresolvedSpecCount}} import spec(s)</div>
-          <div>isBackDisabled: {{ controller.isBackDisabled}}</div>
-          <div>isNextDisabled: {{ controller.isNextDisabled}}</div>
-        </div>
-        <div class="block h-is-tertiary-text mt-2">
-          <div v-if="controller.currentStep.value === 1">
-            <FileChooserAction
-                v-model:file-content="controller.source.value"
-                v-model:file-name="controller.sourceFileName.value"
-                action-label="Choose contract source file…"
-                fileType=".sol"/>
+        <template v-if="currentStep === 1">
+          <div class="columns mb-5">
+            <div class="column has-text-right mr-1 has-text-weight-light">
+              <span>Contract Solidity Source File:</span>
+            </div>
+            <div class="column has-text-left ml-1">
+              <FileChooserAction
+                  v-model:file-content="source"
+                  v-model:file-name="sourceFileName"
+                  :action-label="sourceFileName ?? 'Choose source file…'"
+                  fileType=".sol"/>
+            </div>
+          </div>
+        </template>
+
+        <template v-else-if="currentStep === 2">
+          <div class="columns mb-4">
+            <div class="column has-text-right has-text-weight-light mr-1">
+              Solidity Compiler Version:
+            </div>
+            <div class="column has-text-left ml-1">
+              <o-field>
+                <o-select v-model="compilerVersion"
+                          class="h-is-text-size-1" style="border-radius: 4px">
+                  <option v-for="version in allCompilerVersions" :key="version"
+                          style="background-color: var(--h-theme-box-background-color)">
+                    {{ version }}
+                  </option>
+                </o-select>
+              </o-field>
+            </div>
+          </div>
+        </template>
+
+        <template v-else-if="currentStep === 3">
+          <div class="columns mb-0">
+            <div class="column has-text-centered">
+              Imported Solidity Files
+            </div>
+          </div>
+          <div v-if="importSpecs.length">
+            <div v-for="(spec, index) in importSpecs" :key="spec.path"
+                 :class="{'mb-0': index < (importSpecs.length - 1)}" class="columns">
+              <div class="column has-text-right has-text-weight-light mr-1">
+                <span class="is-numeric">{{ spec.path }}:</span>
+              </div>
+              <div class="column has-text-left ml-1">
+                <FileChooserAction
+                    v-model:file-name="spec.source"
+                    :action-label="spec.source ?? 'Choose imported file…'"
+                    fileType=".sol"/>
+              </div>
+              <br/>
+            </div>
+          </div>
+          <div v-else class="has-text-grey has-text-centered">
+            None
+          </div>
+          <div v-if="false" class="columns">
+            <div class="column mr-1"/>
+            <div class="column has-text-left has-text-weight-light ml-1">
+              Add path
+            </div>
+          </div>
+        </template>
+
+        <template v-else-if="currentStep === 4">
+          <div class="mb-0">
+            <div :class="{'is-invisible': !status}" class="has-text-centered">
+              <span v-if="isMatch" class="icon mr-2"><i class="fa fa-check has-text-success"/></span>
+              <span v-else class="icon mr-2"><i class="fa fa-exclamation-triangle has-text-danger"/></span>
+              <span class="block h-is-tertiary-text">
+                Status: {{ status }}
+              </span>
+            </div>
+            <div :class="{'is-invisible': !rejectReason}"
+                 class="has-text-centered h-is-property-text has-text-grey mt-2 mb-2">
+              Reason: {{ rejectReason }}
+            </div>
+            <div v-for="error in errors" :key="error" class="has-text-centered">
+              Error: {{ error }}
+            </div>
+          </div>
+        </template>
+
+        <template v-else-if="currentStep === 5">
+          <div class="mb-0">
+            <div :class="{'is-invisible': !status}" class="has-text-centered">
+              <span v-if="isMatch" class="icon mr-2"><i class="fa fa-check has-text-success"/></span>
+              <span v-else class="icon mr-2"><i class="fa fa-exclamation-triangle has-text-danger"/></span>
+              <span class="block h-is-tertiary-text">
+                Status: {{ status }}
+              </span>
+            </div>
+            <div :class="{'is-invisible': !rejectReason}"
+                 class="has-text-centered h-is-property-text has-text-grey mt-2 mb-2">
+              Reason: {{ rejectReason }}
+            </div>
+            <div v-for="error in errors" :key="error" class="has-text-centered">
+              Error: {{ error }}
+            </div>
+          </div>
+        </template>
+
+        <div class="is-flex is-justify-content-space-between mt-3">
+          <button :class="{'is-invisible': !isCancelBackShown}" class="button is-white is-small"
+                  @click="handleCancel">CANCEL
+          </button>
+          <div class="is-flex is-justify-content-flex-end">
+            <button v-if="isCancelBackShown" :disabled="isBackDisabled" class="button is-info is-small"
+                    @click="handleBack()">BACK
+            </button>
+            <button v-if="isCloseShown" class="button is-info is-small"
+                    @click="handleClose()">CLOSE
+            </button>
+            <button v-if="isNextShown" :disabled="isNextDisabled" class="button is-info is-small ml-4"
+                    @click="handleNext()">{{ nextButtonLabel }}
+            </button>
           </div>
         </div>
-        <div>
-          <div><button @click="controller.handleBack()"
-                       :disabled="isBackDisabled">Back</button></div>
-          <div><button @click="controller.handleNext()"
-                       :disabled="isNextDisabled">Next</button></div>
-        </div>
 
-        <div class="is-flex is-justify-content-flex-end">
-          <button class="button is-white is-small" @click="handleCancel">CANCEL</button>
-        </div>
 
+        <div v-if="false">
+          <hr class="h-card-separator" style="height: 0.5px"/>
+          <div class="block h-is-tertiary-text mt-2">
+            <div>currentStep: {{ controller.currentStep }}</div>
+            <div>source: {{ controller.sourceHead }}</div>
+            <div>sourceFileName: {{ controller.sourceFileName }}</div>
+            <div>compilerVersion: {{ controller.compilerVersion }}</div>
+            <div>importSpecs: {{ controller.importSpecs }}</div>
+          </div>
+          <div class="block h-is-tertiary-text mt-2">
+            <div>compilerVersions: {{ controller.compilerVersionCount }} version(s)</div>
+            <div>guessedCompilerVersion: {{ controller.guessedCompilerVersion }}</div>
+            <div>guessedImportSpecs: {{ controller.guessedImportSpecCount }} import spec(s)</div>
+            <div>unresolvedSpecCount: {{ controller.unresolvedSpecCount }} import spec(s)</div>
+            <div>isBackDisabled: {{ controller.isBackDisabled }}</div>
+            <div>isNextDisabled: {{ controller.isNextDisabled }}</div>
+          </div>
+          <div class="block h-is-tertiary-text mt-2">
+            <div>isCancelBackShown: {{ isCancelBackShown }}</div>
+            <div>isCloseShown: {{ isCloseShown }}</div>
+            <div>isNextShown: {{ isNextShown }}</div>
+            <div>nextButtonLabel: {{ nextButtonLabel }}</div>
+            <div>isMatch: {{ isMatch }}</div>
+            <div>status: {{ status }}</div>
+            <div>rejectReason: {{ rejectReason }}</div>
+            <div>errors: {{ errors }}</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -80,9 +195,10 @@
 
 <script lang="ts">
 
-import {defineComponent, watch} from "vue";
+import {computed, defineComponent, watch} from "vue";
 import {RegistrationController} from "@/components/registration/RegistrationController";
 import FileChooserAction from "@/components/FileChooserAction.vue";
+import {RegistrationStatus} from "@/utils/contract-registry/RegistrySchema";
 
 export default defineComponent({
   name: "RegistrationWizard",
@@ -109,16 +225,66 @@ export default defineComponent({
         controller.inactivate()
     })
 
+    const isCancelBackShown = computed(
+        () => controller.currentStep.value < 4
+            || controller.registerResponse.value?.status == RegistrationStatus.rejected)
+
+    const isCloseShown = computed(() => isMatch.value)
+
+    const isNextShown = computed(() => controller.currentStep.value <= 4)
+
+    const nextButtonLabel = computed(() =>
+        controller.currentStep.value == 4 && isMatch.value
+            ? "REGISTER AND CLOSE"
+            : "CONTINUE"
+    )
+
+    const isMatch = computed(() => controller.registerResponse.value?.status === RegistrationStatus.accepted)
+    const status = computed(() => controller.registerResponse.value?.status ?? null)
+    const rejectReason = computed(() => controller.registerResponse.value?.rejectReason ?? null)
+    const errors = computed(() => controller.registerResponse.value?.solcOutput?.errors ?? [])
+
     const handleCancel = () => {
       console.log("handleCancel")
       context.emit('update:showWizard', false)
     }
 
+    const handleClose = () => {
+      console.log("handleClose")
+      context.emit('update:showWizard', false)
+    }
+
+    const handleBack = () => controller.handleBack()
+
+    const handleNext = () => {
+      controller.handleNext()
+      if (controller.currentStep.value == 4 && isMatch.value) {
+        context.emit('update:showWizard', false)
+      }
+    }
+
     return {
+      isCancelBackShown,
+      isCloseShown,
+      isNextShown,
+      nextButtonLabel,
+      isMatch,
+      status,
+      rejectReason,
+      errors,
       handleCancel,
+      handleClose,
+      handleNext,
+      handleBack,
+      controller: controller,
+      currentStep: controller.currentStep,
       isBackDisabled: controller.isBackDisabled,
       isNextDisabled: controller.isNextDisabled,
-      controller: controller
+      sourceFileName: controller.sourceFileName,
+      source: controller.source,
+      importSpecs: controller.importSpecs,
+      allCompilerVersions: controller.allCompilerVersions,
+      compilerVersion: controller.compilerVersion,
     }
   }
 });
