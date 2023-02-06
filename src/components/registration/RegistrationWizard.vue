@@ -82,8 +82,9 @@
               </div>
               <div class="column has-text-left ml-1">
                 <FileChooserAction
-                    v-model:file-name="spec.source"
-                    :action-label="spec.source ?? 'Choose imported file…'"
+                    v-model:file-name="spec.sourceFileName"
+                    v-model:file-content="spec.source"
+                    :action-label="spec.sourceFileName ?? 'Choose imported file…'"
                     fileType=".sol"/>
               </div>
               <br/>
