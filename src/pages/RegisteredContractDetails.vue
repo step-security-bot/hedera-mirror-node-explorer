@@ -44,12 +44,6 @@
             <TimestampValue :show-none="true" :timestamp="creationTime"/>
           </template>
         </Property>
-        <Property id="fileId" :full-width="true">
-          <template v-slot:name>File ID</template>
-          <template v-slot:value>
-            <StringValue :string-value="fileId"/>
-          </template>
-        </Property>
         <Property id="solcVersion" :full-width="true">
           <template v-slot:name>Compiler Version</template>
           <template v-slot:value>
@@ -132,16 +126,12 @@ export default defineComponent({
     })
 
     const contractName = computed(() => {
-      return contractEntry.value?.registryEntry.compilationRequest.targetContract ?? null
+      return contractEntry.value?.registryEntry.contractName
     })
 
     const creationTime = computed(() => {
       const time = contractEntry.value?.registryEntry.creationTime ?? 0
       return time ? (time / 1000).toString() : null
-    })
-
-    const fileId = computed(() => {
-      return contractEntry.value?.registryEntry.fileId ?? null
     })
 
     const solcVersion = computed(() => {
@@ -157,7 +147,6 @@ export default defineComponent({
       isTouchDevice,
       contractName,
       creationTime,
-      fileId,
       solcVersion,
       source,
     }

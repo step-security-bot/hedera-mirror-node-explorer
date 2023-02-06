@@ -49,7 +49,7 @@ export class CustomContractEntry extends ContractEntry {
     //
 
     constructor(contractId: string, registryEntry: RegistryEntry) {
-        super(registryEntry.compilationRequest.targetContract)
+        super(registryEntry.contractName)
         this.contractId = contractId
         this.registryEntry = registryEntry
     }
