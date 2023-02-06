@@ -23,6 +23,7 @@ import {SolcIndexLoader} from "@/components/registration/SolcIndexLoader";
 import {CompilationRequest, RegisterResponse, RegistrationStatus} from "@/utils/contract-registry/RegistrySchema";
 import {RegistryService} from "@/utils/contract-registry/RegistryService";
 import {routeManager} from "@/router";
+import {SolcTools} from "@/utils/contract-registry/solc/SolcTools";
 
 export class RegistrationController {
 
@@ -79,13 +80,15 @@ export class RegistrationController {
     public readonly compilerVersionCount = computed(
         () => this.allCompilerVersions.value?.length ?? 0)
 
-    public readonly latestCompilerVersion = computed(() => {
-        return this.solcIndexLoader.entity.value?.latestRelease ?? null
-    })
-
     public readonly guessedCompilerVersion = computed<string|null>(() => {
-        // To be implemented
-        return this.source.value !== null ? this.latestCompilerVersion.value : null
+        let result: string|null
+        const solcIndex = this.solcIndexLoader.entity.value
+        if (this.source.value !== null && solcIndex !== null) {
+            result = SolcTools.extractSourceVersion(this.source.value, solcIndex)
+        } else {
+            result = null
+        }
+        return result
     })
 
     public readonly guessedImportSpecs = computed<Array<ImportSpec>>(() => {
@@ -112,6 +115,8 @@ export class RegistrationController {
         }
         return result
     })
+
+
 
     //
     // Public (actions)
