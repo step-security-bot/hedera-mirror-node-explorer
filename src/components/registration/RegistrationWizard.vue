@@ -35,123 +35,125 @@
 
         <hr class="h-card-separator"/>
 
-        <template v-if="currentStep === 1">
-          <div class="columns mb-5">
-            <div class="column is-one-third has-text-weight-light">
-              <span>Contract Solidity Source File:</span>
-            </div>
-            <div class="column">
-              <FileChooserAction
-                  v-model:file-content="source"
-                  v-model:file-name="sourceFileName"
-                  :action-label="sourceFileName ?? 'Choose source file…'"
-                  fileType=".sol"/>
-            </div>
-          </div>
-        </template>
+        <div class="mt-0" style="min-height: 150px">
 
-        <template v-else-if="currentStep === 2">
-          <div class="columns mb-5">
-            <div class="column is-one-third has-text-weight-light">
-              Solidity Compiler Version:
-            </div>
-            <div class="column">
-              <o-field>
-                <o-select v-model="compilerVersion"
-                          class="h-is-text-size-1" style="border-radius: 4px">
-                  <option v-for="version in allCompilerVersions" :key="version"
-                          style="background-color: var(--h-theme-box-background-color)">
-                    {{ version }}
-                  </option>
-                </o-select>
-              </o-field>
-            </div>
-          </div>
-        </template>
-
-        <template v-else-if="currentStep === 3">
-          <div class="columns mb-5">
-            <div class="column is-one-third has-text-weight-light">
-              Imported Solidity Files:
-            </div>
-            <div class="column has-text-grey">
-              <span v-if="importSpecs.length === 0">None</span>
-            </div>
-          </div>
-          <div v-if="importSpecs.length">
-            <div v-for="(spec, index) in importSpecs" :key="spec.path"
-                 :class="{'mb-0': index < (importSpecs.length - 1)}" class="columns">
-              <div class="column has-text-right has-text-weight-light mr-1">
-                <span class="is-numeric">{{ spec.path }}:</span>
+          <template v-if="currentStep === 1">
+            <div class="columns">
+              <div class="column is-two-fifths has-text-weight-light">
+                <span>Contract Solidity Source File:</span>
               </div>
-              <div class="column has-text-left ml-1">
+              <div class="column">
                 <FileChooserAction
-                    v-model:file-name="spec.sourceFileName"
-                    v-model:file-content="spec.source"
-                    :action-label="spec.sourceFileName ?? 'Choose imported file…'"
+                    v-model:file-content="source"
+                    v-model:file-name="sourceFileName"
+                    :action-label="sourceFileName ?? 'Choose source file…'"
                     fileType=".sol"/>
               </div>
-              <br/>
             </div>
-          </div>
-          <div v-if="false" class="columns">
-            <div class="column mr-1"/>
-            <div class="column has-text-left has-text-weight-light ml-1">
-              Add path
-            </div>
-          </div>
-        </template>
+          </template>
 
-        <template v-else-if="currentStep === 4">
-          <div class="mb-5">
-            <div :class="{'is-invisible': !status}" class="has-text-left h-is-tertiary-text">
-              <span class="icon mr-1">
-                <i v-if="isMatch"  class="fa fa-check has-text-success"/>
-                <i v-else class="fa fa-exclamation-triangle has-text-danger"/>
-              </span>
-              <span v-if="isMatch">Source code matches contract bytecode</span>
-              <span v-else>Source code verification failed</span>
-              <span :class="{'is-invisible': !rejectReason}" class="h-is-property-text has-text-grey ml-1">
-                (Reason: {{ rejectReason }})
-              </span>
+          <template v-else-if="currentStep === 2">
+            <div class="columns">
+              <div class="column is-two-fifths has-text-weight-light">
+                Solidity Compiler Version:
+              </div>
+              <div class="column">
+                <o-field>
+                  <o-select v-model="compilerVersion"
+                            class="h-is-text-size-1" style="border-radius: 4px">
+                    <option v-for="version in allCompilerVersions" :key="version"
+                            style="background-color: var(--h-theme-box-background-color)">
+                      {{ version }}
+                    </option>
+                  </o-select>
+                </o-field>
+              </div>
             </div>
-            <div v-if="isMatch" class="has-text-left has-text-grey mt-3">
-              You may now register this result and the source code to make them available to the community
-            </div>
-            <div v-for="(error, index) in errors" :key="error" class="has-text-left">
-              <div v-if="index === 0" class="mt-5"></div>
-              <pre v-if="index < 3" class="h-has-box-background-color has-text-grey-light p-0">{{ error.formattedMessage }}</pre>
-            </div>
-            <div v-if="errors.length > 3" class="has-text-left">
-              and {{ errors.length - 3 }} more errors...
-            </div>
-          </div>
-        </template>
+          </template>
 
-        <template v-else-if="currentStep === 5">
-          <div class="mb-5">
-            <div :class="{'is-invisible': !status}" class="has-text-left h-is-tertiary-text">
-              <span class="icon mr-1">
-                <i v-if="isMatch"  class="fa fa-check has-text-success"/>
-                <i v-else class="fa fa-exclamation-triangle has-text-danger"/>
-              </span>
-              <span v-if="isMatch">
-                <span>Contract status and source have been registered</span>
-              </span>
-              <span v-else>
-                Registration failed
-                <span :class="{'is-invisible': !rejectReason}" class="h-is-property-text has-text-grey ml-1">
+          <template v-else-if="currentStep === 3">
+            <div class="columns">
+              <div class="column is-two-fifths has-text-weight-light">
+                Imported Solidity Files:
+              </div>
+              <div class="column has-text-grey">
+                <span v-if="importSpecs.length === 0">None</span>
+              </div>
+            </div>
+            <div v-if="importSpecs.length">
+              <div v-for="(spec, index) in importSpecs" :key="spec.path"
+                   :class="{'mb-0': index < (importSpecs.length - 1)}" class="columns">
+                <div class="column has-text-right has-text-weight-light mr-1">
+                  <span class="is-numeric">{{ spec.path }}:</span>
+                </div>
+                <div class="column has-text-left ml-1">
+                  <FileChooserAction
+                      v-model:file-content="spec.source"
+                      v-model:file-name="spec.sourceFileName"
+                      :action-label="spec.sourceFileName ?? 'Choose imported file…'"
+                      fileType=".sol"/>
+                </div>
+                <br/>
+              </div>
+            </div>
+            <div v-if="false" class="columns">
+              <div class="column mr-1"/>
+              <div class="column has-text-left has-text-weight-light ml-1">
+                Add path
+              </div>
+            </div>
+          </template>
+
+          <template v-else-if="currentStep === 4">
+            <div class="columns">
+              <div v-if="status" class="column has-text-left h-is-tertiary-text">
+                <span class="icon mr-1">
+                  <i v-if="isMatch" class="fa fa-check has-text-success"/>
+                  <i v-else class="fa fa-exclamation-triangle has-text-danger"/>
+                </span>
+                <span v-if="isMatch">Source code matches contract bytecode</span>
+                <span v-else>Source code verification failed</span>
+                <span v-if="rejectReason" class="has-text-grey ml-1">
                   (Reason: {{ rejectReason }})
                 </span>
-              </span>
+              </div>
             </div>
-            <div v-if="registrationTime" class="has-text-left has-text-grey mt-3">
-              Registration time: <TimestampValue :timestamp="registrationTime"/>
+            <div v-if="isMatch" class="has-text-left has-text-grey">
+              You may now register this result and the source code to make them available to the community
             </div>
-          </div>
-        </template>
+            <div v-if="errors.length" class="scroll-container mb-5">
+              <div v-for="(error) in errors" :key="error" class="has-text-left">
+                <pre class="h-has-page-background-color has-text-grey-light p-2">{{ error.formattedMessage }}</pre>
+              </div>
+            </div>
+            </template>
 
-        <div class="is-flex is-justify-content-space-between mt-3">
+          <template v-else-if="currentStep === 5">
+            <div class="columns">
+              <div v-if="status" class="column has-text-left h-is-tertiary-text">
+                <span class="icon mr-1">
+                  <i v-if="isMatch" class="fa fa-check has-text-success"/>
+                  <i v-else class="fa fa-exclamation-triangle has-text-danger"/>
+                </span>
+                <span v-if="isMatch">
+                  <span>Contract status and source have been registered</span>
+                </span>
+                <span v-else>
+                  Registration failed
+                  <span v-if="rejectReason" class="has-text-grey ml-1">
+                    (Reason: {{ rejectReason }})
+                  </span>
+                </span>
+              </div>
+            </div>
+            <div v-if="registrationTime" class="has-text-left has-text-grey">
+              Registration time:
+              <TimestampValue :timestamp="registrationTime"/>
+            </div>
+          </template>
+        </div>
+
+        <div class="is-flex is-justify-content-space-between">
           <button :class="{'is-invisible': !isCancelBackShown}" class="button is-white is-small"
                   @click="handleCancel">CANCEL
           </button>
@@ -255,8 +257,8 @@ export default defineComponent({
     const isMatch = computed(() => controller.registerResponse.value?.status === RegistrationStatus.accepted)
     const status = computed(() => controller.registerResponse.value?.status ?? null)
     const rejectReason = computed(() => controller.registerResponse.value?.rejectReason ?? null)
-    const errors = computed(() => controller.registerResponse.value?.solcOutput?.errors ?? [])
-   
+    const errors = computed(() => controller.compilationErrors.value)
+
     const registrationTime = computed(() => {
       const time = controller.registerResponse.value?.entry?.creationTime ?? null
       return time ? (time / 1000).toString() : null
@@ -315,5 +317,11 @@ export default defineComponent({
 <!--                                                       STYLE                                                     -->
 <!-- --------------------------------------------------------------------------------------------------------------- -->
 
-<style/>
-
+<style>
+.scroll-container {
+  max-height: 200px;
+  overflow-y: scroll;
+  scroll-behavior: smooth;
+  scrollbar-color: blue black;
+}
+</style>
