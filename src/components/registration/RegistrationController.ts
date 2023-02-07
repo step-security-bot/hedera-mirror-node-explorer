@@ -53,6 +53,10 @@ export class RegistrationController {
             this.importSpecs.value = this.guessedImportSpecs.value
             this.registerResponse.value = null
         })
+
+        watch(this.importSpecs, () => {
+            this.updateImportSpecs()
+        }, { deep: true })
     }
 
     public activate(): void {
@@ -94,11 +98,11 @@ export class RegistrationController {
     })
 
     public readonly guessedImportSpecs = computed<Array<ImportSpec>>(() => {
-        let result = Array<ImportSpec>()
+        const result = Array<ImportSpec>()
 
         if (this.source.value !== null) {
             for (const p of SolcTools.extractImportPaths(this.source.value)) {
-                result.push(new ImportSpec(p, null, null))
+                result.push(new ImportSpec(p))
             }
         }
 
@@ -211,18 +215,49 @@ export class RegistrationController {
         this.currentStep.value -= 1
     }
 
+
+    //
+    // Private
+    //
+
+    private updateImportSpecs(): void {
+        const specMap = new Map<string, ImportSpec>()
+        for (const s of this.importSpecs.value) {
+            specMap.set(s.path, s)
+        }
+        for (const s of this.importSpecs.value) {
+            if (s.source !== null) {
+                for (const p of SolcTools.extractImportPaths(s.source)) {
+                    if (!specMap.has(p)) {
+                        specMap.set(p, new ImportSpec(p))
+                    }
+                }
+            }
+        }
+        for (const s of this.importSpecs.value) {
+            specMap.delete(s.path)
+        }
+        if (specMap.size >= 1) {
+            const newImportSpecs: ImportSpec[] = []
+            for (const s of this.importSpecs.value) {
+                newImportSpecs.push(s)
+            }
+            for (const s of specMap.values()) {
+                newImportSpecs.push(s)
+            }
+            this.importSpecs.value = newImportSpecs
+        }
+    }
 }
 
 export class ImportSpec {
 
     public readonly path: string
-    public readonly source: string|null
-    public readonly sourceFileName: string|null
+    public source: string|null = null
+    public sourceFileName: string|null = null
 
-    constructor(path: string, source: string|null, sourceFileName: string|null) {
+    constructor(path: string) {
         this.path = path
-        this.source = source
-        this.sourceFileName = sourceFileName
     }
 
     static countUnresolvedSpecs(specs: ImportSpec[]): number {
