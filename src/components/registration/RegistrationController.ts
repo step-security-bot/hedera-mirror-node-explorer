@@ -94,8 +94,15 @@ export class RegistrationController {
     })
 
     public readonly guessedImportSpecs = computed<Array<ImportSpec>>(() => {
-        // To be implemented
-        return []
+        let result = Array<ImportSpec>()
+
+        if (this.source.value !== null) {
+            for (const p of SolcTools.extractImportPaths(this.source.value)) {
+                result.push(new ImportSpec(p, null, null))
+            }
+        }
+
+        return result
     })
 
     public readonly guessedImportSpecCount = computed(() => this.guessedImportSpecs.value.length)
