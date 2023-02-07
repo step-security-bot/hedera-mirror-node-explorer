@@ -28,8 +28,9 @@
     <div class="modal-content" style="width: 768px; border-radius: 16px">
       <div class="box">
 
-        <div class="h-is-primary-title">
-          Verify contract {{ contractId }}
+        <div class="is-flex h-is-primary-title is-justify-content-space-between is-align-items-baseline">
+          <span>Verify contract {{ contractId }}</span>
+          <span v-if="showProgressSpinner" class="loader is-inline-block"/>
         </div>
 
         <hr class="h-card-separator"/>
@@ -286,6 +287,7 @@ export default defineComponent({
       importSpecs: controller.importSpecs,
       allCompilerVersions: controller.allCompilerVersions,
       compilerVersion: controller.compilerVersion,
+      showProgressSpinner: controller.busy,
     }
   }
 });
