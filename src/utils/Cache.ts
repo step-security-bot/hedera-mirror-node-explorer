@@ -41,6 +41,10 @@ export abstract class Cache<K, E> {
         return result
     }
 
+    public forget(key: K): void {
+        this.promises.delete(key)
+    }
+
     public clear(): void {
         this.promises.clear()
     }

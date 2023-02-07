@@ -24,6 +24,7 @@ import {CompilationRequest, RegisterResponse, RegistrationStatus} from "@/utils/
 import {RegistryService} from "@/utils/contract-registry/RegistryService";
 import {routeManager} from "@/router";
 import {SolcTools} from "@/utils/contract-registry/solc/SolcTools";
+import {customContractRegistry} from "@/schemas/CustomContractRegistry";
 
 export class RegistrationController {
 
@@ -194,6 +195,7 @@ export class RegistrationController {
                 })
                 .finally(() => {
                     this.busy.value = false
+                    customContractRegistry.forget(this.contractId)
                 })
         }
     }

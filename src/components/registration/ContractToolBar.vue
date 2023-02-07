@@ -94,6 +94,11 @@ export default defineComponent({
     })
 
     const showWizard = ref(false)
+    watch(showWizard, (newValue, oldValue) => {
+      if (oldValue && !newValue) {
+        updateCustomContractEntry()
+      }
+    })
 
     return {
       contractName,
