@@ -358,7 +358,7 @@ export class RouteManager {
         TransactionByHashCollector.instance.clear()
         TransactionCollector.instance.clear()
         NodeRegistry?.instance.reload()
-        customContractRegistry.clear()
+        customContractRegistry?.clear()
     }
 }
 
