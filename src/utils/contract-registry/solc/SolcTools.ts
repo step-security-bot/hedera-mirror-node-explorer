@@ -27,6 +27,10 @@ const semver = require("semver")
 export class SolcTools {
 
 
+    //
+    // Public
+    //
+
     public static extractSourceVersion(source: string, index: SolcIndex): string|null {
         let result: string|null
 
@@ -60,11 +64,33 @@ export class SolcTools {
     }
 
 
-    public static isValidVersion(value: string, index: SolcIndex): boolean {
+    public static extractImportPaths(source: string): string[] {
+
+        /*
+            import "./HederaResponseCodes.sol";
+         */
+
+        const result = new Array<string>()
+        const regexp = /import "(.*)"/g
+        const matches = source.matchAll(regexp)
+        for (const match of matches) {
+            if (match.length == 2) {
+                result.push(match[1])
+            }
+        }
+
+        return result
+    }
+
+    //
+    // Private
+    //
+
+    private static isValidVersion(value: string, index: SolcIndex): boolean {
         return value in index.releases
     }
 
-    public static chooseVersion(range: string, index: SolcIndex): string|null {
+    private static chooseVersion(range: string, index: SolcIndex): string|null {
 
         function compareReleases(r1: string, r2: string): number {
             let result: number
