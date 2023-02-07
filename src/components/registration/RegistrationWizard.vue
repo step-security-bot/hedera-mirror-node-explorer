@@ -37,10 +37,10 @@
 
         <template v-if="currentStep === 1">
           <div class="columns mb-5">
-            <div class="column has-text-right mr-1 has-text-weight-light">
+            <div class="column is-one-third has-text-weight-light">
               <span>Contract Solidity Source File:</span>
             </div>
-            <div class="column has-text-left ml-1">
+            <div class="column">
               <FileChooserAction
                   v-model:file-content="source"
                   v-model:file-name="sourceFileName"
@@ -51,11 +51,11 @@
         </template>
 
         <template v-else-if="currentStep === 2">
-          <div class="columns mb-4">
-            <div class="column has-text-right has-text-weight-light mr-1">
+          <div class="columns mb-5">
+            <div class="column is-one-third has-text-weight-light">
               Solidity Compiler Version:
             </div>
-            <div class="column has-text-left ml-1">
+            <div class="column">
               <o-field>
                 <o-select v-model="compilerVersion"
                           class="h-is-text-size-1" style="border-radius: 4px">
@@ -70,9 +70,12 @@
         </template>
 
         <template v-else-if="currentStep === 3">
-          <div class="columns mb-0">
-            <div class="column has-text-centered">
-              Imported Solidity Files
+          <div class="columns mb-5">
+            <div class="column is-one-third has-text-weight-light">
+              Imported Solidity Files:
+            </div>
+            <div class="column has-text-grey">
+              <span v-if="importSpecs.length === 0">None</span>
             </div>
           </div>
           <div v-if="importSpecs.length">
@@ -91,9 +94,6 @@
               <br/>
             </div>
           </div>
-          <div v-else class="has-text-grey has-text-centered">
-            None
-          </div>
           <div v-if="false" class="columns">
             <div class="column mr-1"/>
             <div class="column has-text-left has-text-weight-light ml-1">
@@ -103,39 +103,50 @@
         </template>
 
         <template v-else-if="currentStep === 4">
-          <div class="mb-0">
-            <div :class="{'is-invisible': !status}" class="has-text-centered">
-              <span v-if="isMatch" class="icon mr-2"><i class="fa fa-check has-text-success"/></span>
-              <span v-else class="icon mr-2"><i class="fa fa-exclamation-triangle has-text-danger"/></span>
-              <span class="block h-is-tertiary-text">
-                Status: {{ status }}
+          <div class="mb-5">
+            <div :class="{'is-invisible': !status}" class="has-text-left h-is-tertiary-text">
+              <span class="icon mr-1">
+                <i v-if="isMatch"  class="fa fa-check has-text-success"/>
+                <i v-else class="fa fa-exclamation-triangle has-text-danger"/>
+              </span>
+              <span v-if="isMatch">Source code matches contract bytecode</span>
+              <span v-else>Source code verification failed</span>
+              <span :class="{'is-invisible': !rejectReason}" class="h-is-property-text has-text-grey ml-1">
+                (Reason: {{ rejectReason }})
               </span>
             </div>
-            <div :class="{'is-invisible': !rejectReason}"
-                 class="has-text-centered h-is-property-text has-text-grey mt-2 mb-2">
-              Reason: {{ rejectReason }}
+            <div v-if="isMatch" class="has-text-left has-text-grey mt-3">
+              You may now register this result and the source code to make them available to the community
             </div>
-            <div v-for="error in errors" :key="error" class="has-text-centered">
-              Error: {{ error }}
+            <div v-for="(error, index) in errors" :key="error" class="has-text-left">
+              <div v-if="index === 0" class="mt-5"></div>
+              <pre v-if="index < 3" class="h-has-box-background-color has-text-grey-light p-0">{{ error.formattedMessage }}</pre>
+            </div>
+            <div v-if="errors.length > 3" class="has-text-left">
+              and {{ errors.length - 3 }} more errors...
             </div>
           </div>
         </template>
 
         <template v-else-if="currentStep === 5">
-          <div class="mb-0">
-            <div :class="{'is-invisible': !status}" class="has-text-centered">
-              <span v-if="isMatch" class="icon mr-2"><i class="fa fa-check has-text-success"/></span>
-              <span v-else class="icon mr-2"><i class="fa fa-exclamation-triangle has-text-danger"/></span>
-              <span class="block h-is-tertiary-text">
-                Status: {{ status }}
+          <div class="mb-5">
+            <div :class="{'is-invisible': !status}" class="has-text-left h-is-tertiary-text">
+              <span class="icon mr-1">
+                <i v-if="isMatch"  class="fa fa-check has-text-success"/>
+                <i v-else class="fa fa-exclamation-triangle has-text-danger"/>
+              </span>
+              <span v-if="isMatch">
+                <span>Contract status and source have been registered</span>
+              </span>
+              <span v-else>
+                Registration failed
+                <span :class="{'is-invisible': !rejectReason}" class="h-is-property-text has-text-grey ml-1">
+                  (Reason: {{ rejectReason }})
+                </span>
               </span>
             </div>
-            <div :class="{'is-invisible': !rejectReason}"
-                 class="has-text-centered h-is-property-text has-text-grey mt-2 mb-2">
-              Reason: {{ rejectReason }}
-            </div>
-            <div v-for="error in errors" :key="error" class="has-text-centered">
-              Error: {{ error }}
+            <div v-if="registrationTime" class="has-text-left has-text-grey mt-3">
+              Registration time: <TimestampValue :timestamp="registrationTime"/>
             </div>
           </div>
         </template>
@@ -201,10 +212,11 @@ import {computed, defineComponent, watch} from "vue";
 import {RegistrationController} from "@/components/registration/RegistrationController";
 import FileChooserAction from "@/components/FileChooserAction.vue";
 import {RegistrationStatus} from "@/utils/contract-registry/RegistrySchema";
+import TimestampValue from "@/components/values/TimestampValue.vue";
 
 export default defineComponent({
   name: "RegistrationWizard",
-  components: {FileChooserAction},
+  components: {TimestampValue, FileChooserAction},
   props: {
     contractId: {
       type: String,
@@ -218,7 +230,6 @@ export default defineComponent({
   emits: ["update:showWizard"],
 
   setup(props, context) {
-
     const controller = new RegistrationController(props.contractId)
     watch(() => props.showWizard, () => {
       if (props.showWizard)
@@ -237,7 +248,7 @@ export default defineComponent({
 
     const nextButtonLabel = computed(() =>
         controller.currentStep.value == 4 && isMatch.value
-            ? "REGISTER AND CLOSE"
+            ? "REGISTER"
             : "CONTINUE"
     )
 
@@ -245,6 +256,11 @@ export default defineComponent({
     const status = computed(() => controller.registerResponse.value?.status ?? null)
     const rejectReason = computed(() => controller.registerResponse.value?.rejectReason ?? null)
     const errors = computed(() => controller.registerResponse.value?.solcOutput?.errors ?? [])
+   
+    const registrationTime = computed(() => {
+      const time = controller.registerResponse.value?.entry?.creationTime ?? null
+      return time ? (time / 1000).toString() : null
+    })
 
     const handleCancel = () => {
       console.log("handleCancel")
@@ -274,6 +290,7 @@ export default defineComponent({
       status,
       rejectReason,
       errors,
+      registrationTime,
       handleCancel,
       handleClose,
       handleNext,
