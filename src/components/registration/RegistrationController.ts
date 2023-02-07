@@ -25,6 +25,7 @@ import {RegistryService} from "@/utils/contract-registry/RegistryService";
 import {routeManager} from "@/router";
 import {SolcTools} from "@/utils/contract-registry/solc/SolcTools";
 import {customContractRegistry} from "@/schemas/CustomContractRegistry";
+import {ErrorDescription} from "@/utils/contract-registry/solc/SolcOutput";
 
 export class RegistrationController {
 
@@ -129,6 +130,15 @@ export class RegistrationController {
         return result
     })
 
+    public readonly compilationErrors = computed(() => {
+        const result: ErrorDescription[] = []
+        for (const e of this.registerResponse.value?.solcOutput?.errors ?? []) {
+            if (e.severity == "error") {
+                result.push(e)
+            }
+        }
+        return result
+    })
 
 
     //
