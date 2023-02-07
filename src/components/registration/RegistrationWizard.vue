@@ -35,7 +35,7 @@
 
         <hr class="h-card-separator"/>
 
-        <div class="mt-0" style="min-height: 150px">
+        <div class="mt-0" style="min-height: 136px">
 
           <template v-if="currentStep === 1">
             <div class="columns">
@@ -83,10 +83,10 @@
             <div v-if="importSpecs.length">
               <div v-for="(spec, index) in importSpecs" :key="spec.path"
                    :class="{'mb-0': index < (importSpecs.length - 1)}" class="columns">
-                <div class="column has-text-right has-text-weight-light mr-1">
+                <div class="column is-two-fifths has-text-weight-light ml-2">
                   <span class="is-numeric">{{ spec.path }}:</span>
                 </div>
-                <div class="column has-text-left ml-1">
+                <div class="column">
                   <FileChooserAction
                       v-model:file-content="spec.source"
                       v-model:file-name="spec.sourceFileName"
@@ -153,7 +153,7 @@
           </template>
         </div>
 
-        <div class="is-flex is-justify-content-space-between">
+        <div class="is-flex is-justify-content-space-between mt-4">
           <button :class="{'is-invisible': !isCancelBackShown}" class="button is-white is-small"
                   @click="handleCancel">CANCEL
           </button>
