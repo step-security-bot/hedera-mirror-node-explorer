@@ -37,7 +37,7 @@ export class RegistrationController {
 
     private readonly contractId: string
     private readonly solcIndexLoader = new SolcIndexLoader()
-    private readonly buzy: Ref<boolean> = ref(false)
+    public readonly busy: Ref<boolean> = ref(false)
 
 
     //
@@ -142,11 +142,11 @@ export class RegistrationController {
                 enabled = false
                 break
         }
-        return !enabled || this.buzy.value
+        return !enabled || this.busy.value
     })
 
     public readonly isBackDisabled = computed(() => {
-        return this.currentStep.value == 1 || this.buzy.value || this.currentStep.value == 5
+        return this.currentStep.value == 1 || this.busy.value || this.currentStep.value == 5
     })
 
 
@@ -155,7 +155,7 @@ export class RegistrationController {
         if (this.currentStep.value == 4
             && this.source.value !== null
             && this.compilerLongVersion.value !== null ) {
-            this.buzy.value = true
+            this.busy.value = true
             const compilationRequest: CompilationRequest = {
                 solcVersion: this.compilerLongVersion.value,
                 source: this.source.value,
@@ -175,7 +175,7 @@ export class RegistrationController {
                     this.registerResponse.value = null
                 })
                 .finally(() => {
-                    this.buzy.value = false
+                    this.busy.value = false
                 })
         } else if (this.currentStep.value == 5
             && this.registerResponse.value !== null
@@ -193,7 +193,7 @@ export class RegistrationController {
                     this.registerResponse.value = null
                 })
                 .finally(() => {
-                    this.buzy.value = false
+                    this.busy.value = false
                 })
         }
     }
