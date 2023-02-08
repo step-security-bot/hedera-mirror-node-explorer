@@ -29,7 +29,7 @@ import {BigNumber} from "ethers";
 
 describe("FunctionCallAnalyzer.spec.ts", () => {
 
-    test.skip("basic flow", async () => {
+    test("basic flow", async () => {
 
         const abi = require('../../../public/abi/IHederaTokenService.json')
         const mock = new MockAdapter(axios);

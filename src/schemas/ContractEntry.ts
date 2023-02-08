@@ -32,7 +32,9 @@ export abstract class ContractEntry {
 
     async parseTransaction(data: string): Promise<ethers.utils.TransactionDescription|null> {
         if (this.interface === null) {
-            this.interface = await this.buildInterface()
+            this.interface = Object.preventExtensions(await this.buildInterface())
+            // ethers.util.Interface instances does not support being proxied by VueJS
+            // Using Object.preventExtensions() (experimentally) avoid proxying.
         }
         // if (this.compileOutput === null) {
         //     this.compileOutput = await CustomContractEntry.compile(this.fileId)
