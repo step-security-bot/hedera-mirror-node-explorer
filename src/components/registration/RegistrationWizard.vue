@@ -220,10 +220,7 @@ export default defineComponent({
   name: "RegistrationWizard",
   components: {TimestampValue, FileChooserAction},
   props: {
-    contractId: {
-      type: String,
-      required: true
-    },
+    contractId: String,
     showWizard: {
       type: Boolean,
       default: false
@@ -232,7 +229,7 @@ export default defineComponent({
   emits: ["update:showWizard"],
 
   setup(props, context) {
-    const controller = new RegistrationController(props.contractId)
+    const controller = new RegistrationController(computed(() => props.contractId ?? null))
     watch(() => props.showWizard, () => {
       if (props.showWizard)
         controller.activate()
