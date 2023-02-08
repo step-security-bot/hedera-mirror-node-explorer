@@ -108,13 +108,17 @@
             <div class="columns">
               <div v-if="status" class="column has-text-left h-is-tertiary-text">
                 <span class="icon mr-1">
-                  <i v-if="isMatch" class="fa fa-check has-text-success"/>
+                  <i v-if="isFullMatch" class="fa fa-check-double has-text-success"/>
+                  <i v-else-if="isMatch" class="fa fa-check has-text-success"/>
                   <i v-else class="fa fa-exclamation-triangle has-text-danger"/>
                 </span>
-                <span v-if="isMatch">Source code matches contract bytecode</span>
-                <span v-else>Source code verification failed</span>
-                <span v-if="rejectReason" class="has-text-grey ml-1">
-                  (Reason: {{ rejectReason }})
+                <span v-if="isMatch">
+                  <span>Source code matches contract bytecode</span>
+                  <span class="has-text-grey ml-1">({{ isFullMatch ? 'Full Match' : 'Partial Match' }})</span>
+                </span>
+                <span v-else>
+                  <span>Source code verification failed</span>
+                  <span v-if="rejectReason" class="has-text-grey ml-1">(Reason: {{ rejectReason }})</span>
                 </span>
               </div>
             </div>
@@ -213,7 +217,7 @@
 import {computed, defineComponent, watch} from "vue";
 import {RegistrationController} from "@/components/registration/RegistrationController";
 import FileChooserAction from "@/components/FileChooserAction.vue";
-import {RegistrationStatus} from "@/utils/contract-registry/RegistrySchema";
+import {BytecodeComparison, RegistrationStatus} from "@/utils/contract-registry/RegistrySchema";
 import TimestampValue from "@/components/values/TimestampValue.vue";
 
 export default defineComponent({
@@ -252,9 +256,11 @@ export default defineComponent({
     )
 
     const isMatch = computed(() => controller.registerResponse.value?.status === RegistrationStatus.accepted)
+    const isFullMatch = computed(
+        () => controller.registerResponse.value?.entry?.comparison === BytecodeComparison.fullMatch)
+
     const status = computed(() => controller.registerResponse.value?.status ?? null)
     const rejectReason = computed(() => controller.registerResponse.value?.rejectReason ?? null)
-    const errors = computed(() => controller.compilationErrors.value)
 
     const registrationTime = computed(() => {
       const time = controller.registerResponse.value?.entry?.creationTime ?? null
@@ -286,9 +292,9 @@ export default defineComponent({
       isNextShown,
       nextButtonLabel,
       isMatch,
+      isFullMatch,
       status,
       rejectReason,
-      errors,
       registrationTime,
       handleCancel,
       handleClose,
@@ -304,6 +310,7 @@ export default defineComponent({
       allCompilerVersions: controller.allCompilerVersions,
       compilerVersion: controller.compilerVersion,
       showProgressSpinner: controller.busy,
+      errors: controller.compilationErrors,
     }
   }
 });
