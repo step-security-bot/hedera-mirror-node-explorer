@@ -37,7 +37,7 @@ export class RegistrationController {
     public readonly registerResponse: Ref<RegisterResponse|null> = ref(null)
 
 
-    private readonly contractId: string
+    private readonly contractId: Ref<string|null> = ref(null)
     private readonly solcIndexLoader = new SolcIndexLoader()
     public readonly busy: Ref<boolean> = ref(false)
 
@@ -46,7 +46,7 @@ export class RegistrationController {
     // Public
     //
 
-    public constructor(contractId: string) {
+    public constructor(contractId: Ref<string|null>) {
         this.contractId = contractId
 
         watch(this.source, () => {
@@ -175,6 +175,7 @@ export class RegistrationController {
     public handleNext(): void {
         this.currentStep.value += 1
         if (this.currentStep.value == 4
+            && this.contractId.value !== null
             && this.source.value !== null
             && this.compilerLongVersion.value !== null ) {
             this.busy.value = true
@@ -185,7 +186,7 @@ export class RegistrationController {
             }
             console.log("compilationRequest=" + JSON.stringify(compilationRequest, null, "  "))
             RegistryService.register(
-                this.contractId,
+                this.contractId.value,
                 routeManager.currentNetwork.value,
                 compilationRequest,
                 true)
@@ -200,10 +201,12 @@ export class RegistrationController {
                     this.busy.value = false
                 })
         } else if (this.currentStep.value == 5
+            && this.contractId.value !== null
             && this.registerResponse.value !== null
             && this.registerResponse.value.entry) {
+            const contractId = this.contractId.value
             RegistryService.register(
-                this.contractId,
+                contractId,
                 routeManager.currentNetwork.value,
                 this.registerResponse.value.entry.compilationRequest,
                 false)
@@ -216,7 +219,7 @@ export class RegistrationController {
                 })
                 .finally(() => {
                     this.busy.value = false
-                    customContractRegistry.forget(this.contractId)
+                    customContractRegistry.forget(contractId)
                 })
         }
     }
