@@ -107,7 +107,7 @@
               <template v-slot:value>
                 <div>
                   <ByteCodeValue :byte-code="initCode"/>
-                  <ContractToolBar :contract-id="normalizedContractId"/>
+                  <ContractToolBar v-if="initCode" :contract-id="normalizedContractId"/>
                 </div>
               </template>
             </Property>
