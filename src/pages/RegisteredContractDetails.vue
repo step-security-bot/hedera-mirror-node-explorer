@@ -29,7 +29,10 @@
     <DashboardCard>
       <template v-slot:title>
         <span class="h-is-primary-title">Registered Contract </span>
-        <span class="h-is-secondary-text">{{ contractId ?? "" }}</span>
+        <router-link :to="contractRoute">
+          <span class="h-is-secondary-text">{{ normalizedContractId ?? "" }}</span>
+        </router-link>
+        <span v-if="contractChecksum" class="has-text-grey" style="font-size: 28px">-{{ contractChecksum }}</span>
       </template>
       <template v-slot:content>
         <Property id="name" :full-width="true">
@@ -39,7 +42,7 @@
           </template>
         </Property>
         <Property id="fileId" :full-width="true">
-          <template v-slot:name>Creation Time</template>
+          <template v-slot:name>Verification Time</template>
           <template v-slot:value>
             <TimestampValue :show-none="true" :timestamp="creationTime"/>
           </template>
@@ -82,6 +85,9 @@ import StringValue from "@/components/values/StringValue.vue";
 import TimestampValue from "@/components/values/TimestampValue.vue";
 import Property from "@/components/Property.vue";
 import Footer from "@/components/Footer.vue";
+import {EntityID} from "@/utils/EntityID";
+import {networkRegistry} from "@/schemas/NetworkRegistry";
+import router, {routeManager} from "@/router";
 
 export default defineComponent({
 
@@ -103,6 +109,20 @@ export default defineComponent({
   setup(props) {
     const isSmallScreen = inject('isSmallScreen', true)
     const isTouchDevice = inject('isTouchDevice', false)
+
+    const normalizedContractId = computed(() => {
+      return props.contractId ? EntityID.normalize(props.contractId) : null
+    })
+
+    const contractChecksum = computed(() =>
+        normalizedContractId.value ? networkRegistry.computeChecksum(
+            normalizedContractId.value,
+            router.currentRoute.value.params.network as string
+        ) : null)
+
+    const contractRoute = computed(() => {
+      return normalizedContractId.value ?  routeManager.makeRouteToContract(normalizedContractId.value) : null
+    })
 
     const contractEntry: Ref<CustomContractEntry | null> = ref(null)
     const updateContractEntry = () => {
@@ -145,6 +165,9 @@ export default defineComponent({
     return {
       isSmallScreen,
       isTouchDevice,
+      normalizedContractId,
+      contractChecksum,
+      contractRoute,
       contractName,
       creationTime,
       solcVersion,
