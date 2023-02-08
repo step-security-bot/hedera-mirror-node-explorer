@@ -24,7 +24,7 @@
 
 <template>
   <a @click="showFileChooser">
-    <span class="h-is-property-text has-text-grey">{{ actionLabel }}</span>
+    <span class="h-is-property-text has-text-grey-on-hover">{{ actionLabel }}</span>
   </a>
   <input type="file" :accept="fileType" ref="inputFile"
          @change="handleFileSelection" style="display: none"/>
@@ -77,7 +77,7 @@ export default defineComponent({
               context.emit("update:reading", false)
             })
       } else {
-        console.log("Selected files is undefined")
+        console.log("Selected file is undefined")
       }
     }
 
@@ -95,4 +95,11 @@ export default defineComponent({
 <!--                                                      STYLE                                                      -->
 <!-- --------------------------------------------------------------------------------------------------------------- -->
 
-<style/>
+<style scoped>
+.has-text-grey-on-hover {
+  color: lightgrey;
+}
+.has-text-grey-on-hover:hover {
+  color: grey;
+}
+</style>
