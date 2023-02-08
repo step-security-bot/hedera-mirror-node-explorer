@@ -29,12 +29,17 @@
     <DashboardCard>
       <template v-slot:title>
         <span class="h-is-primary-title">Registered Contract </span>
-        <router-link :to="contractRoute">
-          <span class="h-is-secondary-text">{{ normalizedContractId ?? "" }}</span>
-        </router-link>
-        <span v-if="contractChecksum" class="has-text-grey" style="font-size: 28px">-{{ contractChecksum }}</span>
+        <span v-if="registeredContractId">
+          <router-link :to="contractRoute">
+            <span class="h-is-secondary-text">{{ registeredContractId ?? "" }}</span>
+          </router-link>
+          <span v-if="contractChecksum" class="has-text-grey" style="font-size: 28px">-{{ contractChecksum }}</span>
+        </span>
       </template>
       <template v-slot:content>
+
+        <NotificationBanner v-if="notification" :message="notification"/>
+
         <Property id="name" :full-width="true">
           <template v-slot:name>Name</template>
           <template v-slot:value>
@@ -88,12 +93,14 @@ import Footer from "@/components/Footer.vue";
 import {EntityID} from "@/utils/EntityID";
 import {networkRegistry} from "@/schemas/NetworkRegistry";
 import router, {routeManager} from "@/router";
+import NotificationBanner from "@/components/NotificationBanner.vue";
 
 export default defineComponent({
 
   name: 'RegisteredContractDetails',
 
   components: {
+    NotificationBanner,
     Footer,
     Property,
     TimestampValue,
@@ -110,24 +117,34 @@ export default defineComponent({
     const isSmallScreen = inject('isSmallScreen', true)
     const isTouchDevice = inject('isTouchDevice', false)
 
+    const validEntityId = computed(() => {
+      return props.contractId ? EntityID.parse(props.contractId, true) != null : false
+    })
     const normalizedContractId = computed(() => {
       return props.contractId ? EntityID.normalize(props.contractId) : null
     })
-
-    const contractChecksum = computed(() =>
-        normalizedContractId.value ? networkRegistry.computeChecksum(
-            normalizedContractId.value,
-            router.currentRoute.value.params.network as string
-        ) : null)
 
     const contractRoute = computed(() => {
       return normalizedContractId.value ?  routeManager.makeRouteToContract(normalizedContractId.value) : null
     })
 
+    const notification = computed(() => {
+      let result: string|null
+
+      if (!validEntityId.value) {
+        result = "Invalid contract ID: " + props.contractId
+      } else if (!contractEntry.value) {
+        result = "Registered contract with ID " + props.contractId + " was not found"
+      } else {
+        result = null
+      }
+      return result
+    })
+
     const contractEntry: Ref<CustomContractEntry | null> = ref(null)
     const updateContractEntry = () => {
-      if (props.contractId) {
-        customContractRegistry.lookup(props.contractId)
+      if (normalizedContractId.value) {
+        customContractRegistry.lookup(normalizedContractId.value)
             .then((e: CustomContractEntry) => {
               contractEntry.value = e
             })
@@ -144,6 +161,14 @@ export default defineComponent({
     watch(() => props.contractId, () => {
       updateContractEntry()
     })
+
+    const registeredContractId = computed(() => contractEntry.value?.contractId ?? null)
+
+    const contractChecksum = computed(() =>
+        registeredContractId.value ? networkRegistry.computeChecksum(
+            registeredContractId.value,
+            router.currentRoute.value.params.network as string
+        ) : null)
 
     const contractName = computed(() => {
       return contractEntry.value?.registryEntry.contractName
@@ -165,9 +190,10 @@ export default defineComponent({
     return {
       isSmallScreen,
       isTouchDevice,
-      normalizedContractId,
       contractChecksum,
+      notification,
       contractRoute,
+      registeredContractId,
       contractName,
       creationTime,
       solcVersion,
