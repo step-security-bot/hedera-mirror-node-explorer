@@ -102,7 +102,7 @@ export class RegistrationController {
         const result = Array<ImportSpec>()
 
         if (this.source.value !== null) {
-            for (const p of SolcTools.extractImportPaths(this.source.value)) {
+            for (const p of SolcTools.extractImportPaths(this.source.value, this.builtinImports)) {
                 result.push(new ImportSpec(p))
             }
         }
@@ -233,6 +233,14 @@ export class RegistrationController {
     // Private
     //
 
+    // private readonly builtinImports = [
+    //     "HederaTokenService.sol",
+    //     "HederaResponseCodes.sol",
+    //     "IHederaTokenService.sol"
+    // ]
+    //
+    private readonly builtinImports = Array<string>()
+
     private updateImportSpecs(): void {
         const specMap = new Map<string, ImportSpec>()
         for (const s of this.importSpecs.value) {
@@ -240,7 +248,7 @@ export class RegistrationController {
         }
         for (const s of this.importSpecs.value) {
             if (s.source !== null) {
-                for (const p of SolcTools.extractImportPaths(s.source)) {
+                for (const p of SolcTools.extractImportPaths(s.source, this.builtinImports)) {
                     if (!specMap.has(p)) {
                         specMap.set(p, new ImportSpec(p))
                     }

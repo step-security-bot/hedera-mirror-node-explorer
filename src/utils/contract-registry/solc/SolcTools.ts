@@ -64,7 +64,7 @@ export class SolcTools {
     }
 
 
-    public static extractImportPaths(source: string): string[] {
+    public static extractImportPaths(source: string, builtinImports: string[]): string[] {
 
         /*
             import "./HederaResponseCodes.sol";
@@ -74,11 +74,22 @@ export class SolcTools {
         const regexp = /import "(.*)"/g
         const matches = source.matchAll(regexp)
         for (const match of matches) {
-            if (match.length == 2) {
+            if (match.length == 2 && !this.isBuiltinImportPath(match[1], builtinImports)) {
                 result.push(match[1])
             }
         }
 
+        return result
+    }
+
+    public static isBuiltinImportPath(path: string, builtinImports: string[]): boolean {
+        let result = false
+        for (const bi of builtinImports) {
+            if (path.endsWith("/" + bi)) {
+                result = true
+                break
+            }
+        }
         return result
     }
 
