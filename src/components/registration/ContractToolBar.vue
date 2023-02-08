@@ -25,18 +25,16 @@
 <template>
 
     <template v-if="contractName">
-
-      <span class="icon has-text-success mr-1" style="font-size: 20px">
-        <i class="fas fa-check"></i>
+      <span class="icon has-text-success mr-1" style="font-size: 20px"><i class="fas fa-check"></i></span>
+      <span>
+        <span class="has-text-weight-light mr-1">Conform to contract:</span>
+         <router-link :to="routeToSource">{{ contractName }}</router-link>
       </span>
-      <span>Conform to
-       <router-link :to="routeToSource">{{ contractName }}</router-link> contract
-      </span>
-
     </template>
 
     <template v-else>
-      <a @click="showWizard = true">Verify contract…</a>
+      <span class="icon mr-2" style="font-size: 20px"><i class="fas fa-user-check"></i></span>
+      <a @click="showWizard = true" class="has-text-weight-light">Verify contract…</a>
     </template>
 
     <RegistrationWizard :contract-id="contractId" v-model:show-wizard="showWizard"/>
