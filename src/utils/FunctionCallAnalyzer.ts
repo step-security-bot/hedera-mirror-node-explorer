@@ -55,7 +55,7 @@ export class FunctionCallAnalyzer {
         for (const wh of this.watchHandles) {
             wh()
         }
-        this.watchHandles.splice(0, this.watchHandles.length)
+        this.watchHandles.splice(0)
         this.transactionDescription.value = null
         this.decodedFunctionResult.value = null
     }
