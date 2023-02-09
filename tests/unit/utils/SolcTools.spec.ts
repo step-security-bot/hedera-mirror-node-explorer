@@ -41,12 +41,12 @@ describe("SolcTools.spec.ts", () => {
     })
 
     test("extractImports(HelloWorld)", () => {
-        const importPaths = SolcTools.extractImportPaths(HELLO_WORLD_SOURCE)
+        const importPaths = SolcTools.extractImportPaths(HELLO_WORLD_SOURCE, [])
         expect(importPaths).toStrictEqual([])
     })
 
     test("extractImports(HTS)", () => {
-        const importPaths = SolcTools.extractImportPaths(HTS_SOURCE)
+        const importPaths = SolcTools.extractImportPaths(HTS_SOURCE, [])
         expect(importPaths).toStrictEqual([
             "./HederaTokenService.sol",
             "./HederaResponseCodes.sol",
