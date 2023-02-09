@@ -130,6 +130,13 @@
                 </div>
               </template>
             </Property>
+            <Property v-if="signature" id="signature">
+              <template v-slot:name>Constructor</template>
+              <template v-slot:value>
+                <StringValue :string-value="signature"/>
+              </template>
+            </Property>
+
       </template>
 
       <template v-slot:rightContent>
@@ -356,6 +363,7 @@ export default defineComponent({
       aliasByteString: accountLoader.aliasByteString,
       initCode: contractLoader.bytecode,
       contractAnalyzer,
+      signature: contractAnalyzer.signature
     }
   },
 });

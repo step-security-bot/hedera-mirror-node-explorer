@@ -26,7 +26,8 @@ export class ContractAnalyzer {
 
     private readonly contractRef: Ref<ContractResponse|null>
     private readonly contractEntryRef: Ref<CustomContractEntry|null> = ref(null)
-    private watchHandle: WatchStopHandle|null = null
+    private readonly signatureRef: Ref<string|null> = ref(null)
+    private readonly watchHandles: WatchStopHandle[] = []
 
     //
     // Public
@@ -37,15 +38,19 @@ export class ContractAnalyzer {
     }
 
     public mount(): void {
-        this.watchHandle = watch(this.contractRef, this.contractDidChange, { immediate: true })
+        this.watchHandles.push(
+            watch(this.contractRef, this.contractDidChange, { immediate: true }),
+            watch(this.contractEntryRef, this.contractEntryDidChange, { immediate: true })
+        )
     }
 
     public unmount(): void {
-        if (this.watchHandle) {
-            this.watchHandle()
-            this.watchHandle = null
+        for (const wh of this.watchHandles) {
+            wh()
         }
+        this.watchHandles.splice(0)
         this.contractEntryRef.value = null
+        this.signatureRef.value = null
     }
 
     public readonly contract: ComputedRef<ContractResponse|null> = computed(() => {
@@ -56,6 +61,9 @@ export class ContractAnalyzer {
         return this.contractEntryRef.value
     })
 
+    public readonly signature: ComputedRef<string|null> = computed(() => {
+        return this.signatureRef.value
+    })
 
     //
     // Private
@@ -78,4 +86,17 @@ export class ContractAnalyzer {
         }
     }
 
+    private contractEntryDidChange = () => {
+        if (this.contractEntry.value !== null) {
+            this.contractEntry.value?.getConstructorSignature()
+                .then((s: string|null) => {
+                    this.signatureRef.value = s
+                })
+                .catch(() => {
+                    this.signatureRef.value = null
+                })
+        } else {
+            this.signatureRef.value = null
+        }
+    }
 }
