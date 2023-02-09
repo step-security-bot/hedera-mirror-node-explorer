@@ -114,7 +114,7 @@
                 </span>
                 <span v-if="isMatch">
                   <span>Source code matches contract bytecode</span>
-                  <span class="has-text-grey ml-1">({{ isFullMatch ? 'Full Match' : 'Partial Match' }})</span>
+                  <span class="has-text-grey ml-1">({{ isFullMatch ? 'full match' : 'partial match' }})</span>
                 </span>
                 <span v-else>
                   <span>Source code verification failed</span>
