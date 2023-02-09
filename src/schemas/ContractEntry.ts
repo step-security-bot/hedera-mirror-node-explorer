@@ -66,6 +66,14 @@ export abstract class ContractEntry {
         return Promise.resolve(result)
     }
 
+    async getConstructorSignature(): Promise<string|null> {
+        if (this.interface === null) {
+            this.interface = Object.preventExtensions(await this.buildInterface())
+        }
+        const result = this.interface?.deploy.format("full") ?? null
+        return Promise.resolve(result)
+    }
+
     //
     // Protected
     //
