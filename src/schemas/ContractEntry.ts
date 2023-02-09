@@ -52,7 +52,7 @@ export abstract class ContractEntry {
 
     async decodeFunctionResult(functionFragment: ethers.utils.FunctionFragment, resultData: string): Promise<ethers.utils.Result|null> {
         if (this.interface === null) {
-            this.interface = await this.buildInterface()
+            this.interface = Object.preventExtensions(await this.buildInterface())
         }
         const result = this.interface?.decodeFunctionResult(functionFragment, resultData) ?? null
         return Promise.resolve(result)
@@ -60,7 +60,7 @@ export abstract class ContractEntry {
 
     async getSignature(data: string): Promise<string|null> {
         if (this.interface === null) {
-            this.interface = await this.buildInterface()
+            this.interface = Object.preventExtensions(await this.buildInterface())
         }
         const result = this.interface?.parseTransaction({data: data})?.signature ?? null
         return Promise.resolve(result)
