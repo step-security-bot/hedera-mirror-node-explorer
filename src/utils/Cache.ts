@@ -54,7 +54,7 @@ export abstract class Cache<K, E> {
     //
 
     protected async load(key: K): Promise<E> {
-        throw new Error("Must be subclassed")
+        throw new Error("Must be subclassed to load " + key)
     }
 
 }
