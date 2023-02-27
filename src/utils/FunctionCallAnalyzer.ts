@@ -22,7 +22,6 @@ import {computed, ComputedRef, ref, Ref, watch, WatchStopHandle} from "vue";
 import {systemContractRegistry} from "@/schemas/SystemContractRegistry";
 import {ContractEntry} from "@/schemas/ContractEntry";
 import {ethers} from "ethers";
-import {CustomContractEntry, customContractRegistry} from "@/schemas/CustomContractRegistry";
 
 export class FunctionCallAnalyzer {
 
@@ -111,13 +110,7 @@ export class FunctionCallAnalyzer {
             if (systemContractEntry !== null) {
                 this.contractEntry.value = systemContractEntry
             } else {
-                customContractRegistry.lookup(this.contractId.value)
-                    .then((e: CustomContractEntry) => {
-                        this.contractEntry.value = e
-                    })
-                    .catch(() => {
-                        this.contractEntry.value = null
-                    })
+                this.contractEntry.value = null
             }
         } else {
             this.contractEntry.value = null

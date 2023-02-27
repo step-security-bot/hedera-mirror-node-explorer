@@ -83,16 +83,14 @@
 
 <script lang="ts">
 
-import {computed, defineComponent, inject, onMounted, ref, Ref, watch} from 'vue';
+import {computed, defineComponent, inject} from 'vue';
 import DashboardCard from "@/components/DashboardCard.vue";
-import {CustomContractEntry, customContractRegistry} from "@/schemas/CustomContractRegistry";
 import StringValue from "@/components/values/StringValue.vue";
 import TimestampValue from "@/components/values/TimestampValue.vue";
 import Property from "@/components/Property.vue";
 import Footer from "@/components/Footer.vue";
 import {EntityID} from "@/utils/EntityID";
-import {networkRegistry} from "@/schemas/NetworkRegistry";
-import router, {routeManager} from "@/router";
+import {routeManager} from "@/router";
 import NotificationBanner from "@/components/NotificationBanner.vue";
 
 export default defineComponent({
@@ -133,58 +131,51 @@ export default defineComponent({
 
       if (!validEntityId.value) {
         result = "Invalid contract ID: " + props.contractId
-      } else if (!contractEntry.value) {
-        result = "Registered contract with ID " + props.contractId + " was not found"
       } else {
         result = null
       }
       return result
     })
+    //
+    // const contractEntry: Ref<CustomContractEntry | null> = ref(null)
+    // const updateContractEntry = () => {
+    //   if (normalizedContractId.value) {
+    //     customContractRegistry.lookup(normalizedContractId.value)
+    //         .then((e: CustomContractEntry) => {
+    //           contractEntry.value = e
+    //         })
+    //         .catch(() => {
+    //           contractEntry.value = null
+    //         })
+    //   } else {
+    //     contractEntry.value = null
+    //   }
+    // }
+    // onMounted(() => {
+    //   updateContractEntry()
+    // })
+    // watch(() => props.contractId, () => {
+    //   updateContractEntry()
+    // })
 
-    const contractEntry: Ref<CustomContractEntry | null> = ref(null)
-    const updateContractEntry = () => {
-      if (normalizedContractId.value) {
-        customContractRegistry.lookup(normalizedContractId.value)
-            .then((e: CustomContractEntry) => {
-              contractEntry.value = e
-            })
-            .catch(() => {
-              contractEntry.value = null
-            })
-      } else {
-        contractEntry.value = null
-      }
-    }
-    onMounted(() => {
-      updateContractEntry()
-    })
-    watch(() => props.contractId, () => {
-      updateContractEntry()
-    })
+    const registeredContractId = computed(() => null)
 
-    const registeredContractId = computed(() => contractEntry.value?.contractId ?? null)
-
-    const contractChecksum = computed(() =>
-        registeredContractId.value ? networkRegistry.computeChecksum(
-            registeredContractId.value,
-            router.currentRoute.value.params.network as string
-        ) : null)
+    const contractChecksum = computed(() => null)
 
     const contractName = computed(() => {
-      return contractEntry.value?.registryEntry.contractName
+      return null
     })
 
     const creationTime = computed(() => {
-      const time = contractEntry.value?.registryEntry.creationTime ?? 0
-      return time ? (time / 1000).toString() : null
+      return null
     })
 
     const solcVersion = computed(() => {
-      return contractEntry.value?.registryEntry.compilationRequest.solcVersion ?? null
+      return null
     })
 
     const source = computed(() => {
-      return contractEntry.value?.registryEntry.compilationRequest.source ?? null
+      return null
     })
 
     return {

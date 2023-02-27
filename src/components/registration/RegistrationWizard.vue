@@ -217,8 +217,8 @@
 import {computed, defineComponent, watch} from "vue";
 import {RegistrationController} from "@/components/registration/RegistrationController";
 import FileChooserAction from "@/components/FileChooserAction.vue";
-import {BytecodeComparison, RegistrationStatus} from "@/utils/contract-registry/RegistrySchema";
 import TimestampValue from "@/components/values/TimestampValue.vue";
+import {BytecodeComparison} from "@/utils/solc/SolcUtils";
 
 export default defineComponent({
   name: "RegistrationWizard",
@@ -243,7 +243,7 @@ export default defineComponent({
 
     const isCancelBackShown = computed(
         () => controller.currentStep.value < 4
-            || controller.registerResponse.value?.status == RegistrationStatus.rejected)
+            || controller.bytecodeComparison.value == BytecodeComparison.mismatch)
 
     const isCloseShown = computed(() => isMatch.value)
 
@@ -255,17 +255,15 @@ export default defineComponent({
             : "CONTINUE"
     )
 
-    const isMatch = computed(() => controller.registerResponse.value?.status === RegistrationStatus.accepted)
+    const isMatch = computed(
+        () => controller.bytecodeComparison.value !== BytecodeComparison.mismatch)
     const isFullMatch = computed(
-        () => controller.registerResponse.value?.entry?.comparison === BytecodeComparison.fullMatch)
+        () => controller.bytecodeComparison.value === BytecodeComparison.fullMatch)
 
-    const status = computed(() => controller.registerResponse.value?.status ?? null)
-    const rejectReason = computed(() => controller.registerResponse.value?.rejectReason ?? null)
+    const status = computed(() => controller.bytecodeComparison.value)
+    const rejectReason = computed(() => null)
 
-    const registrationTime = computed(() => {
-      const time = controller.registerResponse.value?.entry?.creationTime ?? null
-      return time ? (time / 1000).toString() : null
-    })
+    const registrationTime = computed(() =>  null)
 
     const handleCancel = () => {
       console.log("handleCancel")

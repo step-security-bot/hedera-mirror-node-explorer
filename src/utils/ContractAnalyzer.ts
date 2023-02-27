@@ -20,12 +20,10 @@
 
 import {computed, ComputedRef, ref, Ref, watch, WatchStopHandle} from "vue";
 import {ContractResponse} from "@/schemas/HederaSchemas";
-import {CustomContractEntry, customContractRegistry} from "@/schemas/CustomContractRegistry";
 
 export class ContractAnalyzer {
 
     private readonly contractRef: Ref<ContractResponse|null>
-    private readonly contractEntryRef: Ref<CustomContractEntry|null> = ref(null)
     private readonly signatureRef: Ref<string|null> = ref(null)
     private readonly watchHandles: WatchStopHandle[] = []
 
@@ -40,7 +38,6 @@ export class ContractAnalyzer {
     public mount(): void {
         this.watchHandles.push(
             watch(this.contractRef, this.contractDidChange, { immediate: true }),
-            watch(this.contractEntryRef, this.contractEntryDidChange, { immediate: true })
         )
     }
 
@@ -49,16 +46,11 @@ export class ContractAnalyzer {
             wh()
         }
         this.watchHandles.splice(0)
-        this.contractEntryRef.value = null
         this.signatureRef.value = null
     }
 
     public readonly contract: ComputedRef<ContractResponse|null> = computed(() => {
         return this.contractRef.value
-    })
-
-    public readonly contractEntry: ComputedRef<CustomContractEntry|null> = computed(() => {
-        return this.contractEntryRef.value
     })
 
     public readonly signature: ComputedRef<string|null> = computed(() => {
@@ -70,33 +62,19 @@ export class ContractAnalyzer {
     //
 
     private contractDidChange = (): void => {
-        const contract = this.contractRef.value
-        const contractId = contract?.contract_id ?? null
-        const runtimeByteCode = contract?.runtime_bytecode ?? null
-        if (contractId !== null && runtimeByteCode !== null) {
-            customContractRegistry.lookup(contractId)
-                .then((e: CustomContractEntry|null) => {
-                    this.contractEntryRef.value = e
-                })
-                .catch(() => {
-                    this.contractEntryRef.value = null
-                })
-        } else {
-            this.contractEntryRef.value = null
-        }
-    }
-
-    private contractEntryDidChange = () => {
-        if (this.contractEntry.value !== null) {
-            this.contractEntry.value?.getConstructorSignature()
-                .then((s: string|null) => {
-                    this.signatureRef.value = s
-                })
-                .catch(() => {
-                    this.signatureRef.value = null
-                })
-        } else {
-            this.signatureRef.value = null
-        }
+        // const contract = this.contractRef.value
+        // const contractId = contract?.contract_id ?? null
+        // const runtimeByteCode = contract?.runtime_bytecode ?? null
+        // if (contractId !== null && runtimeByteCode !== null) {
+        //     customContractRegistry.lookup(contractId)
+        //         .then((e: CustomContractEntry|null) => {
+        //             this.contractEntryRef.value = e
+        //         })
+        //         .catch(() => {
+        //             this.contractEntryRef.value = null
+        //         })
+        // } else {
+        //     this.contractEntryRef.value = null
+        // }
     }
 }

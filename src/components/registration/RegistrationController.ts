@@ -20,12 +20,11 @@
 
 import {computed, Ref, ref, watch} from "vue";
 import {SolcIndexLoader} from "@/components/registration/SolcIndexLoader";
-import {CompilationRequest, RegisterResponse, RegistrationStatus} from "@/utils/contract-registry/RegistrySchema";
-import {RegistryService} from "@/utils/contract-registry/RegistryService";
-import {routeManager} from "@/router";
 import {SolcTools} from "@/utils/contract-registry/solc/SolcTools";
-import {customContractRegistry} from "@/schemas/CustomContractRegistry";
-import {ErrorDescription} from "@/utils/contract-registry/solc/SolcOutput";
+import {ErrorDescription, SolcOutput} from "@/utils/solc/SolcOutput";
+import {Solc} from "@/utils/solc/Solc";
+import {BytecodeComparison, SolcUtils} from "@/utils/solc/SolcUtils";
+import {ContractLoader} from "@/components/contract/ContractLoader";
 
 export class RegistrationController {
 
@@ -34,11 +33,12 @@ export class RegistrationController {
     public readonly sourceFileName: Ref<string|null> = ref(null)
     public readonly compilerVersion: Ref<string|null> = ref(null)
     public readonly importSpecs: Ref<Array<ImportSpec>> = ref([])
-    public readonly registerResponse: Ref<RegisterResponse|null> = ref(null)
+    public readonly solcOutput: Ref<SolcOutput|null> = ref(null)
 
 
     private readonly contractId: Ref<string|null> = ref(null)
     private readonly solcIndexLoader = new SolcIndexLoader()
+    private readonly contractLoader: ContractLoader
     public readonly busy: Ref<boolean> = ref(false)
 
 
@@ -48,11 +48,12 @@ export class RegistrationController {
 
     public constructor(contractId: Ref<string|null>) {
         this.contractId = contractId
+        this.contractLoader = new ContractLoader(this.contractId)
 
         watch(this.source, () => {
             this.compilerVersion.value = this.guessedCompilerVersion.value
             this.importSpecs.value = this.guessedImportSpecs.value
-            this.registerResponse.value = null
+            this.solcOutput.value = null
         })
 
         watch(this.importSpecs, () => {
@@ -61,6 +62,7 @@ export class RegistrationController {
     }
 
     public activate(): void {
+        this.contractLoader.requestLoad()
         this.solcIndexLoader.requestLoad()
         this.currentStep.value = 1
         this.sourceFileName.value = null
@@ -68,6 +70,7 @@ export class RegistrationController {
     }
 
     public inactivate(): void {
+        this.contractLoader.clear()
         this.solcIndexLoader.clear()
     }
 
@@ -116,8 +119,48 @@ export class RegistrationController {
         return ImportSpec.countUnresolvedSpecs(this.importSpecs.value)
     })
 
+    public readonly deployedBytecode = computed(() => {
+        const result = this.contractLoader.runtimeBytecode.value
+        return result !== null && result.startsWith("0x") ? result.slice(2) : result
+    })
+
+    public readonly matchingContract = computed(() => {
+        let result: string|null
+        const sourceFileName = this.sourceFileName.value
+        const deployedBytecode = this.deployedBytecode.value
+        const solcOutput = this.solcOutput.value
+        const errorCount = this.compilationErrors.value.length
+        if (sourceFileName !== null
+            && deployedBytecode !== null
+            && solcOutput !== null
+            && errorCount == 0) {
+            result = SolcUtils.findMatchingContract(sourceFileName, deployedBytecode, solcOutput)
+            console.log("contractName=" + result)
+        } else {
+            result = null
+        }
+        return result
+    })
+
+    public readonly bytecodeComparison = computed(() => {
+        let result: BytecodeComparison
+        const solcOutput = this.solcOutput.value
+        const matchingContract = this.matchingContract.value
+        const sourceFileName = this.sourceFileName.value
+        const compiledBytecode = sourceFileName !== null && matchingContract !== null && solcOutput !== null ?
+            SolcUtils.fetchBytecode(sourceFileName, matchingContract, solcOutput) : null
+        const deployedBytecode = this.deployedBytecode.value
+        if (compiledBytecode !== null && deployedBytecode !== null) {
+            result = SolcUtils.compareBytecode(compiledBytecode, deployedBytecode)
+        } else {
+            result = BytecodeComparison.mismatch
+        }
+        console.log("bytecodeComparison=" + result)
+        return result
+    })
+
     public readonly readyForRegister = computed(() => {
-        return this.registerResponse.value?.status == RegistrationStatus.accepted
+        return this.bytecodeComparison.value !== BytecodeComparison.mismatch
     })
 
     public readonly compilerLongVersion = computed(() => {
@@ -132,7 +175,7 @@ export class RegistrationController {
 
     public readonly compilationErrors = computed(() => {
         const result: ErrorDescription[] = []
-        for (const e of this.registerResponse.value?.solcOutput?.errors ?? []) {
+        for (const e of this.solcOutput.value?.errors ?? []) {
             if (e.severity == "error") {
                 result.push(e)
             }
@@ -177,50 +220,28 @@ export class RegistrationController {
         if (this.currentStep.value == 4
             && this.contractId.value !== null
             && this.source.value !== null
+            && this.sourceFileName.value !== null
             && this.compilerLongVersion.value !== null ) {
             this.busy.value = true
-            const compilationRequest: CompilationRequest = {
-                solcVersion: this.compilerLongVersion.value,
-                source: this.source.value,
-                importSources: ImportSpec.makeImportSources(this.importSpecs.value)
-            }
-            console.log("compilationRequest=" + JSON.stringify(compilationRequest, null, "  "))
-            RegistryService.register(
-                this.contractId.value,
-                routeManager.currentNetwork.value,
-                compilationRequest,
-                true)
-                .then((r: RegisterResponse) => {
-                    this.registerResponse.value = r
+
+            const solcInput = Solc.makeSolcInput(this.source.value, this.sourceFileName.value)
+            const importSources = ImportSpec.makeImportSources(this.importSpecs.value)
+            Solc.run(this.compilerLongVersion.value, solcInput, importSources)
+                .then((r: SolcOutput) => {
+                    this.solcOutput.value = Object.freeze(r) // To avoid proxying
                 })
                 .catch((error) => {
                     console.log("Dry run did fail with error: " + error)
-                    this.registerResponse.value = null
+                    this.solcOutput.value = null
                 })
                 .finally(() => {
                     this.busy.value = false
                 })
         } else if (this.currentStep.value == 5
             && this.contractId.value !== null
-            && this.registerResponse.value !== null
-            && this.registerResponse.value.entry) {
+            && this.solcOutput.value !== null) {
             const contractId = this.contractId.value
-            RegistryService.register(
-                contractId,
-                routeManager.currentNetwork.value,
-                this.registerResponse.value.entry.compilationRequest,
-                false)
-                .then((r: RegisterResponse) => {
-                    this.registerResponse.value = r
-                })
-                .catch((error) => {
-                    console.log("Register did fail with error: " + error)
-                    this.registerResponse.value = null
-                })
-                .finally(() => {
-                    this.busy.value = false
-                    customContractRegistry.forget(contractId)
-                })
+            console.log("Will register " + contractId)
         }
     }
 
@@ -296,7 +317,23 @@ export class ImportSpec {
         for (const s of specs) {
             if (s.source !== null) {
                 result[s.path] = s.source
+                const fileName = this.fileName(s.path)
+                if (fileName != s.path) {
+                    result[fileName] = s.source
+                }
             }
+        }
+        console.log("importSources=" + JSON.stringify(result, null, "  "))
+        return result
+    }
+
+    private static fileName(path: string): string {
+        let result: string
+        const i = path.lastIndexOf("/")
+        if (i != -1) {
+            result = path.substring(i+1)
+        } else {
+            result = path
         }
         return result
     }

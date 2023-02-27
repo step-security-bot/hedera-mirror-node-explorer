@@ -48,8 +48,7 @@
 
 <script lang="ts">
 
-import {computed, defineComponent, onMounted, Ref, ref, watch} from 'vue';
-import {CustomContractEntry, customContractRegistry} from "@/schemas/CustomContractRegistry";
+import {computed, defineComponent, onMounted, ref, watch} from 'vue';
 import {routeManager} from "@/router";
 import RegistrationWizard from "@/components/registration/RegistrationWizard.vue";
 
@@ -62,19 +61,7 @@ export default defineComponent({
 
   setup(props) {
 
-    const customContractEntry: Ref<CustomContractEntry|null> = ref(null)
     const updateCustomContractEntry = () => {
-      if (props.contractId) {
-        customContractRegistry.lookup(props.contractId)
-            .then((e: CustomContractEntry) => {
-              customContractEntry.value = e
-            })
-            .catch(() => {
-              customContractEntry.value = null
-            })
-      } else {
-        customContractEntry.value = null
-      }
     }
     onMounted(() => {
       updateCustomContractEntry()
@@ -84,7 +71,7 @@ export default defineComponent({
     })
 
     const contractName = computed(() => {
-      return customContractEntry.value?.registryEntry.contractName ?? null
+      return null
     })
 
     const routeToSource = computed(() => {
