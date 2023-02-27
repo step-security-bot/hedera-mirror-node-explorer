@@ -18,7 +18,6 @@
  *
  */
 
-import SolcWorker from "worker-loader!./worker/SolcWorker"
 import {SolcInput} from "@/utils/solc/SolcInput";
 import {SolcOutput} from "@/utils/solc/SolcOutput";
 
@@ -26,7 +25,8 @@ export class Solc {
 
     public static async run(version: string, input: SolcInput, importSources: Record<string, string>): Promise<SolcOutput> {
 
-        const worker = new SolcWorker()
+        const SolcWorker = await import("worker-loader!./worker/SolcWorker")
+        const worker = new SolcWorker.default()
 
         function executor(resolve: (value: SolcOutput) => void, reject: (reason: unknown) => void) {
             worker.onmessage = (e: MessageEvent) => {
