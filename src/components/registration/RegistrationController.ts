@@ -20,7 +20,6 @@
 
 import {computed, Ref, ref, watch} from "vue";
 import {SolcIndexLoader} from "@/components/registration/SolcIndexLoader";
-import {SolcTools} from "@/utils/contract-registry/solc/SolcTools";
 import {ErrorDescription, SolcOutput} from "@/utils/solc/SolcOutput";
 import {Solc} from "@/utils/solc/Solc";
 import {BytecodeComparison, SolcUtils} from "@/utils/solc/SolcUtils";
@@ -94,7 +93,7 @@ export class RegistrationController {
         let result: string|null
         const solcIndex = this.solcIndexLoader.entity.value
         if (this.source.value !== null && solcIndex !== null) {
-            result = SolcTools.extractSourceVersion(this.source.value, solcIndex)
+            result = SolcUtils.extractSourceVersion(this.source.value, solcIndex)
         } else {
             result = null
         }
@@ -105,7 +104,7 @@ export class RegistrationController {
         const result = Array<ImportSpec>()
 
         if (this.source.value !== null) {
-            for (const p of SolcTools.extractImportPaths(this.source.value, this.builtinImports)) {
+            for (const p of SolcUtils.extractImportPaths(this.source.value, this.builtinImports)) {
                 result.push(new ImportSpec(p))
             }
         }
@@ -269,7 +268,7 @@ export class RegistrationController {
         }
         for (const s of this.importSpecs.value) {
             if (s.source !== null) {
-                for (const p of SolcTools.extractImportPaths(s.source, this.builtinImports)) {
+                for (const p of SolcUtils.extractImportPaths(s.source, this.builtinImports)) {
                     if (!specMap.has(p)) {
                         specMap.set(p, new ImportSpec(p))
                     }

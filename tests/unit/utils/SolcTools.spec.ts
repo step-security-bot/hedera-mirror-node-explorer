@@ -20,33 +20,33 @@
  *
  */
 
-import {SolcTools} from "@/utils/contract-registry/solc/SolcTools";
+import {SolcUtils} from "@/utils/solc/SolcUtils";
 import {SolcIndex} from "@/utils/solc/SolcIndex";
 
 describe("SolcTools.spec.ts", () => {
 
     test("extractSourceVersion(HelloWorld)", async () => {
-        const version = SolcTools.extractSourceVersion(HELLO_WORLD_SOURCE, SOLC_SAMPLE_INDEX)
+        const version = SolcUtils.extractSourceVersion(HELLO_WORLD_SOURCE, SOLC_SAMPLE_INDEX)
         expect(version).toBe("0.8.18")
     })
 
     test("extractSourceVersion(LookupContract)", async () => {
-        const version = SolcTools.extractSourceVersion(LOOKUP_CONTRACT_SOURCE, SOLC_SAMPLE_INDEX)
+        const version = SolcUtils.extractSourceVersion(LOOKUP_CONTRACT_SOURCE, SOLC_SAMPLE_INDEX)
         expect(version).toBe("0.8.18")
     })
 
     test("extractSourceVersion(HTS)", async () => {
-        const version = SolcTools.extractSourceVersion(HTS_SOURCE, SOLC_SAMPLE_INDEX)
+        const version = SolcUtils.extractSourceVersion(HTS_SOURCE, SOLC_SAMPLE_INDEX)
         expect(version).toBe("0.6.12")
     })
 
     test("extractImports(HelloWorld)", () => {
-        const importPaths = SolcTools.extractImportPaths(HELLO_WORLD_SOURCE, [])
+        const importPaths = SolcUtils.extractImportPaths(HELLO_WORLD_SOURCE, [])
         expect(importPaths).toStrictEqual([])
     })
 
     test("extractImports(HTS)", () => {
-        const importPaths = SolcTools.extractImportPaths(HTS_SOURCE, [])
+        const importPaths = SolcUtils.extractImportPaths(HTS_SOURCE, [])
         expect(importPaths).toStrictEqual([
             "./HederaTokenService.sol",
             "./HederaResponseCodes.sol",
