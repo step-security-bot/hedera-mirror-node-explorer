@@ -36,10 +36,12 @@
     "core-js": "^3.27.2",
     "ethers": "^5.6.9",
     "hashconnect": "^0.1.9",
+    "solc": "^0.8.19",
     "semver": "^6.3.0",
     "vue": "^3.2.47",
     "vue-axios": "^3.4.0",
-    "vue-router": "^4.1.6"
+    "vue-router": "^4.1.6",
+    "worker-loader": "^3.0.8"
   },
   "devDependencies": {
     "@cypress/code-coverage": "^3.9.12",
