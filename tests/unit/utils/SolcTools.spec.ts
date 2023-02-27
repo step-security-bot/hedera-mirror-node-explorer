@@ -21,7 +21,7 @@
  */
 
 import {SolcTools} from "@/utils/contract-registry/solc/SolcTools";
-import {SolcIndex} from "@/utils/contract-registry/solc/SolcIndex";
+import {SolcIndex} from "@/utils/solc/SolcIndex";
 
 describe("SolcTools.spec.ts", () => {
 

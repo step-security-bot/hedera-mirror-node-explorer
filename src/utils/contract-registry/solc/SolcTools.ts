@@ -20,7 +20,7 @@
 
 /* eslint-disable @typescript-eslint/no-var-requires */
 
-import {SolcIndex} from "@/utils/contract-registry/solc/SolcIndex";
+import {SolcIndex} from "@/utils/solc/SolcIndex";
 
 const semver = require("semver")
 

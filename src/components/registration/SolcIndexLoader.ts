@@ -18,7 +18,7 @@
  *
  */
 
-import {SolcIndex} from "@/utils/contract-registry/solc/SolcIndex";
+import {SolcIndex} from "@/utils/solc/SolcIndex";
 import {EntityLoader} from "@/utils/loader/EntityLoader";
 import axios, {AxiosResponse} from "axios";
 
