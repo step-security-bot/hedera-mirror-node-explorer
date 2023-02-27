@@ -62,6 +62,7 @@ export default defineComponent({
   setup(props) {
 
     const updateCustomContractEntry = () => {
+      console.log("To be revisited")
     }
     onMounted(() => {
       updateCustomContractEntry()
