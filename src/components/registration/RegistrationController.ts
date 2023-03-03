@@ -118,15 +118,10 @@ export class RegistrationController {
         return ImportSpec.countUnresolvedSpecs(this.importSpecs.value)
     })
 
-    public readonly deployedBytecode = computed(() => {
-        const result = this.contractLoader.runtimeBytecode.value
-        return result !== null && result.startsWith("0x") ? result.slice(2) : result
-    })
-
     public readonly matchingContract = computed(() => {
         let result: string|null
         const sourceFileName = this.sourceFileName.value
-        const deployedBytecode = this.deployedBytecode.value
+        const deployedBytecode = this.contractLoader.runtimeBytecode.value
         const solcOutput = this.solcOutput.value
         const errorCount = this.compilationErrors.value.length
         if (sourceFileName !== null
@@ -148,7 +143,7 @@ export class RegistrationController {
         const sourceFileName = this.sourceFileName.value
         const compiledBytecode = sourceFileName !== null && matchingContract !== null && solcOutput !== null ?
             SolcUtils.fetchBytecode(sourceFileName, matchingContract, solcOutput) : null
-        const deployedBytecode = this.deployedBytecode.value
+        const deployedBytecode = this.contractLoader.runtimeBytecode.value
         if (compiledBytecode !== null && deployedBytecode !== null) {
             result = SolcUtils.compareBytecode(compiledBytecode, deployedBytecode)
         } else {

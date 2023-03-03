@@ -44,6 +44,8 @@ export class SolcUtils {
     }
 
     public static compareBytecode(bytecode1: string, bytecode2: string): BytecodeComparison {
+        bytecode1 = bytecode1.startsWith("0x") ? bytecode1.slice(2) : bytecode1
+        bytecode2 = bytecode2.startsWith("0x") ? bytecode2.slice(2) : bytecode2
 
         // Last 43 bytes of each bytecode represents metadata hash
         // https://docs.soliditylang.org/en/v0.4.25/metadata.html#encoding-of-the-metadata-hash-in-the-bytecode
