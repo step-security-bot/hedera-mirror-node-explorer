@@ -18,11 +18,11 @@
  *
  */
 
-import {computed, Ref, ref, watch} from "vue";
+import {computed, ComputedRef, Ref, ref, watch} from "vue";
 import {SolcIndexLoader} from "@/components/registration/SolcIndexLoader";
-import {ErrorDescription, SolcOutput} from "@/utils/solc/SolcOutput";
-import {Solc} from "@/utils/solc/Solc";
+import {ErrorDescription} from "@/utils/solc/SolcOutput";
 import {BytecodeComparison, SolcUtils} from "@/utils/solc/SolcUtils";
+import {CompilationCache, CompilationRecord} from "@/utils/cache/CompilationCache";
 import {ContractLoader} from "@/components/contract/ContractLoader";
 import {routeManager} from "@/router";
 import {AppStorage, ContractMetadata} from "@/AppStorage";
@@ -35,7 +35,7 @@ export class RegistrationController {
     public readonly sourceFileName: Ref<string|null> = ref(null)
     public readonly compilerVersion: Ref<string|null> = ref(null)
     public readonly importSpecs: Ref<Array<ImportSpec>> = ref([])
-    public readonly solcOutput: Ref<SolcOutput|null> = ref(null)
+    public readonly compilationRecord: Ref<CompilationRecord|null> = ref(null)
 
 
     private readonly contractId: Ref<string|null> = ref(null)
@@ -55,7 +55,7 @@ export class RegistrationController {
         watch(this.source, () => {
             this.compilerVersion.value = this.guessedCompilerVersion.value
             this.importSpecs.value = this.guessedImportSpecs.value
-            this.solcOutput.value = null
+            this.compilationRecord.value = null
         })
 
         watch(this.importSpecs, () => {
@@ -68,7 +68,7 @@ export class RegistrationController {
         this.solcIndexLoader.requestLoad()
         this.currentStep.value = 1
         this.sourceFileName.value = null
-        this.source.value = null // => reset this.compilerVersion and this.importSpecs
+        this.source.value = null // => reset this.compilerVersion,  this.importSpecs and this.compilationRecord
     }
 
     public inactivate(): void {
@@ -123,15 +123,13 @@ export class RegistrationController {
 
     public readonly matchingContract = computed(() => {
         let result: string|null
-        const sourceFileName = this.sourceFileName.value
+        const compilationRecord = this.compilationRecord.value
         const deployedBytecode = this.contractLoader.runtimeBytecode.value
-        const solcOutput = this.solcOutput.value
-        const errorCount = this.compilationErrors.value.length
-        if (sourceFileName !== null
-            && deployedBytecode !== null
-            && solcOutput !== null
-            && errorCount == 0) {
-            result = SolcUtils.findMatchingContract(sourceFileName, deployedBytecode, solcOutput)
+        if (compilationRecord !== null && deployedBytecode !== null) {
+            result = SolcUtils.findMatchingContract(
+                compilationRecord.metadata.sourceFileName,
+                deployedBytecode,
+                compilationRecord.solcOutput)
             console.log("contractName=" + result)
         } else {
             result = null
@@ -139,20 +137,24 @@ export class RegistrationController {
         return result
     })
 
-    public readonly bytecodeComparison = computed(() => {
-        let result: BytecodeComparison
-        const solcOutput = this.solcOutput.value
+    public readonly bytecodeComparison: ComputedRef<BytecodeComparison|null> = computed(() => {
+        let result: BytecodeComparison|null
         const matchingContract = this.matchingContract.value
-        const sourceFileName = this.sourceFileName.value
-        const compiledBytecode = sourceFileName !== null && matchingContract !== null && solcOutput !== null ?
-            SolcUtils.fetchBytecode(sourceFileName, matchingContract, solcOutput) : null
+        const compilationRecord = this.compilationRecord.value
         const deployedBytecode = this.contractLoader.runtimeBytecode.value
-        if (compiledBytecode !== null && deployedBytecode !== null) {
-            result = SolcUtils.compareBytecode(compiledBytecode, deployedBytecode)
+        if (matchingContract != null
+            && compilationRecord !== null
+            && deployedBytecode !== null) {
+            const sourceFileName = compilationRecord.metadata.sourceFileName
+            const compiledBytecode = SolcUtils.fetchBytecode(sourceFileName, matchingContract, compilationRecord.solcOutput)
+            if (compiledBytecode !== null) {
+                result = SolcUtils.compareBytecode(deployedBytecode, compiledBytecode)
+            } else {
+                result = null
+            }
         } else {
-            result = BytecodeComparison.mismatch
+            result = null
         }
-        console.log("bytecodeComparison=" + result)
         return result
     })
 
@@ -172,10 +174,27 @@ export class RegistrationController {
 
     public readonly compilationErrors = computed(() => {
         const result: ErrorDescription[] = []
-        for (const e of this.solcOutput.value?.errors ?? []) {
+        for (const e of this.compilationRecord.value?.solcOutput.errors ?? []) {
             if (e.severity == "error") {
                 result.push(e)
             }
+        }
+        return result
+    })
+
+    public readonly compilationMetadata  = computed(() => {
+        let result: ContractMetadata|null
+        if (this.compilerLongVersion.value !== null
+            && this.source.value !== null
+            && this.sourceFileName.value !== null) {
+            result = {
+                version: this.compilerLongVersion.value,
+                source: this.source.value,
+                sourceFileName: this.sourceFileName.value,
+                importSources: ImportSpec.makeImportSources(this.importSpecs.value),
+            }
+        } else {
+            result = null
         }
         return result
     })
@@ -216,40 +235,24 @@ export class RegistrationController {
         this.currentStep.value += 1
         if (this.currentStep.value == 4
             && this.contractId.value !== null
-            && this.source.value !== null
-            && this.sourceFileName.value !== null
-            && this.compilerLongVersion.value !== null ) {
-            this.busy.value = true
+            && this.compilationMetadata.value !== null) {
 
-            const solcInput = Solc.makeSolcInput(this.source.value, this.sourceFileName.value)
-            const importSources = ImportSpec.makeImportSources(this.importSpecs.value)
-            Solc.run(this.compilerLongVersion.value, solcInput, importSources)
-                .then((r: SolcOutput) => {
-                    this.solcOutput.value = Object.freeze(r) // To avoid proxying
+            this.busy.value = true
+            CompilationCache.instance.lookup(this.contractId.value, this.compilationMetadata.value)
+                .then((record: CompilationRecord) => {
+                    this.compilationRecord.value = record
                 })
-                .catch((error) => {
-                    console.log("Dry run did fail with error: " + error)
-                    this.solcOutput.value = null
+                .catch((/* reason: unknown */) => {
+                    this.compilationRecord.value = null
                 })
                 .finally(() => {
                     this.busy.value = false
                 })
         } else if (this.currentStep.value == 5
             && this.contractId.value !== null
-            && this.sourceFileName.value !== null
-            && this.compilerLongVersion.value !== null
-            && this.source.value !== null
-            && this.solcOutput.value !== null) {
-            const importSources = ImportSpec.makeImportSources(this.importSpecs.value)
-            const newMetadata: ContractMetadata  = {
-                version: this.compilerLongVersion.value,
-                source: this.source.value,
-                sourceFileName: this.sourceFileName.value,
-                importSources: importSources,
-            }
-            const contractId = this.contractId.value
+            && this.compilationRecord.value !== null) {
             const network = routeManager.currentNetwork.value as HederaNetwork
-            AppStorage.setContractMetadata(network, contractId, newMetadata)
+            AppStorage.setContractMetadata(network, this.contractId.value, this.compilationRecord.value.metadata)
         }
     }
 

@@ -255,10 +255,14 @@ export default defineComponent({
             : "CONTINUE"
     )
 
-    const isMatch = computed(
-        () => controller.bytecodeComparison.value !== BytecodeComparison.mismatch)
-    const isFullMatch = computed(
-        () => controller.bytecodeComparison.value === BytecodeComparison.fullMatch)
+    const isMatch = computed(() => {
+      const comparison = controller.bytecodeComparison.value
+      return comparison !== null && comparison !== BytecodeComparison.mismatch
+    })
+    const isFullMatch = computed(() => {
+      const comparison = controller.bytecodeComparison.value
+      return comparison !== null && comparison === BytecodeComparison.fullMatch
+    })
 
     const status = computed(() => controller.bytecodeComparison.value)
     const rejectReason = computed(() => null)
