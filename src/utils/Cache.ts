@@ -18,7 +18,7 @@
  *
  */
 
-export abstract class Cache<K, E> {
+export abstract class Cache<K, E, C> {
 
     private readonly promises = new Map<K, Promise<E>>()
 
@@ -26,14 +26,14 @@ export abstract class Cache<K, E> {
     // Public
     //
 
-    public async lookup(key: K): Promise<E> {
+    public async lookup(key: K, context: C): Promise<E> {
         let result: Promise<E>
 
         const currentPromise = this.promises.get(key)
         if (currentPromise) {
             result = currentPromise
         } else {
-            const newPromise = this.load(key)
+            const newPromise = this.load(key, context)
             this.promises.set(key, newPromise)
             result = newPromise
         }
@@ -53,8 +53,8 @@ export abstract class Cache<K, E> {
     // Protected (to be subclassed)
     //
 
-    protected async load(key: K): Promise<E> {
-        throw new Error("Must be subclassed to load " + key)
+    protected async load(key: K, context: C): Promise<E> {
+        throw new Error("Must be subclassed to load " + key + " with context " + context)
     }
 
 }
