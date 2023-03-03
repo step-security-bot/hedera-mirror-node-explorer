@@ -231,7 +231,6 @@ import {networkRegistry} from "@/schemas/NetworkRegistry";
 import router, {routeManager} from "@/router";
 import TransactionLink from "@/components/values/TransactionLink.vue";
 import EVMAddress from "@/components/values/EVMAddress.vue";
-import {InitCodeAnalyzer} from "@/utils/InitCodeAnalyzer";
 import ContractToolBar from "@/components/registration/ContractToolBar.vue";
 import {ContractAnalyzer} from "@/utils/ContractAnalyzer";
 
