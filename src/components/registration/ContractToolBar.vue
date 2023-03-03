@@ -24,12 +24,17 @@
 
 <template>
 
-    <div v-if="contractName" class="is-flex is-align-items-center">
+    <div v-if="contractName && routeToSource" class="is-flex is-align-items-center">
       <span class="icon has-text-success mr-1" style="font-size: 18px"><i class="far fa-check-circle"></i></span>
       <span>
         <span class="has-text-weight-light mr-1">Conform to contract:</span>
          <router-link :to="routeToSource">{{ contractName }}</router-link>
       </span>
+    </div>
+
+    <div v-else-if="compiling" class="is-flex is-align-items-center">
+      <span class="icon mr-2" style="font-size: 18px"><i class="fa fa-circle-notch fa-spin"></i></span>
+      <a @click="showWizard = true" class="has-text-weight-light">Verifying contract…</a>
     </div>
 
     <div v-else class="is-flex is-align-items-center">
@@ -48,46 +53,39 @@
 
 <script lang="ts">
 
-import {computed, defineComponent, onMounted, ref, watch} from 'vue';
+import {computed, defineComponent, PropType, ref, watch} from 'vue';
 import {routeManager} from "@/router";
 import RegistrationWizard from "@/components/registration/RegistrationWizard.vue";
+import {ContractAnalyzer} from "@/utils/ContractAnalyzer";
 
 export default defineComponent({
   name: 'ContractToolBar',
   components: {RegistrationWizard},
   props: {
-    contractId: String
+    contractAnalyzer: {
+      type: Object as PropType<ContractAnalyzer>,
+      required: true
+    }
   },
 
   setup(props) {
 
-    const updateCustomContractEntry = () => {
-      console.log("To be revisited")
-    }
-    onMounted(() => {
-      updateCustomContractEntry()
-    })
-    watch(() => props.contractId, () => {
-      updateCustomContractEntry()
-    })
-
-    const contractName = computed(() => {
-      return null
-    })
-
     const routeToSource = computed(() => {
-      return routeManager.makeRouteToRegisteredContract(props.contractId ?? "")
+      const contractId = props.contractAnalyzer.contractId.value
+      return contractId ? routeManager.makeRouteToRegisteredContract(contractId) : null
     })
 
     const showWizard = ref(false)
     watch(showWizard, (newValue, oldValue) => {
       if (oldValue && !newValue) {
-        updateCustomContractEntry()
+        props.contractAnalyzer.reloadContractMetadata()
       }
     })
 
     return {
-      contractName,
+      contractId: props.contractAnalyzer.contractId,
+      contractName: props.contractAnalyzer.contractName,
+      compiling: props.contractAnalyzer.compiling,
       routeToSource,
       showWizard
     }

@@ -24,6 +24,9 @@ import {ErrorDescription, SolcOutput} from "@/utils/solc/SolcOutput";
 import {Solc} from "@/utils/solc/Solc";
 import {BytecodeComparison, SolcUtils} from "@/utils/solc/SolcUtils";
 import {ContractLoader} from "@/components/contract/ContractLoader";
+import {routeManager} from "@/router";
+import {AppStorage, ContractMetadata} from "@/AppStorage";
+import {HederaNetwork} from "@bladelabs/blade-web3.js/lib/src/models/blade";
 
 export class RegistrationController {
 
@@ -233,9 +236,20 @@ export class RegistrationController {
                 })
         } else if (this.currentStep.value == 5
             && this.contractId.value !== null
+            && this.sourceFileName.value !== null
+            && this.compilerLongVersion.value !== null
+            && this.source.value !== null
             && this.solcOutput.value !== null) {
+            const importSources = ImportSpec.makeImportSources(this.importSpecs.value)
+            const newMetadata: ContractMetadata  = {
+                version: this.compilerLongVersion.value,
+                source: this.source.value,
+                sourceFileName: this.sourceFileName.value,
+                importSources: importSources,
+            }
             const contractId = this.contractId.value
-            console.log("Will register " + contractId)
+            const network = routeManager.currentNetwork.value as HederaNetwork
+            AppStorage.setContractMetadata(network, contractId, newMetadata)
         }
     }
 
