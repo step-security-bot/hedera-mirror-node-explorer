@@ -19,6 +19,7 @@
  */
 
 import {NetworkEntry, networkRegistry} from "@/schemas/NetworkRegistry";
+import {HederaNetwork} from "@bladelabs/blade-web3.js/lib/src/models/blade";
 
 export class AppStorage {
 
@@ -86,54 +87,36 @@ export class AppStorage {
     }
 
     //
-    // solidity sources
+    // contract metadata
     //
 
-    private static readonly SOLIDITY_SOURCE_KEY = 'solidity'
+    private static readonly CONTRACT_METADATA_KEY = "contractMetadata"
 
-    public static getSoliditySource(fileId: string): string | null {
-        return this.getLocalStorageItem(this.SOLIDITY_SOURCE_KEY + "/" + fileId)
-    }
-
-    public static setSoliditySource(fileId: string, newValue: string | null ): void {
-        this.setLocalStorageItem(this.SOLIDITY_SOURCE_KEY + "/" + fileId, newValue)
-    }
-
-    public static getSolidityFileIds(): string[] {
-        const result: string[] = []
-        const keyPrefix = this.makeKey(this.SOLIDITY_SOURCE_KEY) + "/"
-        for (let i = 0; i < window.localStorage.length; i += 1) {
-            const key = window.localStorage.key(i)
-            if (key !== null && key.startsWith(keyPrefix)) {
-                const fileId = key.slice(keyPrefix.length)
-                result.push(fileId)
+    public static getContractMetadata(network: HederaNetwork, contractId: string): ContractMetadata | null {
+        let result: ContractMetadata|null
+        const keySuffix = this.makeContractMetadataKeySuffix(network, contractId)
+        const jsonText = this.getLocalStorageItem(keySuffix)
+        if (jsonText !== null) {
+            try {
+                result = JSON.parse(jsonText) as ContractMetadata
+            } catch {
+                console.warn("Failed to parse JSON from " + keySuffix)
+                result = null
             }
+        } else {
+            result = null
         }
         return result
     }
 
-    //
-    // solidity sources
-    //
-
-    public static getSolidityName(fileId: string): string | null {
-        return this.getLocalStorageItem(this.SOLIDITY_SOURCE_KEY + "/" + fileId + "/name")
+    public static setContractMetadata(network: HederaNetwork, contractId: string, value: ContractMetadata|null) {
+        const keySuffix = this.makeContractMetadataKeySuffix(network, contractId)
+        const jsonText = value !== null ? JSON.stringify(value) : null
+        this.setLocalStorageItem(keySuffix, jsonText)
     }
 
-    public static setSolidityName(fileId: string, newValue: string | null ): void {
-        this.setLocalStorageItem(this.SOLIDITY_SOURCE_KEY + "/" + fileId + "/name", newValue)
-    }
-
-    //
-    // solidity compiler url
-    //
-
-    public static getSolidityCompilerURL(fileId: string): string | null {
-        return this.getLocalStorageItem(this.SOLIDITY_SOURCE_KEY + "/" + fileId + "/compilerURL")
-    }
-
-    public static setSolidityCompilerURL(fileId: string, newValue: string | null ): void {
-        this.setLocalStorageItem(this.SOLIDITY_SOURCE_KEY + "/" + fileId + "/compilerURL", newValue)
+    private static makeContractMetadataKeySuffix(network: HederaNetwork, contractId: string) {
+        return this.CONTRACT_METADATA_KEY + "/" + network + "/" + contractId
     }
 
     //
@@ -166,4 +149,11 @@ export class AppStorage {
     private static makeKey(keySuffix: string): string {
         return AppStorage.VERSION + "/" + keySuffix
     }
+}
+
+export interface ContractMetadata {
+    version: string
+    source: string
+    sourceFileName: string
+    importSources: Record<string, string>
 }

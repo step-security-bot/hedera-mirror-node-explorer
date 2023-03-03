@@ -31,6 +31,7 @@ import {NodeRegistry} from "@/components/node/NodeRegistry";
 import {AppStorage} from "@/AppStorage";
 import {nameServiceSetNetwork} from '@/utils/NameService';
 import axios from "axios";
+import {CompilationCache} from "@/utils/cache/CompilationCache";
 
 export class RouteManager {
 
@@ -357,6 +358,7 @@ export class RouteManager {
         TransactionByHashCollector.instance.clear()
         TransactionCollector.instance.clear()
         NodeRegistry?.instance.reload()
+        CompilationCache.instance.clear()
     }
 }
 
