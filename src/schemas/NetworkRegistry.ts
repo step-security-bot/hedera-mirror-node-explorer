@@ -142,6 +142,7 @@ export class NetworkRegistry {
         const jsonContent = JSON.parse(JSON.stringify(config))
 
         if (jsonContent instanceof Array) {
+            // eslint-disable-next-line  @typescript-eslint/no-explicit-any
             for (const n of jsonContent as Array<any>) {
                 if (entries.length >= this.MAX_NETWORK_NUMBER) {
                     console.warn(`Dropping networks beyond ${this.MAX_NETWORK_NUMBER} entries`)

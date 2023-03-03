@@ -18,6 +18,7 @@
  *
  */
 
+// eslint-disable-next-line  @typescript-eslint/no-explicit-any
 declare const window: any
 
 export function getEnv(name: string): string {
