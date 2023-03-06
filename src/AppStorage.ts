@@ -109,7 +109,7 @@ export class AppStorage {
         return result
     }
 
-    public static setContractMetadata(network: HederaNetwork, contractId: string, value: ContractMetadata|null) {
+    public static setContractMetadata(network: HederaNetwork, contractId: string, value: ContractMetadata|null): void {
         const keySuffix = this.makeContractMetadataKeySuffix(network, contractId)
         const jsonText = value !== null ? JSON.stringify(value) : null
         this.setLocalStorageItem(keySuffix, jsonText)
