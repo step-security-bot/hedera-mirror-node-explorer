@@ -36,6 +36,14 @@
           <span v-if="contractChecksum" class="has-text-grey" style="font-size: 28px">-{{ contractChecksum }}</span>
         </span>
       </template>
+
+      <template v-slot:control>
+        <div class="is-flex is-justify-content-flex-end is-align-items-center">
+          <button id="forget-register" class="button is-white is-small"
+                  :disabled="disableForgetButton" @click="handleForget">FORGET</button>
+        </div>
+      </template>
+
       <template v-slot:content>
 
         <NotificationBanner v-if="notification" :message="notification"/>
@@ -117,6 +125,9 @@ import NotificationBanner from "@/components/NotificationBanner.vue";
 import {ContractAnalyzer} from "@/utils/ContractAnalyzer";
 import {ContractLoader} from "@/components/contract/ContractLoader";
 import {networkRegistry} from "@/schemas/NetworkRegistry";
+import {AppStorage} from "@/AppStorage";
+import {HederaNetwork} from "@bladelabs/blade-web3.js/lib/src/models/blade";
+import {CompilationCache} from "@/utils/cache/CompilationCache";
 
 export default defineComponent({
 
@@ -162,8 +173,7 @@ export default defineComponent({
       return result
     })
 
-    const contractId = computed(() => props.contractId ?? null)
-    const contractLoader = new ContractLoader(contractId)
+    const contractLoader = new ContractLoader(normalizedContractId)
     onMounted(() =>  contractLoader.requestLoad())
     onBeforeUnmount(() => contractLoader.clear())
 
@@ -190,6 +200,17 @@ export default defineComponent({
       return result
     })
 
+    const handleForget = () => {
+      if (normalizedContractId.value !== null) {
+        const network = routeManager.currentNetwork.value as HederaNetwork
+        AppStorage.setContractMetadata(network, normalizedContractId.value, null)
+        CompilationCache.instance.forget(normalizedContractId.value)
+        routeManager.routeToContract(normalizedContractId.value)
+      }
+    }
+
+    const disableForgetButton =computed( () => normalizedContractId.value == null )
+
     return {
       isSmallScreen,
       isTouchDevice,
@@ -203,6 +224,8 @@ export default defineComponent({
       source: contractAnalyzer.contractSource,
       imports,
       // imports: contractAnalyzer.importSources,
+      handleForget,
+      disableForgetButton
     }
   },
 });
