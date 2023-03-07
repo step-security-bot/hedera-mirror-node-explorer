@@ -52,8 +52,8 @@
         <Property v-if="imports" id="imports" :full-width="true">
           <template v-slot:name>Imports</template>
           <template v-slot:value>
-            <div v-for="k of Object.keys(imports)" :key="k">
-              <a :href="'#'+k">
+            <div v-for="(k, index) of Object.keys(imports)" :key="k">
+              <a :href="'#'+index">
                 <StringValue :string-value="k"/>
               </a>
             </div>
@@ -84,8 +84,8 @@
         <div class="has-text-right has-text-weight-normal">{{ contractName }}</div>
         <pre class="h-has-box-background-color has-text-grey-light p-0">{{ source }}</pre>
         <div v-if="imports">
-          <div v-for="k of Object.keys(imports)" :key="k">
-            <hr :id="k" class="h-card-separator mt-4 mb-1" style="height: 0.5px"/>
+          <div v-for="(k, index) of Object.keys(imports)" :key="k">
+            <hr :id="index" class="h-card-separator mt-4 mb-1" style="height: 0.5px"/>
             <div class="has-text-right has-text-weight-normal">{{ k }}</div>
             <pre class="h-has-box-background-color has-text-grey-light p-0">{{ imports[k] }}</pre>
           </div>
