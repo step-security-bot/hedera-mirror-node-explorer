@@ -113,8 +113,11 @@
                   <i v-else class="fa fa-exclamation-triangle has-text-danger"/>
                 </span>
                 <span v-if="isMatch">
-                  <span>Source code matches contract bytecode</span>
-                  <span class="has-text-grey ml-1">({{ isFullMatch ? 'full match' : 'partial match' }})</span>
+                  <span v-if="!isFullMatch">Source code matches contract bytecode</span>
+                  <span v-else>
+                    <span>Source code matches contract bytecode and hashcode </span>
+                    <span class="has-text-grey ml-1">("full match")</span>
+                  </span>
                 </span>
                 <span v-else>
                   <span>Source code verification failed</span>
