@@ -93,13 +93,20 @@
       <template v-slot:content>
         <div class="has-text-right has-text-weight-normal">{{ contractName }}</div>
         <pre class="h-has-box-background-color has-text-grey-light p-0">{{ source }}</pre>
-        <div v-if="imports">
+      </template>
+    </DashboardCard>
+
+    <DashboardCard v-if="imports">
+      <template v-slot:title>
+        <p :id="contractName"  class="h-is-secondary-title">Imports</p>
+      </template>
+
+      <template v-slot:content>
           <div v-for="(k, index) of Object.keys(imports)" :key="k">
-            <hr :id="index" class="h-card-separator mt-4 mb-1" style="height: 0.5px"/>
-            <div class="has-text-right has-text-weight-normal">{{ k }}</div>
+            <hr v-if="index > 0" class="h-card-separator mt-4 mb-1" style="height: 0.5px"/>
+            <div :id="index" class="has-text-right has-text-weight-normal">{{ k }}</div>
             <pre class="h-has-box-background-color has-text-grey-light p-0">{{ imports[k] }}</pre>
           </div>
-        </div>
       </template>
     </DashboardCard>
 
