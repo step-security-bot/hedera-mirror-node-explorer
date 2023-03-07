@@ -206,7 +206,7 @@ export default defineComponent({
         const network = routeManager.currentNetwork.value as HederaNetwork
         AppStorage.setContractMetadata(network, normalizedContractId.value, null)
         CompilationCache.instance.forget(normalizedContractId.value)
-        routeManager.routeToContract(normalizedContractId.value)
+        router.replace(routeManager.makeRouteToContract(normalizedContractId.value))
       }
     }
 
