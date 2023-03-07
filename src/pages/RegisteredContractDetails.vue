@@ -83,15 +83,18 @@
 
 <script lang="ts">
 
-import {computed, defineComponent, inject} from 'vue';
+import {computed, defineComponent, inject, onBeforeUnmount, onMounted} from 'vue';
 import DashboardCard from "@/components/DashboardCard.vue";
 import StringValue from "@/components/values/StringValue.vue";
 import TimestampValue from "@/components/values/TimestampValue.vue";
 import Property from "@/components/Property.vue";
 import Footer from "@/components/Footer.vue";
 import {EntityID} from "@/utils/EntityID";
-import {routeManager} from "@/router";
+import router, {routeManager} from "@/router";
 import NotificationBanner from "@/components/NotificationBanner.vue";
+import {ContractAnalyzer} from "@/utils/ContractAnalyzer";
+import {ContractLoader} from "@/components/contract/ContractLoader";
+import {networkRegistry} from "@/schemas/NetworkRegistry";
 
 export default defineComponent({
 
@@ -136,45 +139,23 @@ export default defineComponent({
       }
       return result
     })
-    //
-    // const contractEntry: Ref<CustomContractEntry | null> = ref(null)
-    // const updateContractEntry = () => {
-    //   if (normalizedContractId.value) {
-    //     customContractRegistry.lookup(normalizedContractId.value)
-    //         .then((e: CustomContractEntry) => {
-    //           contractEntry.value = e
-    //         })
-    //         .catch(() => {
-    //           contractEntry.value = null
-    //         })
-    //   } else {
-    //     contractEntry.value = null
-    //   }
-    // }
-    // onMounted(() => {
-    //   updateContractEntry()
-    // })
-    // watch(() => props.contractId, () => {
-    //   updateContractEntry()
-    // })
 
-    const registeredContractId = computed(() => null)
+    const contractId = computed(() => props.contractId ?? null)
+    const contractLoader = new ContractLoader(contractId)
+    onMounted(() =>  contractLoader.requestLoad())
+    onBeforeUnmount(() => contractLoader.clear())
 
-    const contractChecksum = computed(() => null)
+    const contractAnalyzer = new ContractAnalyzer(contractLoader.entity)
+    onMounted(() => contractAnalyzer.mount())
+    onBeforeUnmount(() => contractAnalyzer.unmount())
 
-    const contractName = computed(() => {
-      return null
-    })
+    const contractChecksum = computed(() =>
+        contractAnalyzer.contractId.value ? networkRegistry.computeChecksum(
+            contractAnalyzer.contractId.value,
+            router.currentRoute.value.params.network as string
+        ) : null)
 
     const creationTime = computed(() => {
-      return null
-    })
-
-    const solcVersion = computed(() => {
-      return null
-    })
-
-    const source = computed(() => {
       return null
     })
 
@@ -184,11 +165,11 @@ export default defineComponent({
       contractChecksum,
       notification,
       contractRoute,
-      registeredContractId,
-      contractName,
+      registeredContractId: contractAnalyzer.contractId,
+      contractName: contractAnalyzer.contractName,
       creationTime,
-      solcVersion,
-      source,
+      solcVersion: contractAnalyzer.compilerVersion,
+      source: contractAnalyzer.contractSource,
     }
   },
 });

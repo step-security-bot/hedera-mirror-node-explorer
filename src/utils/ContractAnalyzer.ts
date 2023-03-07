@@ -86,6 +86,14 @@ export class ContractAnalyzer {
         return result
     })
 
+    public readonly compilerVersion: ComputedRef<string|null> = computed(() => {
+        return this.compilationRecord.value !== null ? this.compilationRecord.value.metadata.version : null
+    })
+
+    public readonly contractSource: ComputedRef<string|null> = computed(() => {
+        return this.compilationRecord.value !== null ? this.compilationRecord.value.metadata.source : null
+    })
+
     public readonly contractDescription: ComputedRef<ContractDescription|null> = computed(() => {
         let result: ContractDescription|null
         if (this.contractName.value !== null && this.compilationRecord.value !== null) {
