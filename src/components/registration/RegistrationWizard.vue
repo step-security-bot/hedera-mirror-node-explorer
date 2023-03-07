@@ -174,35 +174,6 @@
           </div>
         </div>
 
-
-        <div v-if="false">
-          <hr class="h-card-separator" style="height: 0.5px"/>
-          <div class="block h-is-tertiary-text mt-2">
-            <div>currentStep: {{ controller.currentStep }}</div>
-            <div>source: {{ controller.sourceHead }}</div>
-            <div>sourceFileName: {{ controller.sourceFileName }}</div>
-            <div>compilerVersion: {{ controller.compilerVersion }}</div>
-            <div>importSpecs: {{ controller.importSpecs }}</div>
-          </div>
-          <div class="block h-is-tertiary-text mt-2">
-            <div>compilerVersions: {{ controller.compilerVersionCount }} version(s)</div>
-            <div>guessedCompilerVersion: {{ controller.guessedCompilerVersion }}</div>
-            <div>guessedImportSpecs: {{ controller.guessedImportSpecCount }} import spec(s)</div>
-            <div>unresolvedSpecCount: {{ controller.unresolvedSpecCount }} import spec(s)</div>
-            <div>isBackDisabled: {{ controller.isBackDisabled }}</div>
-            <div>isNextDisabled: {{ controller.isNextDisabled }}</div>
-          </div>
-          <div class="block h-is-tertiary-text mt-2">
-            <div>isCancelBackShown: {{ isCancelBackShown }}</div>
-            <div>isCloseShown: {{ isCloseShown }}</div>
-            <div>isNextShown: {{ isNextShown }}</div>
-            <div>nextButtonLabel: {{ nextButtonLabel }}</div>
-            <div>isMatch: {{ isMatch }}</div>
-            <div>status: {{ status }}</div>
-            <div>rejectReason: {{ rejectReason }}</div>
-            <div>errors: {{ errors }}</div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
