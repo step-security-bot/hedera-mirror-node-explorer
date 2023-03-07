@@ -91,7 +91,7 @@
       </template>
 
       <template v-slot:content>
-        <div class="has-text-right has-text-weight-normal">{{ contractName }}</div>
+        <div class="has-text-right has-text-weight-normal">{{ sourceFileName }}</div>
         <pre class="h-has-box-background-color has-text-grey-light p-0">{{ source }}</pre>
       </template>
     </DashboardCard>
@@ -219,6 +219,7 @@ export default defineComponent({
       contractRoute,
       registeredContractId: contractAnalyzer.contractId,
       contractName: contractAnalyzer.contractName,
+      sourceFileName: contractAnalyzer.sourceFileName,
       creationTime,
       solcVersion: contractAnalyzer.compilerVersion,
       source: contractAnalyzer.contractSource,
