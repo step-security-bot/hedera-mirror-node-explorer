@@ -28,13 +28,20 @@
 
     <DashboardCard>
       <template v-slot:title>
-        <span class="h-is-primary-title">Registered Contract </span>
-        <span v-if="registeredContractId">
+        <span class="h-is-primary-title">Verified Contract </span>
+        <div class="h-is-tertiary-text mt-3" id="entityId">
+          <div class="is-inline-block h-is-property-text has-text-weight-light" style="min-width: 115px">Contract ID:</div>
           <router-link :to="contractRoute">
-            <span class="h-is-secondary-text">{{ registeredContractId ?? "" }}</span>
+            <span>{{ registeredContractId ?? "" }}</span>
           </router-link>
-          <span v-if="contractChecksum" class="has-text-grey" style="font-size: 28px">-{{ contractChecksum }}</span>
-        </span>
+          <span v-if="contractChecksum" class="has-text-grey">-{{ contractChecksum }}</span>
+        </div>
+        <div v-if="ethereumAddress" id="evmAddress" class="h-is-tertiary-text mt-2" style="word-break: keep-all">
+          <div class="is-inline-block h-is-property-text has-text-weight-light" style="min-width: 115px">EVM Address:</div>
+          <div class="is-inline-block">
+            <EVMAddress :show-id="false" :has-custom-font="true" :address="ethereumAddress"/>
+          </div>
+        </div>
       </template>
 
       <template v-slot:control>
@@ -103,7 +110,7 @@
 
       <template v-slot:content>
           <div v-for="(k, index) of Object.keys(imports)" :key="k">
-            <hr v-if="index > 0" class="h-card-separator mt-4 mb-1" style="height: 0.5px"/>
+            <hr v-if="index > 0" class="h-card-separator mt-4 mb-1" style="height: 1px"/>
             <div :id="index" class="has-text-right has-text-weight-normal">{{ k }}</div>
             <pre class="h-has-box-background-color has-text-grey-light p-0">{{ imports[k] }}</pre>
           </div>
@@ -137,12 +144,14 @@ import {networkRegistry} from "@/schemas/NetworkRegistry";
 import {AppStorage} from "@/AppStorage";
 import {HederaNetwork} from "@bladelabs/blade-web3.js/lib/src/models/blade";
 import {CompilationCache} from "@/utils/cache/CompilationCache";
+import EVMAddress from "@/components/values/EVMAddress.vue";
 
 export default defineComponent({
 
   name: 'RegisteredContractDetails',
 
   components: {
+    EVMAddress,
     NotificationBanner,
     Footer,
     Property,
@@ -218,6 +227,7 @@ export default defineComponent({
       contractChecksum,
       notification,
       contractRoute,
+      ethereumAddress: contractLoader.evmAddress,
       registeredContractId: contractAnalyzer.contractId,
       contractName: contractAnalyzer.contractName,
       sourceFileName: contractAnalyzer.sourceFileName,
