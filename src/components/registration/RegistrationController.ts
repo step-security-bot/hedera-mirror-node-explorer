@@ -328,23 +328,7 @@ export class ImportSpec {
         for (const s of specs) {
             if (s.source !== null) {
                 result[s.path] = s.source
-                const fileName = this.fileName(s.path)
-                if (fileName != s.path) {
-                    result[fileName] = s.source
-                }
             }
-        }
-        console.log("importSources=" + JSON.stringify(result, null, "  "))
-        return result
-    }
-
-    private static fileName(path: string): string {
-        let result: string
-        const i = path.lastIndexOf("/")
-        if (i != -1) {
-            result = path.substring(i+1)
-        } else {
-            result = path
         }
         return result
     }

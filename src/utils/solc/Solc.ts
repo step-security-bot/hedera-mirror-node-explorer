@@ -28,6 +28,7 @@ export class Solc {
         const SolcWorker = await import("worker-loader!./worker/SolcWorker")
         const worker = new SolcWorker.default()
 
+        const expandedImportSources = Solc.expanseImportSources(importSources)
         function executor(resolve: (value: SolcOutput) => void, reject: (reason: unknown) => void) {
             worker.onmessage = (e: MessageEvent) => {
                 const response = e.data as SolcWorkerOutput
@@ -37,7 +38,11 @@ export class Solc {
                     reject(response.error)
                 }
             }
-            const message: SolcWorkerInput = {version, input, importSources}
+            const message: SolcWorkerInput = {
+                version: version,
+                input: input,
+                importSources: expandedImportSources
+            }
             worker.postMessage(message)
         }
 
@@ -60,6 +65,29 @@ export class Solc {
         return result
     }
 
+    static expanseImportSources(importSources: Record<string, string>): Record<string, string> {
+        const result = {} as Record<string, string>
+        for (const path of Object.keys(importSources)) {
+            result[path] = importSources[path]
+            const fileName = this.fileName(path)
+            if (fileName != path) {
+                result[fileName] = importSources[path]
+            }
+        }
+        return result
+    }
+
+
+    private static fileName(path: string): string {
+        let result: string
+        const i = path.lastIndexOf("/")
+        if (i != -1) {
+            result = path.substring(i+1)
+        } else {
+            result = path
+        }
+        return result
+    }
 }
 
 
