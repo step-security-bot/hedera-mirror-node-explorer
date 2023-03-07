@@ -57,6 +57,20 @@
           </template>
         </Property>
 
+        <Property id="fileId" :full-width="true">
+          <template v-slot:name>Verification Time</template>
+          <template v-slot:value>
+            <TimestampValue :show-none="true" :timestamp="creationTime"/>
+          </template>
+        </Property>
+
+        <Property id="solcVersion" :full-width="true">
+          <template v-slot:name>Compiler Version</template>
+          <template v-slot:value>
+            <StringValue :string-value="solcVersion"/>
+          </template>
+        </Property>
+
         <Property v-if="imports" id="imports" :full-width="true">
           <template v-slot:name>Imports</template>
           <template v-slot:value>
@@ -68,18 +82,6 @@
           </template>
         </Property>
 
-        <Property id="fileId" :full-width="true">
-          <template v-slot:name>Verification Time</template>
-          <template v-slot:value>
-            <TimestampValue :show-none="true" :timestamp="creationTime"/>
-          </template>
-        </Property>
-        <Property id="solcVersion" :full-width="true">
-          <template v-slot:name>Compiler Version</template>
-          <template v-slot:value>
-            <StringValue :string-value="solcVersion"/>
-          </template>
-        </Property>
       </template>
     </DashboardCard>
 
@@ -191,15 +193,6 @@ export default defineComponent({
       return null
     })
 
-    const imports = computed(() => {
-      const result = contractAnalyzer.importSources.value
-      if (result) {
-        for (const k of Object.keys(result))
-        console.log("key: " + k)
-      }
-      return result
-    })
-
     const handleForget = () => {
       if (normalizedContractId.value !== null) {
         const network = routeManager.currentNetwork.value as HederaNetwork
@@ -222,8 +215,7 @@ export default defineComponent({
       creationTime,
       solcVersion: contractAnalyzer.compilerVersion,
       source: contractAnalyzer.contractSource,
-      imports,
-      // imports: contractAnalyzer.importSources,
+      imports: contractAnalyzer.importSources,
       handleForget,
       disableForgetButton
     }
