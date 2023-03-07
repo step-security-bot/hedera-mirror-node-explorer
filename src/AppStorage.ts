@@ -170,4 +170,5 @@ export interface ContractMetadata {
     source: string
     sourceFileName: string
     importSources: Record<string, string>
+    creationTime: number
 }

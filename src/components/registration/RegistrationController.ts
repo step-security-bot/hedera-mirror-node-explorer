@@ -192,6 +192,7 @@ export class RegistrationController {
                 source: this.source.value,
                 sourceFileName: this.sourceFileName.value,
                 importSources: ImportSpec.makeImportSources(this.importSpecs.value),
+                creationTime: Date.now()
             }
         } else {
             result = null

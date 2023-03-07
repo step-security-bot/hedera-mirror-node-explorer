@@ -99,7 +99,11 @@ export class ContractAnalyzer {
     })
 
     public readonly importSources: ComputedRef<Record<string, string>|null> = computed( () => {
-        return this.compilationRecord.value !== null ? this.compilationRecord.value.metadata.importSources : null
+        return this.contractMetadata.value !== null ? this.contractMetadata.value.importSources : null
+    })
+
+    public readonly creationTime: ComputedRef<number|null> = computed( () => {
+        return this.contractMetadata.value !== null ? this.contractMetadata.value.creationTime : null
     })
 
     public readonly contractDescription: ComputedRef<ContractDescription|null> = computed(() => {

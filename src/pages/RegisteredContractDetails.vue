@@ -197,7 +197,8 @@ export default defineComponent({
         ) : null)
 
     const creationTime = computed(() => {
-      return null
+      const time = contractAnalyzer.creationTime.value ?? 0
+      return time ? (time / 1000).toString() : null
     })
 
     const handleForget = () => {
