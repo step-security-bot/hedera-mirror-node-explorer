@@ -43,9 +43,23 @@
         <Property id="name" :full-width="true">
           <template v-slot:name>Name</template>
           <template v-slot:value>
-            <StringValue :string-value="contractName"/>
+            <a :href="'#'+contractName">
+              <StringValue :string-value="contractName"/>
+            </a>
           </template>
         </Property>
+
+        <Property v-if="imports" id="imports" :full-width="true">
+          <template v-slot:name>Imports</template>
+          <template v-slot:value>
+            <div v-for="k of Object.keys(imports)" :key="k">
+              <a :href="'#'+k">
+                <StringValue :string-value="k"/>
+              </a>
+            </div>
+          </template>
+        </Property>
+
         <Property id="fileId" :full-width="true">
           <template v-slot:name>Verification Time</template>
           <template v-slot:value>
@@ -63,11 +77,19 @@
 
     <DashboardCard>
       <template v-slot:title>
-        <p class="h-is-secondary-title">Contract Source</p>
+        <p :id="contractName"  class="h-is-secondary-title">Contract Source</p>
       </template>
 
       <template v-slot:content>
+        <div class="has-text-right has-text-weight-normal">{{ contractName }}</div>
         <pre class="h-has-box-background-color has-text-grey-light p-0">{{ source }}</pre>
+        <div v-if="imports">
+          <div v-for="k of Object.keys(imports)" :key="k">
+            <hr :id="k" class="h-card-separator mt-4 mb-1" style="height: 0.5px"/>
+            <div class="has-text-right has-text-weight-normal">{{ k }}</div>
+            <pre class="h-has-box-background-color has-text-grey-light p-0">{{ imports[k] }}</pre>
+          </div>
+        </div>
       </template>
     </DashboardCard>
 
@@ -159,6 +181,15 @@ export default defineComponent({
       return null
     })
 
+    const imports = computed(() => {
+      const result = contractAnalyzer.importSources.value
+      if (result) {
+        for (const k of Object.keys(result))
+        console.log("key: " + k)
+      }
+      return result
+    })
+
     return {
       isSmallScreen,
       isTouchDevice,
@@ -170,6 +201,8 @@ export default defineComponent({
       creationTime,
       solcVersion: contractAnalyzer.compilerVersion,
       source: contractAnalyzer.contractSource,
+      imports,
+      // imports: contractAnalyzer.importSources,
     }
   },
 });
