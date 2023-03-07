@@ -120,6 +120,20 @@ export class AppStorage {
     }
 
     //
+    // save contract locally
+    //
+
+    private static readonly SAVE_CONTRACT_LOCALLY_KEY = 'saveContractLocally'
+
+    public static getSaveContractLocally(): boolean {
+        return this.getLocalStorageItem(this.SAVE_CONTRACT_LOCALLY_KEY) !== null
+    }
+
+    public static setSaveContractLocally(newValue: string): void {
+        this.setLocalStorageItem(this.SAVE_CONTRACT_LOCALLY_KEY, newValue)
+    }
+
+    //
     // Private
     //
 

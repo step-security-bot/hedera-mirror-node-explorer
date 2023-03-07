@@ -122,9 +122,13 @@
                 </span>
               </div>
             </div>
-            <div v-if="isMatch" class="has-text-left has-text-grey">
-              You may now register this result and the source code to make them available to the community
+            <div v-if="isMatch" class="is-flex is-justify-content-start is-align-items-center mt-6 has-text-grey-light">
+              <label class="checkbox mr-2">
+                <input v-model="saveLocally" type="checkbox">
+              </label>
+              <span>Save verification status to browser local storage</span>
             </div>
+
             <div v-if="errors.length" class="scroll-container mb-5">
               <div v-for="(error) in errors" :key="error" class="has-text-left">
                 <pre class="h-has-page-background-color has-text-grey-light p-2">{{ error.formattedMessage }}</pre>
@@ -185,11 +189,12 @@
 
 <script lang="ts">
 
-import {computed, defineComponent, watch} from "vue";
+import {computed, defineComponent, ref, watch} from "vue";
 import {RegistrationController} from "@/components/registration/RegistrationController";
 import FileChooserAction from "@/components/FileChooserAction.vue";
 import TimestampValue from "@/components/values/TimestampValue.vue";
 import {BytecodeComparison} from "@/utils/solc/SolcUtils";
+import {AppStorage} from "@/AppStorage";
 
 export default defineComponent({
   name: "RegistrationWizard",
@@ -218,7 +223,7 @@ export default defineComponent({
 
     const isCloseShown = computed(() => isMatch.value)
 
-    const isNextShown = computed(() => controller.currentStep.value <= 4)
+    const isNextShown = computed(() => controller.currentStep.value < 4)
 
     const nextButtonLabel = computed(() =>
         controller.currentStep.value == 4 && isMatch.value
@@ -241,12 +246,16 @@ export default defineComponent({
     const registrationTime = computed(() =>  null)
 
     const handleCancel = () => {
-      console.log("handleCancel")
       context.emit('update:showWizard', false)
     }
 
+    const saveLocally = ref(AppStorage.getSaveContractLocally())
+
     const handleClose = () => {
-      console.log("handleClose")
+      if (controller.currentStep.value === 4 && saveLocally.value) {
+        AppStorage.setSaveContractLocally('true')
+        controller.handleNext()
+      }
       context.emit('update:showWizard', false)
     }
 
@@ -269,6 +278,7 @@ export default defineComponent({
       status,
       rejectReason,
       registrationTime,
+      saveLocally,
       handleCancel,
       handleClose,
       handleNext,
