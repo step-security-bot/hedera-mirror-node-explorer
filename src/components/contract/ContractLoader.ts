@@ -45,6 +45,10 @@ export class ContractLoader extends EntityLoader<ContractResponse> {
         return this.entity.value?.contract_id ?? null
     })
 
+    public readonly evmAddress = computed(() => {
+        return this.entity.value?.evm_address ?? null
+    })
+
     public readonly obtainerId = computed(() => {
         return this.entity.value?.obtainer_id ?? null
     })
