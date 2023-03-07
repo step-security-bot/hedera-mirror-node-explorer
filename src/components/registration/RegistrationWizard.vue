@@ -157,7 +157,7 @@
           </template>
         </div>
 
-        <div class="is-flex is-justify-content-space-between mt-4">
+        <div class="is-flex is-justify-content-space-between mt-5">
           <button :class="{'is-invisible': !isCancelBackShown}" class="button is-white is-small"
                   @click="handleCancel">CANCEL
           </button>
