@@ -32,6 +32,8 @@ import {AppStorage} from "@/AppStorage";
 import {nameServiceSetNetwork} from '@/utils/NameService';
 import axios from "axios";
 import {CompilationCache} from "@/utils/cache/CompilationCache";
+import {ContractCache} from "@/utils/cache/ContractCache";
+import {ContractInterfaceCache} from "@/utils/cache/ContractInterfaceCache";
 
 export class RouteManager {
 
@@ -359,6 +361,9 @@ export class RouteManager {
         TransactionCollector.instance.clear()
         NodeRegistry?.instance.reload()
         CompilationCache.instance.clear()
+        ContractCache.instance.clear()
+        ContractInterfaceCache?.instance.clear()
+        // AssetCache.instance does need reset because its content does not depend on selected network
     }
 }
 

@@ -19,9 +19,8 @@
  */
 
 import {computed, ComputedRef, ref, Ref, watch, WatchStopHandle} from "vue";
-import {systemContractRegistry} from "@/schemas/SystemContractRegistry";
-import {ContractEntry} from "@/schemas/ContractEntry";
 import {ethers} from "ethers";
+import {ContractInterfaceCache} from "@/utils/cache/ContractInterfaceCache";
 
 export class FunctionCallAnalyzer {
 
@@ -29,8 +28,7 @@ export class FunctionCallAnalyzer {
     public readonly output: Ref<string|null>
     public readonly contractId: Ref<string|null>
     private readonly watchHandles: WatchStopHandle[] = []
-    private readonly transactionDescription = ref<ethers.utils.TransactionDescription|null>(null)
-    private readonly decodedFunctionResult = ref<ethers.utils.Result|null>(null)
+    private readonly interface = ref<ethers.utils.Interface|null>(null)
 
     //
     // Public
@@ -44,9 +42,7 @@ export class FunctionCallAnalyzer {
 
     public mount(): void {
         this.watchHandles.push(
-            watch(this.contractId, this.updateContractEntry, { immediate: true}),
-            watch([this.input, this.contractEntry], this.updateTransactionDescription, { immediate: true}),
-            watch([this.output, this.transactionDescription], this.updateDecodedFunctionResult, { immediate: true}),
+            watch(this.contractId, this.updateInterface, { immediate: true}),
         )
     }
 
@@ -55,8 +51,7 @@ export class FunctionCallAnalyzer {
             wh()
         }
         this.watchHandles.splice(0)
-        this.transactionDescription.value = null
-        this.decodedFunctionResult.value = null
+        this.interface.value = null
     }
 
     public readonly functionHash: ComputedRef<string|null> = computed(() => {
@@ -102,56 +97,42 @@ export class FunctionCallAnalyzer {
     // Private
     //
 
-    private readonly contractEntry: Ref<ContractEntry|null> = ref(null)
-
-    private readonly updateContractEntry = () => {
+    private readonly updateInterface = () => {
         if (this.contractId.value !== null) {
-            const systemContractEntry = systemContractRegistry.lookup(this.contractId.value)
-            if (systemContractEntry !== null) {
-                this.contractEntry.value = systemContractEntry
-            } else {
-                this.contractEntry.value = null
-            }
+            ContractInterfaceCache.instance.lookup(this.contractId.value)
+                .then((i: ethers.utils.Interface|null) => {
+                    this.interface.value = Object.preventExtensions(i)
+                })
+                .catch((reason: unknown) => {
+                    this.interface.value = null
+                    console.log("FunctionCallAnalyzer.updateInterface() failed with reason: " + reason)
+                })
         } else {
-            this.contractEntry.value = null
+            this.interface.value = null
         }
     }
 
-    // private readonly contractEntry: ComputedRef<ContractEntry|null> = computed(() => {
-    //     const c1 = this.contractId.value !== null ? systemContractRegistry.lookup(this.contractId.value) : null
-    //     const c2 = this.fileId.value !== null ? customContractRegistry.lookup(this.fileId.value) : null
-    //     return c1 ?? c2
-    // })
-
-
-    private readonly updateTransactionDescription = () => {
-        if (this.contractEntry.value !== null && this.input.value !== null) {
-            this.contractEntry.value.parseTransaction(this.input.value)
-                .then((d: ethers.utils.TransactionDescription|null) => {
-                    this.transactionDescription.value = d
-                })
-                .catch(() => {
-                    this.transactionDescription.value = null
-                })
+    private readonly transactionDescription = computed(() => {
+        let result: ethers.utils.TransactionDescription|null
+        if (this.interface.value !== null && this.input.value !== null && this.input.value !== "0x") {
+            result = this.interface.value.parseTransaction({data: this.input.value})
         } else {
-            this.transactionDescription.value = null
+            result = null
         }
-    }
+        return result
+    })
 
-    private readonly updateDecodedFunctionResult = () => {
-        if (this.contractEntry.value !== null && this.transactionDescription.value !== null && this.output.value !== null) {
+    private readonly decodedFunctionResult = computed(() => {
+        let result: ethers.utils.Result|null
+        if (this.interface.value !== null && this.transactionDescription.value !== null
+            && this.output.value !== null && this.output.value !== "0x") {
             const functionFragment = this.transactionDescription.value.functionFragment
-            this.contractEntry.value?.decodeFunctionResult(functionFragment, this.output.value)
-                .then((result: ethers.utils.Result|null) => {
-                    this.decodedFunctionResult.value = result
-                })
-                .catch(() => {
-                    this.decodedFunctionResult.value = null
-                })
+            result  = this.interface.value.decodeFunctionResult(functionFragment, this.output.value) ?? null
         } else {
-            this.decodedFunctionResult.value = null
+            result = null
         }
-    }
+        return result
+    })
 
 }
 

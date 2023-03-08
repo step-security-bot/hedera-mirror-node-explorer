@@ -18,15 +18,20 @@
  *
  */
 
-export abstract class ContractEntry {
+import {Cache} from "@/utils/Cache"
+import axios from "axios";
 
-    public readonly description: string
+export class AssetCache extends Cache<string, unknown, void> {
+
+    public static readonly instance = new AssetCache()
 
     //
-    // Protected
+    // Cache
     //
 
-    protected constructor(description: string) {
-        this.description = description
+    protected async load(url: string): Promise<unknown> {
+        const response = await axios.get<unknown>(url)
+        return Promise.resolve(response.data)
     }
+
 }
