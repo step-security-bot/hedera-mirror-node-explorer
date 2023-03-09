@@ -36,7 +36,7 @@ export class ContractCache extends Cache<string, ContractResponse|null, void> {
             const response = await axios.get<ContractResponse>("api/v1/contracts/" + contractId)
             result = response.data
         } catch(reason) {
-            if (axios.isAxiosError(reason) && reason.request?.status == 404) {
+            if (axios.isAxiosError(reason) && reason.response?.status == 404) {
                 result = null
             } else {
                 throw reason
