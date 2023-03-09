@@ -37,7 +37,7 @@ export class ContractInterfaceCache extends Cache<string, ethers.utils.Interface
     // Cache
     //
 
-    protected async load(contractId: string, context: void): Promise<ethers.utils.Interface|null> {
+    protected async load(contractId: string /* , context: void */): Promise<ethers.utils.Interface|null> {
         let result: ethers.utils.Interface|null
         const systemContract = systemContractRegistry.lookup(contractId)
         if (systemContract !== null) {
