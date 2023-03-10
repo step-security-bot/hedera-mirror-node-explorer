@@ -126,11 +126,11 @@
               <template v-slot:value>
                 <div>
                   <ByteCodeValue :byte-code="initCode"/>
-                  <ContractToolBar v-if="initCode" :contract-analyzer="contractAnalyzer"/>
+                  <ContractToolBar v-if="initCode && false" :contract-analyzer="contractAnalyzer"/>
                 </div>
               </template>
             </Property>
-            <Property v-if="signature" id="signature">
+            <Property v-if="signature && false" id="signature">
               <template v-slot:name>Constructor</template>
               <template v-slot:value>
                 <StringValue :string-value="signature"/>
@@ -173,6 +173,8 @@
 
       </template>
     </DashboardCard>
+
+    <ContractVerificationSection :contract-analyzer="contractAnalyzer"/>
 
     <DashboardCard>
       <template v-slot:title>
@@ -233,6 +235,7 @@ import TransactionLink from "@/components/values/TransactionLink.vue";
 import EVMAddress from "@/components/values/EVMAddress.vue";
 import ContractToolBar from "@/components/registration/ContractToolBar.vue";
 import {ContractAnalyzer} from "@/utils/ContractAnalyzer";
+import ContractVerificationSection from "@/components/registration/ContractVerificationSection.vue";
 
 const MAX_TOKEN_BALANCES = 3
 
@@ -241,6 +244,7 @@ export default defineComponent({
   name: 'ContractDetails',
 
   components: {
+    ContractVerificationSection,
     EVMAddress,
     TransactionLink,
     ContractToolBar,

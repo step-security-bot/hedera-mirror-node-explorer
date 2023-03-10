@@ -64,7 +64,7 @@
           </template>
         </Property>
 
-        <Property id="fileId" :full-width="true">
+        <Property id="verificationTime" :full-width="true">
           <template v-slot:name>Verification Time</template>
           <template v-slot:value>
             <TimestampValue :show-none="true" :timestamp="creationTime"/>
