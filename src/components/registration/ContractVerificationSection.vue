@@ -49,9 +49,7 @@
         <template v-slot:value>
           <span v-if="contractName">Partial match</span>
           <span v-else-if="compiling">Verifying contract…</span>
-          <div v-else class="is-flex is-align-items-center">
-            <span v-else-if="compiling">Not yet verified</span>
-          </div>
+          <span v-else>Not yet verified</span>
         </template>
       </Property>
 
