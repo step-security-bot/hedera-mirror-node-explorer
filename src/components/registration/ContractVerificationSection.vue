@@ -26,7 +26,7 @@
 
   <DashboardCard>
     <template v-slot:title>
-      <span class="h-is-secondary-title">Contract Verification</span>
+      <span class="h-is-secondary-title">Source Code Verification</span>
       <span v-if="contractName" class="icon has-text-success ml-2"><i class="far fa-check-circle"></i></span>
     </template>
 
@@ -40,14 +40,18 @@
         <i class="fa fa-circle-notch fa-spin"></i>
       </span>
       <button v-else id="forget-register" class="button is-white is-small"
-              @click="showWizard = true">VERIFY</button>
+              @click="showWizard = true">VERIFY…</button>
     </template>
 
     <template v-slot:content>
       <Property id="verificationStatus" :full-width="true">
         <template v-slot:name>Verification Status</template>
         <template v-slot:value>
-          <span v-if="contractName">Partial match</span>
+          <span v-if="contractName">
+            <span v-if="bytecodeComparison===BytecodeComparison.fullMatch">Full match</span>
+            <span v-else-if="bytecodeComparison===BytecodeComparison.partialMatch">Partial match</span>
+            <span v-else>Bytecode mismatch</span>
+          </span>
           <span v-else-if="compiling">Verifying contract…</span>
           <span v-else>Not yet verified</span>
         </template>
@@ -63,7 +67,8 @@
       <Property id="sourceFileName" :full-width="true">
         <template v-slot:name>Contract Source File</template>
         <template v-slot:value>
-          <StringValue :string-value="sourceFileName"/>
+          <router-link v-if="sourceFileName" :to="routeToSource">{{ sourceFileName }}</router-link>
+          <span v-else class="has-text-grey">None</span>
         </template>
       </Property>
 
@@ -103,9 +108,15 @@ import DashboardCard from "@/components/DashboardCard.vue";
 import Property from "@/components/Property.vue";
 import StringValue from "@/components/values/StringValue.vue";
 import TimestampValue from "@/components/values/TimestampValue.vue";
+import {BytecodeComparison} from "@/utils/solc/SolcUtils";
 
 export default defineComponent({
   name: 'ContractVerificationSection',
+  computed: {
+    BytecodeComparison() {
+      return BytecodeComparison
+    }
+  },
   components: {TimestampValue, StringValue, Property, DashboardCard, RegistrationWizard},
   props: {
     contractAnalyzer: {
@@ -139,6 +150,7 @@ export default defineComponent({
       compiling: props.contractAnalyzer.compiling,
       sourceFileName: props.contractAnalyzer.sourceFileName,
       solcVersion: props.contractAnalyzer.compilerVersion,
+      bytecodeComparison: props.contractAnalyzer.bytecodeComparison,
       routeToSource,
       showWizard,
       creationTime

@@ -28,7 +28,7 @@
 
     <DashboardCard>
       <template v-slot:title>
-        <span class="h-is-primary-title">Verified Contract </span>
+        <span class="h-is-primary-title">Verified Contract Source Code</span>
         <div class="h-is-tertiary-text mt-3" id="entityId">
           <div class="is-inline-block h-is-property-text has-text-weight-light" style="min-width: 115px">Contract ID:</div>
           <router-link :to="contractRoute">
@@ -56,11 +56,24 @@
         <NotificationBanner v-if="notification" :message="notification"/>
 
         <Property id="name" :full-width="true">
-          <template v-slot:name>Name</template>
+          <template v-slot:name>Contract Name</template>
           <template v-slot:value>
             <a :href="'#'+contractName">
               <StringValue :string-value="contractName"/>
             </a>
+          </template>
+        </Property>
+
+        <Property id="verificationStatus" :full-width="true">
+          <template v-slot:name>Verification Status</template>
+          <template v-slot:value>
+          <span v-if="contractName">
+            <span v-if="bytecodeComparison===BytecodeComparison.fullMatch">Full match</span>
+            <span v-else-if="bytecodeComparison===BytecodeComparison.partialMatch">Partial match</span>
+            <span v-else>Bytecode mismatch</span>
+          </span>
+            <span v-else-if="compiling">Verifying contract…</span>
+            <span v-else>Not yet verified</span>
           </template>
         </Property>
 
@@ -81,11 +94,14 @@
         <Property v-if="imports" id="imports" :full-width="true">
           <template v-slot:name>Imports</template>
           <template v-slot:value>
-            <div v-for="(k, index) of Object.keys(imports)" :key="k">
-              <a :href="'#'+index">
-                <StringValue :string-value="k"/>
-              </a>
+            <div v-if="Object.keys(imports).length">
+              <div v-for="(k, index) of Object.keys(imports)" :key="k">
+                <a :href="'#'+index">
+                  <StringValue :string-value="k"/>
+                </a>
+              </div>
             </div>
+            <span v-else class="has-text-grey">None</span>
           </template>
         </Property>
 
@@ -103,7 +119,7 @@
       </template>
     </DashboardCard>
 
-    <DashboardCard v-if="imports">
+    <DashboardCard v-if="imports && Object.keys(imports).length">
       <template v-slot:title>
         <p :id="contractName"  class="h-is-secondary-title">Imports</p>
       </template>
@@ -145,10 +161,16 @@ import {AppStorage} from "@/AppStorage";
 import {HederaNetwork} from "@bladelabs/blade-web3.js/lib/src/models/blade";
 import {CompilationCache} from "@/utils/cache/CompilationCache";
 import EVMAddress from "@/components/values/EVMAddress.vue";
+import {BytecodeComparison} from "@/utils/solc/SolcUtils";
 
 export default defineComponent({
 
   name: 'RegisteredContractDetails',
+  computed: {
+    BytecodeComparison() {
+      return BytecodeComparison
+    }
+  },
 
   components: {
     EVMAddress,
@@ -231,8 +253,10 @@ export default defineComponent({
       registeredContractId: contractAnalyzer.contractId,
       contractName: contractAnalyzer.contractName,
       sourceFileName: contractAnalyzer.sourceFileName,
+      compiling: contractAnalyzer.compiling,
       creationTime,
       solcVersion: contractAnalyzer.compilerVersion,
+      bytecodeComparison:contractAnalyzer.bytecodeComparison,
       source: contractAnalyzer.contractSource,
       imports: contractAnalyzer.importSources,
       handleForget,
