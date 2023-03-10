@@ -58,7 +58,7 @@ export class ContractLoader extends EntityLoader<ContractResponse> {
     })
 
     public readonly bytecode = computed(() => {
-        return this.entity.value?.bytecode ?? null
+        return this.entity.value?.runtime_bytecode ?? null
     })
 
     public readonly runtimeBytecode = computed(() => {

@@ -122,11 +122,11 @@
               </template>
             </Property>
             <Property id="code">
-              <template v-slot:name>Initcode</template>
+              <template v-slot:name>Runtime Bytecode</template>
               <template v-slot:value>
                 <div>
-                  <ByteCodeValue :byte-code="initCode"/>
-                  <ContractToolBar v-if="initCode && false" :contract-analyzer="contractAnalyzer"/>
+                  <ByteCodeValue :byte-code="bytecode"/>
+                  <ContractToolBar v-if="bytecode && false" :contract-analyzer="contractAnalyzer"/>
                 </div>
               </template>
             </Property>
@@ -364,7 +364,7 @@ export default defineComponent({
       normalizedContractId,
       accountRoute,
       aliasByteString: accountLoader.aliasByteString,
-      initCode: contractLoader.bytecode,
+      bytecode: contractLoader.bytecode,
       contractAnalyzer,
       signature: contractAnalyzer.signature
     }
