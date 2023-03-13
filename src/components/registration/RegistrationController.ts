@@ -139,18 +139,20 @@ export class RegistrationController {
 
     public readonly bytecodeComparison: ComputedRef<BytecodeComparison|null> = computed(() => {
         let result: BytecodeComparison|null
-        const matchingContract = this.matchingContract.value
         const compilationRecord = this.compilationRecord.value
         const deployedBytecode = this.contractLoader.runtimeBytecode.value
-        if (matchingContract != null
-            && compilationRecord !== null
-            && deployedBytecode !== null) {
-            const sourceFileName = compilationRecord.metadata.sourceFileName
-            const compiledBytecode = SolcUtils.fetchBytecode(sourceFileName, matchingContract, compilationRecord.solcOutput)
-            if (compiledBytecode !== null) {
-                result = SolcUtils.compareBytecode(deployedBytecode, compiledBytecode)
+        if (compilationRecord !== null && deployedBytecode !== null) {
+            const matchingContract = this.matchingContract.value
+            if (matchingContract !== null) {
+                const sourceFileName = compilationRecord.metadata.sourceFileName
+                const compiledBytecode = SolcUtils.fetchBytecode(sourceFileName, matchingContract, compilationRecord.solcOutput)
+                if (compiledBytecode !== null) {
+                    result = SolcUtils.compareBytecode(deployedBytecode, compiledBytecode)
+                } else {
+                    result = null
+                }
             } else {
-                result = null
+                result = BytecodeComparison.mismatch
             }
         } else {
             result = null
