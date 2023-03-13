@@ -67,11 +67,7 @@
         <Property id="verificationStatus" :full-width="true">
           <template v-slot:name>Verification Status</template>
           <template v-slot:value>
-          <span v-if="contractName">
-            <span v-if="bytecodeComparison===BytecodeComparison.fullMatch">Full match</span>
-            <span v-else-if="bytecodeComparison===BytecodeComparison.partialMatch">Partial match</span>
-            <span v-else>Bytecode mismatch</span>
-          </span>
+            <span v-if="contractName"><ContractVerificationStatus :bytecode-comparison="bytecodeComparison"/></span>
             <span v-else-if="compiling">Verifying contract…</span>
             <span v-else>Not yet verified</span>
           </template>
@@ -162,6 +158,7 @@ import {HederaNetwork} from "@bladelabs/blade-web3.js/lib/src/models/blade";
 import {CompilationCache} from "@/utils/cache/CompilationCache";
 import EVMAddress from "@/components/values/EVMAddress.vue";
 import {BytecodeComparison} from "@/utils/solc/SolcUtils";
+import ContractVerificationStatus from "@/components/registration/ContractVerificationStatus.vue";
 
 export default defineComponent({
 
@@ -173,6 +170,7 @@ export default defineComponent({
   },
 
   components: {
+    ContractVerificationStatus,
     EVMAddress,
     NotificationBanner,
     Footer,

@@ -112,13 +112,7 @@
                   <i v-else-if="isMatch" class="fa fa-check has-text-success"/>
                   <i v-else class="fa fa-exclamation-triangle has-text-danger"/>
                 </span>
-                <span v-if="isMatch">
-                  <span v-if="!isFullMatch">Source code matches contract bytecode</span>
-                  <span v-else>
-                    <span>Source code matches contract bytecode and hashcode </span>
-                    <span class="has-text-grey ml-1">("full match")</span>
-                  </span>
-                </span>
+                <span v-if="isMatch"><ContractVerificationStatus :bytecode-comparison="bytecodeComparison"/></span>
                 <span v-else>
                   <span>Source code verification failed</span>
                   <span v-if="rejectReason" class="has-text-grey ml-1">(Reason: {{ rejectReason }})</span>
@@ -198,10 +192,11 @@ import FileChooserAction from "@/components/FileChooserAction.vue";
 import TimestampValue from "@/components/values/TimestampValue.vue";
 import {BytecodeComparison} from "@/utils/solc/SolcUtils";
 import {AppStorage} from "@/AppStorage";
+import ContractVerificationStatus from "@/components/registration/ContractVerificationStatus.vue";
 
 export default defineComponent({
   name: "RegistrationWizard",
-  components: {TimestampValue, FileChooserAction},
+  components: {ContractVerificationStatus, TimestampValue, FileChooserAction},
   props: {
     contractId: String,
     showWizard: {
@@ -296,6 +291,7 @@ export default defineComponent({
       allCompilerVersions: controller.allCompilerVersions,
       compilerVersion: controller.compilerVersion,
       showProgressSpinner: controller.busy,
+      bytecodeComparison: controller.bytecodeComparison,
       errors: controller.compilationErrors,
     }
   }

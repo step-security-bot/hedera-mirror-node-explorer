@@ -47,11 +47,7 @@
       <Property id="verificationStatus" :full-width="true">
         <template v-slot:name>Verification Status</template>
         <template v-slot:value>
-          <span v-if="contractName">
-            <span v-if="bytecodeComparison===BytecodeComparison.fullMatch">Full match</span>
-            <span v-else-if="bytecodeComparison===BytecodeComparison.partialMatch">Partial match</span>
-            <span v-else>Bytecode mismatch</span>
-          </span>
+          <span v-if="contractName"><ContractVerificationStatus :bytecode-comparison="bytecodeComparison"/></span>
           <span v-else-if="compiling">Verifying contract…</span>
           <span v-else>Not yet verified</span>
         </template>
@@ -109,6 +105,7 @@ import Property from "@/components/Property.vue";
 import StringValue from "@/components/values/StringValue.vue";
 import TimestampValue from "@/components/values/TimestampValue.vue";
 import {BytecodeComparison} from "@/utils/solc/SolcUtils";
+import ContractVerificationStatus from "@/components/registration/ContractVerificationStatus.vue";
 
 export default defineComponent({
   name: 'ContractVerificationSection',
@@ -117,7 +114,7 @@ export default defineComponent({
       return BytecodeComparison
     }
   },
-  components: {TimestampValue, StringValue, Property, DashboardCard, RegistrationWizard},
+  components: {ContractVerificationStatus, TimestampValue, StringValue, Property, DashboardCard, RegistrationWizard},
   props: {
     contractAnalyzer: {
       type: Object as PropType<ContractAnalyzer>,
