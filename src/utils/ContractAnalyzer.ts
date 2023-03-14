@@ -25,7 +25,7 @@ import {getNetworkEntryFromCurrentRoute} from "@/router";
 import {HederaNetwork} from "@bladelabs/blade-web3.js/lib/src/models/blade";
 import {CompilationCache, CompilationRecord} from "@/utils/cache/CompilationCache";
 import {BytecodeComparison, SolcUtils} from "@/utils/solc/SolcUtils";
-import {ContractDescription} from "@/utils/solc/SolcOutput";
+import {ContractDescription, ErrorDescription} from "@/utils/solc/SolcOutput";
 import {ethers} from "ethers";
 
 export class ContractAnalyzer {
@@ -139,6 +139,17 @@ export class ContractAnalyzer {
             }
         } else {
             result = null
+        }
+        return result
+    })
+
+    public readonly compilationErrors = computed(() => {
+        const result: ErrorDescription[] = []
+        const compilationRecord = this.compilationRecord.value
+        for (const e of compilationRecord?.solcOutput.errors ?? []) {
+            if (e.severity == "error") {
+                result.push(e)
+            }
         }
         return result
     })

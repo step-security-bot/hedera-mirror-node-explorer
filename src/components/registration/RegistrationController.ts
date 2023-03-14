@@ -20,7 +20,6 @@
 
 import {computed, ComputedRef, Ref, ref, watch} from "vue";
 import {SolcIndexLoader} from "@/components/registration/SolcIndexLoader";
-import {ErrorDescription} from "@/utils/solc/SolcOutput";
 import {BytecodeComparison, SolcUtils} from "@/utils/solc/SolcUtils";
 import {ContractAnalyzer} from "@/utils/ContractAnalyzer";
 import {ContractLoader} from "@/components/contract/ContractLoader";
@@ -135,17 +134,6 @@ export class RegistrationController {
             result = "v" + this.solcIndexLoader.fetchLongVersion(this.compilerVersion.value)
         } else {
             result = null
-        }
-        return result
-    })
-
-    public readonly compilationErrors = computed(() => {
-        const result: ErrorDescription[] = []
-        const compilationRecord = this.contractAnalyser.compilationRecord.value
-        for (const e of compilationRecord?.solcOutput.errors ?? []) {
-            if (e.severity == "error") {
-                result.push(e)
-            }
         }
         return result
     })

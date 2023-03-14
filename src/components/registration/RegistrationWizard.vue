@@ -292,7 +292,7 @@ export default defineComponent({
       compilerVersion: controller.compilerVersion,
       showProgressSpinner: controller.busy,
       bytecodeComparison: controller.bytecodeComparison,
-      errors: controller.compilationErrors,
+      errors: controller.contractAnalyser.compilationErrors,
     }
   }
 });
