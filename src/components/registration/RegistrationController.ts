@@ -40,7 +40,6 @@ export class RegistrationController {
     private readonly solcIndexLoader = new SolcIndexLoader()
     private readonly contractLoader: ContractLoader
     public readonly contractAnalyser: ContractAnalyzer
-    public readonly busy: Ref<boolean> = ref(false)
 
 
     //
@@ -156,6 +155,9 @@ export class RegistrationController {
         return result
     })
 
+    public readonly busy = computed(() => {
+        return this.currentStep.value == 4 && this.contractAnalyser.compiling.value
+    })
 
     //
     // Public (actions)
