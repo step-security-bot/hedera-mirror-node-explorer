@@ -251,7 +251,8 @@ router.beforeEach((to) => {
   let result: boolean | string
 
   if (getNetworkEntryFromRoute(to) === null // Unknown network
-    || (to.name === 'Staking' && getEnv('VUE_APP_ENABLE_STAKING') !== 'true') // Staking page not enabled
+      || (to.name === 'Staking' && getEnv('VUE_APP_ENABLE_STAKING') !== 'true') // Staking page not enabled
+      || (to.name === 'RegisteredContractDetails' && getEnv('VUE_APP_ENABLE_SC_VERIFICATION') !== 'true') // SC Verification page not enabled
   ) {
     result = "/page-not-found"
   } else {
