@@ -174,7 +174,7 @@
       </template>
     </DashboardCard>
 
-    <ContractVerificationSection :contract-analyzer="contractAnalyzer"/>
+    <ContractVerificationSection v-if="isSCVerificationEnabled" :contract-analyzer="contractAnalyzer"/>
 
     <DashboardCard>
       <template v-slot:title>
@@ -236,6 +236,7 @@ import EVMAddress from "@/components/values/EVMAddress.vue";
 import ContractToolBar from "@/components/registration/ContractToolBar.vue";
 import {ContractAnalyzer} from "@/utils/ContractAnalyzer";
 import ContractVerificationSection from "@/components/registration/ContractVerificationSection.vue";
+import {getEnv} from "@/utils/getEnv";
 
 const MAX_TOKEN_BALANCES = 3
 
@@ -275,6 +276,8 @@ export default defineComponent({
     const isSmallScreen = inject('isSmallScreen', true)
     const isMediumScreen = inject('isMediumScreen', true)
     const isTouchDevice = inject('isTouchDevice', false)
+
+    const isSCVerificationEnabled = getEnv('VUE_APP_ENABLE_SC_VERIFICATION') === 'true'
 
     //
     // basic computed's
@@ -349,6 +352,7 @@ export default defineComponent({
       isSmallScreen,
       isMediumScreen,
       isTouchDevice,
+      isSCVerificationEnabled,
       contract: contractLoader.entity,
       account: accountLoader.entity,
       balance: accountLoader.balance,
