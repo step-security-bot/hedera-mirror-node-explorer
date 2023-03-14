@@ -45,9 +45,9 @@
       </template>
 
       <template v-slot:control>
-        <div class="is-flex is-justify-content-flex-end is-align-items-center">
-          <button id="forget-register" class="button is-white is-small"
-                  :disabled="disableForgetButton" @click="handleForget">FORGET</button>
+        <div v-if="showForgetButton" class="is-flex is-justify-content-flex-end is-align-items-center">
+          <button id="forgetButton" class="button is-white is-small"
+                  @click="handleForget">FORGET</button>
         </div>
       </template>
 
@@ -239,7 +239,7 @@ export default defineComponent({
       }
     }
 
-    const disableForgetButton =computed( () => normalizedContractId.value == null )
+    const showForgetButton = computed( () => contractAnalyzer.sourceFileName.value !== null )
 
     return {
       isSmallScreen,
@@ -258,7 +258,7 @@ export default defineComponent({
       source: contractAnalyzer.contractSource,
       imports: contractAnalyzer.importSources,
       handleForget,
-      disableForgetButton
+      showForgetButton
     }
   },
 });
