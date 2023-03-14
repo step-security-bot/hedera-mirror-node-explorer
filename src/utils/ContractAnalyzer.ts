@@ -127,15 +127,19 @@ export class ContractAnalyzer {
     public readonly bytecodeComparison: ComputedRef<BytecodeComparison|null> = computed(() => {
         let result: BytecodeComparison|null
         const compilationRecord = this.compilationRecord.value
-        const contractName = this.contractName.value
         const deployedBytecode = this.contractRef.value?.runtime_bytecode ?? null
-        if (compilationRecord !== null && contractName !== null && deployedBytecode !== null) {
-            const sourceFileName = compilationRecord.metadata.sourceFileName
-            const compiledBytecode = SolcUtils.fetchBytecode(sourceFileName, contractName, compilationRecord.solcOutput)
-            if (compiledBytecode !== null) {
-                result = SolcUtils.compareBytecode(deployedBytecode, compiledBytecode)
+        if (compilationRecord !== null && deployedBytecode !== null) {
+            const contractName = this.contractName.value
+            if (contractName !== null) {
+                const sourceFileName = compilationRecord.metadata.sourceFileName
+                const compiledBytecode = SolcUtils.fetchBytecode(sourceFileName, contractName, compilationRecord.solcOutput)
+                if (compiledBytecode !== null) {
+                    result = SolcUtils.compareBytecode(deployedBytecode, compiledBytecode)
+                } else {
+                    result = BytecodeComparison.mismatch
+                }
             } else {
-                result = null
+                result = BytecodeComparison.mismatch
             }
         } else {
             result = null
