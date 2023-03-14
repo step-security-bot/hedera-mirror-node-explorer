@@ -126,7 +126,6 @@
               <template v-slot:value>
                 <div>
                   <ByteCodeValue :byte-code="bytecode"/>
-                  <ContractToolBar v-if="bytecode && false" :contract-analyzer="contractAnalyzer"/>
                 </div>
               </template>
             </Property>
@@ -174,7 +173,7 @@
       </template>
     </DashboardCard>
 
-    <ContractVerificationSection v-if="isSCVerificationEnabled" :contract-analyzer="contractAnalyzer"/>
+    <ContractVerificationSection v-if="isSCVerificationEnabled" :contract-analyzer="contractAnalyzer" @didUpdateLocalStorage="updateContractMetadata"/>
 
     <DashboardCard>
       <template v-slot:title>
@@ -208,7 +207,7 @@
 
 <script lang="ts">
 
-import {computed, defineComponent, inject, onBeforeUnmount, onMounted} from 'vue';
+import {computed, defineComponent, inject, onBeforeUnmount, onMounted, Ref, ref} from 'vue';
 import KeyValue from "@/components/values/KeyValue.vue";
 import ContractTransactionTable from "@/components/contract/ContractTransactionTable.vue";
 import PlayPauseButton from "@/components/PlayPauseButton.vue";
@@ -233,10 +232,11 @@ import {networkRegistry} from "@/schemas/NetworkRegistry";
 import router, {routeManager} from "@/router";
 import TransactionLink from "@/components/values/TransactionLink.vue";
 import EVMAddress from "@/components/values/EVMAddress.vue";
-import ContractToolBar from "@/components/registration/ContractToolBar.vue";
 import {ContractAnalyzer} from "@/utils/ContractAnalyzer";
 import ContractVerificationSection from "@/components/registration/ContractVerificationSection.vue";
 import {getEnv} from "@/utils/getEnv";
+import {AppStorage, ContractMetadata} from "@/AppStorage";
+import {HederaNetwork} from "@bladelabs/blade-web3.js/lib/src/models/blade";
 
 const MAX_TOKEN_BALANCES = 3
 
@@ -248,7 +248,6 @@ export default defineComponent({
     ContractVerificationSection,
     EVMAddress,
     TransactionLink,
-    ContractToolBar,
     TransactionFilterSelect,
     ByteCodeValue,
     Property,
@@ -344,8 +343,16 @@ export default defineComponent({
     // ContractAnalyzer
     //
 
-    const contractAnalyzer = new ContractAnalyzer(contractLoader.entity)
-    onMounted(() => contractAnalyzer.mount())
+    const contractMetadata: Ref<ContractMetadata|null> = ref(null)
+    const updateContractMetadata = () => {
+      const network = routeManager.currentNetwork.value as HederaNetwork
+      contractMetadata.value = props.contractId ? AppStorage.getContractMetadata(network, props.contractId) : null
+    }
+    const contractAnalyzer = new ContractAnalyzer(contractLoader.entity, contractMetadata)
+    onMounted(() => {
+      updateContractMetadata()
+      contractAnalyzer.mount()
+    })
     onBeforeUnmount(()=> contractAnalyzer.unmount())
 
     return {
@@ -370,7 +377,8 @@ export default defineComponent({
       aliasByteString: accountLoader.aliasByteString,
       bytecode: contractLoader.bytecode,
       contractAnalyzer,
-      signature: contractAnalyzer.signature
+      signature: contractAnalyzer.signature,
+      updateContractMetadata
     }
   },
 });

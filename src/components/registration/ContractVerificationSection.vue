@@ -63,7 +63,7 @@
       <Property id="sourceFileName" :full-width="true">
         <template v-slot:name>Contract Source File</template>
         <template v-slot:value>
-          <router-link v-if="sourceFileName" :to="routeToSource">{{ sourceFileName }}</router-link>
+          <router-link v-if="sourceFileName  && routeToSource" :to="routeToSource">{{ sourceFileName }}</router-link>
           <span v-else class="has-text-grey">None</span>
         </template>
       </Property>
@@ -115,6 +115,7 @@ export default defineComponent({
     }
   },
   components: {ContractVerificationStatus, TimestampValue, StringValue, Property, DashboardCard, RegistrationWizard},
+  emits: ['didUpdateLocalStorage'],
   props: {
     contractAnalyzer: {
       type: Object as PropType<ContractAnalyzer>,
@@ -122,7 +123,7 @@ export default defineComponent({
     }
   },
 
-  setup(props) {
+  setup(props, ctx) {
 
     const routeToSource = computed(() => {
       const contractId = props.contractAnalyzer.contractId.value
@@ -132,7 +133,7 @@ export default defineComponent({
     const showWizard = ref(false)
     watch(showWizard, (newValue, oldValue) => {
       if (oldValue && !newValue) {
-        props.contractAnalyzer.reloadContractMetadata()
+        ctx.emit('didUpdateLocalStorage')
       }
     })
 

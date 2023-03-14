@@ -30,20 +30,26 @@ import {ethers} from "ethers";
 
 export class ContractAnalyzer {
 
-    private readonly contractRef: Ref<ContractResponse|null>
+    public readonly contractRef: Ref<ContractResponse|null>
+    public readonly contractMetadata: Ref<ContractMetadata|null>
+    public readonly compilationRecord: Ref<CompilationRecord|null> = ref(null)
+    public readonly compilationFailure: Ref<unknown|null> = ref(null)
+    public readonly compilingRef: Ref<boolean> = ref(false)
+
     private readonly watchHandles: WatchStopHandle[] = []
 
     //
     // Public
     //
 
-    public constructor(contract: Ref<ContractResponse|null>) {
+    public constructor(contract: Ref<ContractResponse|null>, contractMetadata: Ref<ContractMetadata|null>) {
         this.contractRef = contract
+        this.contractMetadata = contractMetadata
     }
 
     public mount(): void {
         this.watchHandles.push(
-            watch(this.contractRef, this.reloadContractMetadata, { immediate: true }),
+            watch([this.contractRef, this.contractMetadata], this.updateCompilationRecord, { immediate: true }),
         )
     }
 
@@ -87,15 +93,15 @@ export class ContractAnalyzer {
     })
 
     public readonly sourceFileName: ComputedRef<string|null> = computed(() => {
-        return this.compilationRecord.value !== null ? this.compilationRecord.value.metadata.sourceFileName : null
+        return this.contractMetadata.value !== null ? this.contractMetadata.value.sourceFileName : null
     })
 
     public readonly compilerVersion: ComputedRef<string|null> = computed(() => {
-        return this.compilationRecord.value !== null ? this.compilationRecord.value.metadata.version : null
+        return this.contractMetadata.value !== null ? this.contractMetadata.value.version : null
     })
 
     public readonly contractSource: ComputedRef<string|null> = computed(() => {
-        return this.compilationRecord.value !== null ? this.compilationRecord.value.metadata.source : null
+        return this.contractMetadata.value !== null ? this.contractMetadata.value.source : null
     })
 
     public readonly importSources: ComputedRef<Record<string, string>|null> = computed( () => {
@@ -146,7 +152,6 @@ export class ContractAnalyzer {
         } else {
             this.contractMetadata.value = null
         }
-        this.contractMetadataDidChange()
     }
 
     public readonly compiling: ComputedRef<boolean> = computed(() => this.compilingRef.value)
@@ -156,19 +161,15 @@ export class ContractAnalyzer {
     // Private
     //
 
-    private readonly contractMetadata: Ref<ContractMetadata|null> = ref(null)
-    private readonly compilationRecord: Ref<CompilationRecord|null> = ref(null)
-    private readonly compilationFailure: Ref<unknown|null> = ref(null)
-    private readonly compilingRef: Ref<boolean> = ref(false)
 
-    private contractMetadataDidChange = (): void => {
+    private updateCompilationRecord = (): void => {
         const contractId = this.contractRef.value?.contract_id ?? null
         const metadata = this.contractMetadata.value
         if (contractId !== null && metadata !== null) {
             this.compilingRef.value = true
             CompilationCache.instance.lookup(contractId, metadata)
                 .then((r: CompilationRecord) => {
-                    this.compilationRecord.value = r
+                    this.compilationRecord.value = Object.preventExtensions(r)
                     this.compilationFailure.value = null
                 })
                 .catch((reason: unknown) => {

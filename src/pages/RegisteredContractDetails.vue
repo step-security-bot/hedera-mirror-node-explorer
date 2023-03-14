@@ -215,7 +215,11 @@ export default defineComponent({
     onMounted(() =>  contractLoader.requestLoad())
     onBeforeUnmount(() => contractLoader.clear())
 
-    const contractAnalyzer = new ContractAnalyzer(contractLoader.entity)
+    const contractMetadata = computed(() => {
+      const network = routeManager.currentNetwork.value as HederaNetwork
+      return props.contractId ? AppStorage.getContractMetadata(network, props.contractId) : null
+    })
+    const contractAnalyzer = new ContractAnalyzer(contractLoader.entity, contractMetadata)
     onMounted(() => contractAnalyzer.mount())
     onBeforeUnmount(() => contractAnalyzer.unmount())
 
