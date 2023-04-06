@@ -25,6 +25,7 @@ import {ContractByIdCache} from "@/utils/cache/ContractByIdCache";
 import {ContractMatchResult, SolcUtils} from "@/utils/solc/SolcUtils";
 import {ethers} from "ethers";
 import {SolcOutput} from "@/utils/solc/SolcOutput";
+import {AssetCache} from "@/utils/cache/AssetCache";
 
 export class ContractAnalyzer {
 
@@ -75,7 +76,8 @@ export class ContractAnalyzer {
                 this.solcOutput.value = null
                 this.contractMatchResult.value = null
                 try {
-                    const i = await sce.fetchInterface()
+                    const abi = await AssetCache.instance.lookup(sce.abiURL)
+                    const i = new ethers.utils.Interface(abi as string)
                     this.interfaceRef.value = Object.preventExtensions(i) // Because ethers does not like Ref introspection
                 } catch {
                     this.interfaceRef.value = null

@@ -35,6 +35,7 @@ import {StakeCache} from "@/utils/cache/StakeCache";
 import {AccountByAliasCache} from "@/utils/cache/AccountByAliasCache";
 import {AccountByAddressCache} from "@/utils/cache/AccountByAddressCache";
 import {SolcOutputCache} from "@/utils/cache/SolcOutputCache";
+import {AssetCache} from "@/utils/cache/AssetCache";
 
 export class CacheUtils {
 
@@ -42,6 +43,7 @@ export class CacheUtils {
         AccountByAddressCache.instance.clear()
         AccountByAliasCache.instance.clear()
         AccountByIdCache.instance.clear()
+        AssetCache.instance.clear()
         BlockByNbCache.instance.clear()
         BlockByHashCache.instance.clear()
         BlockByTsCache.instance.clear()

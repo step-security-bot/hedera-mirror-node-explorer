@@ -17,8 +17,6 @@
  * limitations under the License.
  *
  */
-import {ethers} from "ethers";
-import axios from "axios";
 
 export class SystemContractRegistry {
 
@@ -45,22 +43,13 @@ export class SystemContractEntry {
     public readonly contractId: string
     public readonly description: string
     public readonly abiFileName: string
+    public readonly abiURL: string
 
     constructor(contractId: string, description: string, abiFileName: string) {
         this.contractId = contractId
         this.description = description
         this.abiFileName = abiFileName
-    }
-
-    async fetchInterface(): Promise<ethers.utils.Interface|null> {
-        /*
-            https://docs.ethers.io/v5/api/utils/abi/interface/
-         */
-
-        const url = window.location.origin + "/abi/" + this.abiFileName
-        const response = await axios.get(url)
-        const result = new ethers.utils.Interface(response.data.abi)
-        return Promise.resolve(result)
+        this.abiURL = window.location.origin + "/abi/" + abiFileName
     }
 }
 
