@@ -19,7 +19,7 @@
  */
 
 import {computed, ComputedRef, ref, Ref, watch, WatchStopHandle} from "vue";
-import {systemContractRegistry} from "@/schemas/SystemContractRegistry";
+import {SystemContractEntry, systemContractRegistry} from "@/schemas/SystemContractRegistry";
 import {SolcOutputCache} from "@/utils/cache/SolcOutputCache";
 import {ContractByIdCache} from "@/utils/cache/ContractByIdCache";
 import {ContractMatchResult, SolcUtils} from "@/utils/solc/SolcUtils";
@@ -30,8 +30,10 @@ export class ContractAnalyzer {
 
     public readonly contractId: Ref<string|null>
     private readonly watchHandle: Ref<WatchStopHandle|null> = ref(null)
+    private readonly systemContractEntryRef: Ref<SystemContractEntry|null> = ref(null)
     private readonly solcOutput: Ref<SolcOutput|null> = ref(null)
     private readonly contractMatchResult: Ref<ContractMatchResult|null> = ref(null)
+    private readonly interfaceRef: Ref<ethers.utils.Interface|null> = ref(null)
 
     //
     // Public
@@ -50,22 +52,14 @@ export class ContractAnalyzer {
             this.watchHandle.value()
             this.watchHandle.value = null
         }
+        this.systemContractEntryRef.value = null
+        this.solcOutput.value = null
         this.contractMatchResult.value = null
+        this.interfaceRef.value = null
     }
 
-    public readonly interface: ComputedRef<ethers.utils.Interface|null> = computed(() => {
-        let result: ethers.utils.Interface|null
-        const o = this.solcOutput.value
-        const r = this.contractMatchResult.value
-        if (o !== null && r !== null) {
-            const d = SolcUtils.fetchDescription(r.sourceFileName, r.contractName, o)
-            const i = d?.abi ? new ethers.utils.Interface(d?.abi) : null
-            result = Object.preventExtensions(i) // Because ethers.utils.Interface does not like vuejs introspection
-        } else {
-            result = null
-        }
-        return result
-    })
+    public readonly interface: ComputedRef<ethers.utils.Interface|null> = computed(
+        () => this.interfaceRef.value)
 
 
     //
@@ -74,32 +68,55 @@ export class ContractAnalyzer {
 
     private readonly contractIdDidChange = async() => {
         if (this.contractId.value !== null) {
-            const systemContractEntry = systemContractRegistry.lookup(this.contractId.value)
-            if (systemContractEntry !== null) {
+            const sce = systemContractRegistry.lookup(this.contractId.value)
+            if (sce !== null) {
                 // This is a system contract
+                this.systemContractEntryRef.value = sce
                 this.solcOutput.value = null
                 this.contractMatchResult.value = null
+                try {
+                    const i = await sce.fetchInterface()
+                    this.interfaceRef.value = Object.preventExtensions(i) // Because ethers does not like Ref introspection
+                } catch {
+                    this.interfaceRef.value = null
+                }
             } else {
                 // Check if contract metadata are available and fetch abi
+                this.systemContractEntryRef.value = null
                 try {
-                    this.solcOutput.value = await SolcOutputCache.instance.lookup(this.contractId.value)
-                    if (this.solcOutput.value !== null) {
+                    const o = await SolcOutputCache.instance.lookup(this.contractId.value)
+                    if (o !== null) {
+                        this.solcOutput.value = o
                         const contractInfo = await ContractByIdCache.instance.lookup(this.contractId.value)
                         const deployedByteCode = contractInfo?.runtime_bytecode ?? null
                         if (deployedByteCode !== null) {
-                            this.contractMatchResult.value = SolcUtils.findMatchingContract(deployedByteCode, this.solcOutput.value)
+                            const r = SolcUtils.findMatchingContract(deployedByteCode, this.solcOutput.value)
+                            if (r !== null) {
+                                const d = SolcUtils.fetchDescription(r.sourceFileName, r.contractName, o)
+                                const i = d?.abi ? new ethers.utils.Interface(d?.abi) : null
+                                this.contractMatchResult.value = r
+                                this.interfaceRef.value = Object.preventExtensions(i) // Because ethers does not like Ref introspection
+                            } else {
+                                this.contractMatchResult.value = null
+                                this.interfaceRef.value = null
+                            }
                         } else {
                             this.contractMatchResult.value = null
+                            this.interfaceRef.value = null
                         }
                     } else {
+                        this.solcOutput.value = null
                         this.contractMatchResult.value = null
+                        this.interfaceRef.value = null
                     }
                 } catch {
                     this.solcOutput.value = null
                     this.contractMatchResult.value = null
+                    this.interfaceRef.value = null
                 }
             }
         } else {
+            this.systemContractEntryRef.value = null
             this.solcOutput.value = null
             this.contractMatchResult.value = null
         }

@@ -19,21 +19,16 @@
  */
 
 import {computed, ComputedRef, ref, Ref, watch, WatchStopHandle} from "vue";
-import {SystemContractEntry, systemContractRegistry} from "@/schemas/SystemContractRegistry";
 import {ethers} from "ethers";
-import {SolcOutputCache} from "@/utils/cache/SolcOutputCache";
-import {ContractMatchResult, SolcUtils} from "@/utils/solc/SolcUtils";
-import {ContractByIdCache} from "@/utils/cache/ContractByIdCache";
+import {ContractAnalyzer} from "@/utils/ContractAnalyzer";
 
 export class FunctionCallAnalyzer {
 
     public readonly input: Ref<string|null>
     public readonly output: Ref<string|null>
-    public readonly contractId: Ref<string|null>
-    private readonly watchHandles: WatchStopHandle[] = []
-    private readonly contractMatchResult: Ref<ContractMatchResult|null> = ref(null)
+    private readonly contractAnalyzer: ContractAnalyzer
     private readonly transactionDescription = ref<ethers.utils.TransactionDescription|null>(null)
-    private readonly decodedFunctionResult = ref<ethers.utils.Result|null>(null)
+    private readonly watchHandle: Ref<WatchStopHandle|null> = ref(null)
 
     //
     // Public
@@ -42,23 +37,24 @@ export class FunctionCallAnalyzer {
     public constructor(input: Ref<string|null>, output: Ref<string|null>, contractId: Ref<string|null>) {
         this.input = input
         this.output = output
-        this.contractId = contractId
+        this.contractAnalyzer = new ContractAnalyzer(contractId)
     }
 
     public mount(): void {
-        this.watchHandles.push(
-            watch([this.input, this.contractId], this.updateTransactionDescription, { immediate: true}),
-            watch([this.output, this.transactionDescription], this.updateDecodedFunctionResult, { immediate: true}),
-        )
+        this.watchHandle.value = watch(
+            [this.input, this.contractAnalyzer.interface],
+            this.updateTransactionDescription,
+            { immediate: true})
+        this.contractAnalyzer.mount()
     }
 
     public unmount(): void {
-        for (const wh of this.watchHandles) {
-            wh()
+        this.contractAnalyzer.unmount()
+        if (this.watchHandle.value !== null) {
+            this.watchHandle.value()
+            this.watchHandle.value = null
         }
-        this.watchHandles.splice(0, this.watchHandles.length)
         this.transactionDescription.value = null
-        this.decodedFunctionResult.value = null
     }
 
     public readonly functionHash: ComputedRef<string|null> = computed(() => {
@@ -99,64 +95,31 @@ export class FunctionCallAnalyzer {
         return result
     })
 
+    public readonly decodedFunctionResult: ComputedRef<ethers.utils.Result|null> = computed(() => {
+        let result: ethers.utils.Result|null
+        const td = this.transactionDescription.value
+        const i = this.contractAnalyzer.interface.value
+        const output = this.output.value
+        if (td !== null && i !== null && output !== null) {
+            result = i.decodeFunctionResult(td.functionFragment, output)
+        } else {
+            result = null
+        }
+        return result
+    })
 
     //
     // Private
     //
 
-    private readonly systemContractEntry: ComputedRef<SystemContractEntry|null> = computed(() => {
-        return this.contractId.value ? systemContractRegistry.lookup(this.contractId.value) : null
-    })
-
     private readonly updateTransactionDescription = async () => {
-        if (this.contractId.value !== null && this.input.value !== null) {
-            if (this.systemContractEntry.value !== null) {
-                // This is a system contract
-                try {
-                    this.transactionDescription.value = await this.systemContractEntry.value.parseTransaction(this.input.value)
-                } catch {
-                    this.transactionDescription.value = null
-                }
-            } else {
-                // Check if contract metadata are available and use abi to build transaction description
-                try {
-                    const solcOutput = await SolcOutputCache.instance.lookup(this.contractId.value)
-                    const contractInfo = await ContractByIdCache.instance.lookup(this.contractId.value)
-                    const deployedByteCode = contractInfo?.runtime_bytecode ?? null
-                    if (solcOutput !== null && deployedByteCode !== null) {
-                        this.contractMatchResult.value = SolcUtils.findMatchingContract(deployedByteCode, solcOutput)
-                        if (this.contractMatchResult.value !== null) {
-                            const r = this.contractMatchResult.value
-                            const d = r !== null ? SolcUtils.fetchDescription(r.sourceFileName, r.contractName, solcOutput) : null
-                            const i = d?.abi ? new ethers.utils.Interface(d?.abi) : null
-                            this.transactionDescription.value = i !== null ? i.parseTransaction({data: this.input.value}) : null
-                        } else {
-                            this.transactionDescription.value = null
-                        }
-                    } else {
-                        this.transactionDescription.value = null
-                    }
-                } catch {
-                    this.transactionDescription.value = null
-                }
-            }
+        const i = this.contractAnalyzer.interface.value
+        const input = this.input.value
+        if (i !== null && input !== null) {
+            const td = i.parseTransaction({data: input})
+            this.transactionDescription.value = Object.preventExtensions(td) // Because ethers does not like Ref introspection
         } else {
             this.transactionDescription.value = null
-        }
-    }
-
-    private readonly updateDecodedFunctionResult = () => {
-        if (this.systemContractEntry.value !== null && this.transactionDescription.value !== null && this.output.value !== null) {
-            const functionFragment = this.transactionDescription.value.functionFragment
-            this.systemContractEntry.value?.decodeFunctionResult(functionFragment, this.output.value)
-                .then((result: ethers.utils.Result|null) => {
-                    this.decodedFunctionResult.value = result
-                })
-                .catch(() => {
-                    this.decodedFunctionResult.value = null
-                })
-        } else {
-            this.decodedFunctionResult.value = null
         }
     }
 

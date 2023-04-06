@@ -46,56 +46,20 @@ export class SystemContractEntry {
     public readonly description: string
     public readonly abiFileName: string
 
-    private interface: ethers.utils.Interface|null = null
-
     constructor(contractId: string, description: string, abiFileName: string) {
         this.contractId = contractId
         this.description = description
         this.abiFileName = abiFileName
     }
 
-    async parseTransaction(data: string): Promise<ethers.utils.TransactionDescription|null> {
-        if (this.interface === null) {
-            this.interface = await SystemContractEntry.loadInterface(this.abiFileName)
-        }
-        const result = this.interface?.parseTransaction({data: data}) ?? null
-        return Promise.resolve(result)
-    }
+    async fetchInterface(): Promise<ethers.utils.Interface|null> {
+        /*
+            https://docs.ethers.io/v5/api/utils/abi/interface/
+         */
 
-    async decodeFunctionResult(functionFragment: ethers.utils.FunctionFragment, resultData: string): Promise<ethers.utils.Result|null> {
-        if (this.interface === null) {
-            this.interface = await SystemContractEntry.loadInterface(this.abiFileName)
-        }
-        const result = this.interface?.decodeFunctionResult(functionFragment, resultData) ?? null
-        return Promise.resolve(result)
-    }
-
-    async getSignature(data: string): Promise<string|null> {
-        if (this.interface === null) {
-            this.interface = await SystemContractEntry.loadInterface(this.abiFileName)
-        }
-        const result = this.interface?.parseTransaction({data: data})?.signature ?? null
-        return Promise.resolve(result)
-    }
-
-    //
-    // Private
-    //
-
-    /*
-        https://docs.ethers.io/v5/api/utils/abi/interface/
-     */
-
-    private static async loadInterface(abiFileName: string): Promise<ethers.utils.Interface|null> {
-        let result: ethers.utils.Interface|null
-        try {
-            const url = window.location.origin + "/abi/" + abiFileName
-            const response = await axios.get(url)
-            result = new ethers.utils.Interface(response.data.abi)
-        } catch(error) {
-            console.log("Failed to load ABI from " + abiFileName + " (" + error + ")")
-            result = null
-        }
+        const url = window.location.origin + "/abi/" + this.abiFileName
+        const response = await axios.get(url)
+        const result = new ethers.utils.Interface(response.data.abi)
         return Promise.resolve(result)
     }
 }
