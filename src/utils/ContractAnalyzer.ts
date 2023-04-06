@@ -85,8 +85,8 @@ export class ContractAnalyzer {
                 this.solcOutput.value = null
                 this.contractMatchResult.value = null
                 try {
-                    const abi = await AssetCache.instance.lookup(sce.abiURL)
-                    const i = new ethers.utils.Interface(abi as string)
+                    const asset = await AssetCache.instance.lookup(sce.abiURL) as { abi: ethers.utils.Fragment[]}
+                    const i = new ethers.utils.Interface(asset.abi)
                     this.interfaceRef.value = Object.preventExtensions(i) // Because ethers does not like Ref introspection
                 } catch {
                     this.interfaceRef.value = null
