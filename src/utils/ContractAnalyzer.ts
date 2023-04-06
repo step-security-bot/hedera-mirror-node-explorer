@@ -22,7 +22,7 @@ import {computed, ComputedRef, ref, Ref, watch, WatchStopHandle} from "vue";
 import {SystemContractEntry, systemContractRegistry} from "@/schemas/SystemContractRegistry";
 import {SolcOutputCache} from "@/utils/cache/SolcOutputCache";
 import {ContractByIdCache} from "@/utils/cache/ContractByIdCache";
-import {ContractMatchResult, SolcUtils} from "@/utils/solc/SolcUtils";
+import {BytecodeComparison, ContractMatchResult, SolcUtils} from "@/utils/solc/SolcUtils";
 import {ethers} from "ethers";
 import {SolcOutput} from "@/utils/solc/SolcOutput";
 import {AssetCache} from "@/utils/cache/AssetCache";
@@ -58,6 +58,15 @@ export class ContractAnalyzer {
         this.contractMatchResult.value = null
         this.interfaceRef.value = null
     }
+
+    public readonly sourceFileName: ComputedRef<string|null> = computed(
+        () => this.contractMatchResult.value?.sourceFileName ?? null)
+
+    public readonly contractName: ComputedRef<string|null> = computed(
+        () => this.contractMatchResult.value?.contractName ?? null)
+
+    public readonly bytecodeComparison: ComputedRef<BytecodeComparison|null> = computed(
+        () => this.contractMatchResult.value?.comparison ?? null)
 
     public readonly interface: ComputedRef<ethers.utils.Interface|null> = computed(
         () => this.interfaceRef.value)

@@ -34,7 +34,7 @@ export class SolcUtils {
                 if (deployedBytecode !== null) {
                     const comparison = this.compareBytecode(deployedBytecode, runtimeBytecode)
                     if (comparison != BytecodeComparison.mismatch) {
-                        result = { sourceFileName: fn, contractName: sn }
+                        result = { sourceFileName: fn, contractName: sn, comparison: comparison }
                         break
                     }
                 }
@@ -81,6 +81,7 @@ export class SolcUtils {
 export interface ContractMatchResult {
     sourceFileName: string
     contractName: string
+    comparison: BytecodeComparison
 }
 
 export enum BytecodeComparison {
