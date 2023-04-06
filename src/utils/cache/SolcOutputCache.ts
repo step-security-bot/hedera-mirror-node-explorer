@@ -25,9 +25,20 @@ import {routeManager} from "@/router";
 
 export class SolcOutputCache extends EntityCache<string, SolcOutput|null> {
 
-    public static readonly METADATA_URL = "https://raw.githubusercontent.com/svienot/smartcontract-verification/main"
+    public static readonly REPO_URL = "https://github.com/svienot/smartcontract-verification/tree/main"
+    public static readonly RAW_REPO_URL = "https://raw.githubusercontent.com/svienot/smartcontract-verification/main"
 
     public static readonly instance = new SolcOutputCache()
+
+    public static makeContractURL(contractId: string): string {
+        const network = routeManager.currentNetwork.value
+        return SolcOutputCache.REPO_URL + "/" + network + "/" + contractId
+    }
+
+    public static makeRawContractURL(contractId: string): string {
+        const network = routeManager.currentNetwork.value
+        return SolcOutputCache.RAW_REPO_URL + "/" + network + "/" + contractId
+    }
 
     //
     // Cache
@@ -37,8 +48,7 @@ export class SolcOutputCache extends EntityCache<string, SolcOutput|null> {
         let result: Promise<SolcOutput|null>
 
         try {
-            const network = routeManager.currentNetwork.value
-            const url = SolcOutputCache.METADATA_URL + "/" + network + "/" + contractId + "/metadata.json"
+            const url = SolcOutputCache.makeRawContractURL(contractId) + "/metadata.json"
             const response = await axios.get<SolcOutput>(url)
             result = Promise.resolve(response.data)
         } catch(error) {
