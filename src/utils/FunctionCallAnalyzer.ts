@@ -21,6 +21,9 @@
 import {computed, ComputedRef, ref, Ref, watch, WatchStopHandle} from "vue";
 import {SystemContractEntry, systemContractRegistry} from "@/schemas/SystemContractRegistry";
 import {ethers} from "ethers";
+import {SolcOutputCache} from "@/utils/cache/SolcOutputCache";
+import {ContractMatchResult, SolcUtils} from "@/utils/solc/SolcUtils";
+import {ContractByIdCache} from "@/utils/cache/ContractByIdCache";
 
 export class FunctionCallAnalyzer {
 
@@ -28,6 +31,7 @@ export class FunctionCallAnalyzer {
     public readonly output: Ref<string|null>
     public readonly contractId: Ref<string|null>
     private readonly watchHandles: WatchStopHandle[] = []
+    private readonly contractMatchResult: Ref<ContractMatchResult|null> = ref(null)
     private readonly transactionDescription = ref<ethers.utils.TransactionDescription|null>(null)
     private readonly decodedFunctionResult = ref<ethers.utils.Result|null>(null)
 
@@ -104,15 +108,38 @@ export class FunctionCallAnalyzer {
         return this.contractId.value ? systemContractRegistry.lookup(this.contractId.value) : null
     })
 
-    private readonly updateTransactionDescription = () => {
-        if (this.systemContractEntry.value !== null && this.input.value !== null) {
-            this.systemContractEntry.value.parseTransaction(this.input.value)
-                .then((d: ethers.utils.TransactionDescription|null) => {
-                    this.transactionDescription.value = d
-                })
-                .catch(() => {
+    private readonly updateTransactionDescription = async () => {
+        if (this.contractId.value !== null && this.input.value !== null) {
+            if (this.systemContractEntry.value !== null) {
+                // This is a system contract
+                try {
+                    this.transactionDescription.value = await this.systemContractEntry.value.parseTransaction(this.input.value)
+                } catch {
                     this.transactionDescription.value = null
-                })
+                }
+            } else {
+                // Check if contract metadata are available and use abi to build transaction description
+                try {
+                    const solcOutput = await SolcOutputCache.instance.lookup(this.contractId.value)
+                    const contractInfo = await ContractByIdCache.instance.lookup(this.contractId.value)
+                    const deployedByteCode = contractInfo?.runtime_bytecode ?? null
+                    if (solcOutput !== null && deployedByteCode !== null) {
+                        this.contractMatchResult.value = SolcUtils.findMatchingContract(deployedByteCode, solcOutput)
+                        if (this.contractMatchResult.value !== null) {
+                            const r = this.contractMatchResult.value
+                            const d = r !== null ? SolcUtils.fetchDescription(r.sourceFileName, r.contractName, solcOutput) : null
+                            const i = d?.abi ? new ethers.utils.Interface(d?.abi) : null
+                            this.transactionDescription.value = i !== null ? i.parseTransaction({data: this.input.value}) : null
+                        } else {
+                            this.transactionDescription.value = null
+                        }
+                    } else {
+                        this.transactionDescription.value = null
+                    }
+                } catch {
+                    this.transactionDescription.value = null
+                }
+            }
         } else {
             this.transactionDescription.value = null
         }
