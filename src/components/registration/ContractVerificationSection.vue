@@ -31,8 +31,8 @@
     </template>
 
     <template v-slot:control>
-      <div v-if="contractName && githubURL" id="showSource" class="is-inline-block ml-3">
-        <a :href="githubURL" target="_blank">Show contract source</a>
+      <div v-if="sourceFileURL" id="showSource" class="is-inline-block ml-3">
+        <a :href="sourceFileURL" target="_blank">Show contract source</a>
       </div>
       <span v-else-if="compiling" class="icon mr-2" style="font-size: 18px">
         <i class="fa fa-circle-notch fa-spin"></i>
@@ -59,7 +59,7 @@
       <Property id="sourceFileName" :full-width="true">
         <template v-slot:name>Contract Source File</template>
         <template v-slot:value>
-          <span v-if="sourceFileName">{{ sourceFileName }}</span>
+          <a  v-if="sourceFileURL" :href="sourceFileURL" target="_blank">{{ sourceFileName }}</a>
           <span v-else class="has-text-grey">None</span>
         </template>
       </Property>
@@ -83,7 +83,6 @@ import DashboardCard from "@/components/DashboardCard.vue";
 import Property from "@/components/Property.vue";
 import StringValue from "@/components/values/StringValue.vue";
 import ContractVerificationStatus from "@/components/registration/ContractVerificationStatus.vue";
-import {SolcOutputCache} from "@/utils/cache/SolcOutputCache";
 
 export default defineComponent({
   name: 'ContractVerificationSection',
@@ -98,11 +97,6 @@ export default defineComponent({
 
   setup(props) {
 
-    const githubURL = computed(() => {
-        const contractId = props.contractAnalyzer.contractId.value
-        return contractId !== null ? SolcOutputCache.makeContractURL(contractId) : null
-    })
-
     const compiling = computed(() => false)
 
     return {
@@ -110,7 +104,7 @@ export default defineComponent({
       contractName: props.contractAnalyzer.contractName,
       sourceFileName: props.contractAnalyzer.sourceFileName,
       bytecodeComparison: props.contractAnalyzer.bytecodeComparison,
-      githubURL,
+      sourceFileURL: props.contractAnalyzer.sourceFileURL,
       compiling
     }
   }

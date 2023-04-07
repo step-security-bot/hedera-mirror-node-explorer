@@ -72,6 +72,21 @@ export class ContractAnalyzer {
         () => this.interfaceRef.value)
 
 
+    public readonly sourceFileURL: ComputedRef<string|null> = computed(() => {
+        let result: string|null
+        if (this.contractId.value !== null) {
+            const contractURL = SolcOutputCache.makeContractURL(this.contractId.value)
+            if (this.contractMatchResult.value !== null) {
+                result = contractURL + "/" + this.contractMatchResult.value.sourceFileName
+            } else {
+                result = contractURL
+            }
+        } else {
+            result = null
+        }
+        return result
+    })
+
     //
     // Private
     //
