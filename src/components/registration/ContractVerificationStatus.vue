@@ -24,22 +24,28 @@
 
 <template>
   <span v-if="isFullMatch">
-    <span>Source code matches contract bytecode and hashcode</span>
-    <span class="has-text-grey ml-1">("full match")</span>
-  </span>
-    <span v-else-if="isPartialMatch">
-    <span>Source code matches contract bytecode</span>
-    <span class="has-text-grey ml-1">("partial match")</span>
-  </span>
-    <span v-else>Source code does not match contract bytecode</span>
+    Full Match
+    <span class="has-text-grey">
+      <span class="ml-2">(see</span>
+      <a class="ml-1" href="https://docs.hedera.com/hedera/">docs.hedera.com</a>
+      <span>)</span>
+    </span>
 
+  </span>
+  <span v-else-if="isPartialMatch">
+    Partial Match
+    <span class="has-text-grey">
+      <span class="ml-2">(see</span>
+      <a class="ml-1 has-text-grey" href="https://docs.hedera.com/hedera/">docs.hedera.com</a>
+      <span>)</span>
+    </span>
+  </span>
+  <span v-else>Source code does not match contract bytecode</span>
 </template>
-
 
 <!-- --------------------------------------------------------------------------------------------------------------- -->
 <!--                                                      SCRIPT                                                     -->
 <!-- --------------------------------------------------------------------------------------------------------------- -->
-
 
 <script lang="ts">
 
