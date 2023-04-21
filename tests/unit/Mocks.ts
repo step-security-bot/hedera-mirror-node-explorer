@@ -23,6 +23,8 @@
 // Fungible token inspired from https://testnet.mirrornode.hedera.com/api/v1/tokens/0.0.29662956
 //
 
+import {TokenRelationshipResponse} from "@/schemas/HederaSchemas";
+
 export const SAMPLE_TOKEN = {
     "admin_key": null,
     "auto_renew_account": "0.0.29612329",
@@ -1904,7 +1906,7 @@ export const SAMPLE_ASSOCIATED_TOKEN_2 = {
 // Inspired from https://testnet.mirrornode.hedera.com/api/v1/accounts/0.0.642949/tokens
 //
 
-export const SAMPLE_TOKEN_ASSOCIATIONS = {
+export const SAMPLE_TOKEN_ASSOCIATIONS: TokenRelationshipResponse = {
     "tokens": [{
         "automatic_association": false,
         "balance": 0,
@@ -1926,7 +1928,10 @@ export const SAMPLE_TOKEN_ASSOCIATIONS = {
         "freeze_status": "UNFROZEN",
         "kyc_status": "NOT_APPLICABLE",
         "token_id": SAMPLE_ASSOCIATED_TOKEN_2.token_id
-    }]
+    }],
+    "links": {
+        next: null
+    }
 }
 
 //
@@ -2732,7 +2737,7 @@ export const SAMPLE_NETWORK_EXCHANGERATE = {
 export const SAMPLE_BLOCKSRESPONSE = {
     "blocks": [
         {
-            "count": 1,
+            "count": 3,
             "hapi_version": "0.29.1",
             "hash": "0xe9630d7d8cc86d0e0d3de5316995bbdf9f2a584524cf18da233abdcff82df97da0a0ec38c6b4046101294896ff88a86b",
             "name": "2022-09-23T06_58_31.328130742Z.rcd.gz",
