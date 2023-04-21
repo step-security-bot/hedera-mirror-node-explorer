@@ -31,8 +31,8 @@
     </template>
 
     <template v-slot:control>
-      <div v-if="sourceFileURL" id="showSource" class="is-inline-block ml-3">
-        <a :href="sourceFileURL" target="_blank">Show contract source</a>
+      <div v-if="contractURL" id="showSource" class="is-inline-block ml-3">
+        <a :href="contractURL" target="_blank">View in GitHub</a>
       </div>
       <span v-else-if="compiling" class="icon mr-2" style="font-size: 18px">
         <i class="fa fa-circle-notch fa-spin"></i>
@@ -105,6 +105,7 @@ export default defineComponent({
       sourceFileName: props.contractAnalyzer.sourceFileName,
       bytecodeComparison: props.contractAnalyzer.bytecodeComparison,
       sourceFileURL: props.contractAnalyzer.sourceFileURL,
+      contractURL: props.contractAnalyzer.contractURL,
       compiling
     }
   }
