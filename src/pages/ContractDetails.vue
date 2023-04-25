@@ -164,7 +164,9 @@
       </template>
     </DashboardCard>
 
-    <ContractResultsSection :contract-id="normalizedContractId"/>
+    <ContractVerificationSection :contract-analyzer="contractAnalyzer"/>
+
+    <ContractResultsSection :contract-id="normalizedContractId ?? undefined"/>
 
   </section>
 
@@ -200,6 +202,8 @@ import router, {routeManager} from "@/router";
 import TransactionLink from "@/components/values/TransactionLink.vue";
 import EVMAddress from "@/components/values/EVMAddress.vue";
 import ContractResultsSection from "@/components/contracts/ContractResultsSection.vue";
+import ContractVerificationSection from "@/components/registration/ContractVerificationSection.vue";
+import {ContractAnalyzer} from "@/utils/ContractAnalyzer";
 
 const MAX_TOKEN_BALANCES = 3
 
@@ -208,6 +212,7 @@ export default defineComponent({
   name: 'ContractDetails',
 
   components: {
+    ContractVerificationSection,
     ContractResultsSection,
     EVMAddress,
     TransactionLink,
@@ -258,6 +263,10 @@ export default defineComponent({
     const accountLocParser = new AccountLocParser(normalizedContractId)
     onMounted(() => accountLocParser.mount())
     onBeforeUnmount(() => accountLocParser.unmount())
+
+    const contractAnalyzer = new ContractAnalyzer(normalizedContractId)
+    onMounted(() => contractAnalyzer.mount())
+    onBeforeUnmount(() => contractAnalyzer.unmount())
 
     const autoRenewAccount = computed(() => {
       return contractLookup.entity.value?.auto_renew_account ?? null
@@ -322,7 +331,8 @@ export default defineComponent({
       obtainerId: obtainerId,
       proxyAccountId: proxyAccountId,
       normalizedContractId,
-      accountRoute
+      accountRoute,
+      contractAnalyzer
     }
   },
 });
