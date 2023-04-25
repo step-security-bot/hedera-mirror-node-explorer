@@ -39,15 +39,17 @@ export class SourcifyCache extends EntityCache<string, SourcifyRecord|null> {
             const contractResponse = await ContractByIdCache.instance.lookup(contractId)
             const contractAddress = contractResponse?.evm_address
             if (contractAddress) {
-                const partialMatchURL = SourcifyCache.makeMetadataURL(contractAddress, sourcifyID, false)
-                const metadata = await SourcifyCache.loadSourcifyMetadata(partialMatchURL)
+                const partialMatchURL = SourcifyCache.makeFolderURL(contractAddress, sourcifyID, false)
+                const metadataURL = partialMatchURL + "/metadata.json"
+                const metadata = await SourcifyCache.loadSourcifyMetadata(metadataURL)
                 if (metadata !== null) {
-                    result = new SourcifyRecord(metadata, false)
+                    result = new SourcifyRecord(metadata, false, partialMatchURL)
                 } else {
-                    const fullMatchURL = SourcifyCache.makeMetadataURL(contractAddress, sourcifyID, true)
-                    const metadata = await SourcifyCache.loadSourcifyMetadata(fullMatchURL)
+                    const fullMatchURL = SourcifyCache.makeFolderURL(contractAddress, sourcifyID, true)
+                    const metadataURL = fullMatchURL + "/metadata.json"
+                    const metadata = await SourcifyCache.loadSourcifyMetadata(metadataURL)
                     if (metadata !== null) {
-                        result = new SourcifyRecord(metadata, true)
+                        result = new SourcifyRecord(metadata, true, fullMatchURL)
                     } else {
                         result = null
                     }
@@ -68,9 +70,9 @@ export class SourcifyCache extends EntityCache<string, SourcifyRecord|null> {
 
     private static readonly SOURCIFY_URL = "https://repo.sourcify.dev/contracts/"
 
-    private static makeMetadataURL(contractAddress: string, sourcifyID: string, full: boolean): string {
+    private static makeFolderURL(contractAddress: string, sourcifyID: string, full: boolean): string {
         const matchPrefix = full ? "full_match/" : "partial_match/"
-        return SourcifyCache.SOURCIFY_URL + matchPrefix + sourcifyID + "/" + contractAddress + "/metadata.json"
+        return SourcifyCache.SOURCIFY_URL + matchPrefix + sourcifyID + "/" + contractAddress
     }
 
     private static async loadSourcifyMetadata(metadataURL: string): Promise<SolcMetadata|null> {
@@ -92,8 +94,10 @@ export class SourcifyCache extends EntityCache<string, SourcifyRecord|null> {
 export class SourcifyRecord {
     public readonly metadata: SolcMetadata
     public readonly fullMatch: boolean
-    constructor(metadata: SolcMetadata, fullMatch: boolean) {
+    public readonly folderURL: string
+    constructor(metadata: SolcMetadata, fullMatch: boolean, folderURL: string) {
         this.metadata = metadata
         this.fullMatch = fullMatch
+        this.folderURL = folderURL
     }
 }
