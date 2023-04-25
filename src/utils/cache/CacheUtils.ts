@@ -43,6 +43,7 @@ import {ContractByAddressCache} from "@/utils/cache/ContractByAddressCache";
 import {HbarPriceCache} from "@/utils/cache/HbarPriceCache";
 import {ContractResultByTransactionIdCache} from "@/utils/cache/ContractResultByTransactionIdCache";
 import {ContractResultByTsCache} from "@/utils/cache/ContractResultByTsCache";
+import {SourcifyCache} from "@/utils/cache/SourcifyCache";
 
 export class CacheUtils {
 
@@ -62,6 +63,7 @@ export class CacheUtils {
         ContractResultByTsCache.instance.clear()
         HbarPriceCache.instance.clear()
         NetworkCache.instance.clear()
+        SourcifyCache.instance.clear()
         StakeCache.instance.clear()
         TokenInfoCache.instance.clear()
         TokenRelationshipCache.instance.clear()

@@ -44,8 +44,10 @@ export class RouteManager {
             axios.defaults.baseURL = this.currentNetworkEntry.value.url
             this.updateSelectedNetworkSilently()
             this.switchThemes()
-            RouteManager.resetSingletons()
         }, { immediate: true})
+        watch(this.currentNetwork, () => {
+            RouteManager.resetSingletons()
+        })
     }
 
     public readonly currentRoute = computed(() => this.router?.currentRoute.value?.name)
