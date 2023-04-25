@@ -211,6 +211,8 @@ import ContractByteCodeSection from "@/components/contract/ContractByteCodeSecti
 import ContractResultsSection from "@/components/contracts/ContractResultsSection.vue";
 import InfoTooltip from "@/components/InfoTooltip.vue";
 import Copyable from "@/components/Copyable.vue";
+import ContractVerificationSection from "@/components/registration/ContractVerificationSection.vue";
+import {ContractAnalyzer} from "@/utils/ContractAnalyzer";
 
 const MAX_TOKEN_BALANCES = 3
 
@@ -222,6 +224,7 @@ export default defineComponent({
     Copyable,
     ContractByteCodeSection,
     InfoTooltip,
+    ContractVerificationSection,
     ContractResultsSection,
     EVMAddress,
     TransactionLink,
@@ -271,6 +274,10 @@ export default defineComponent({
     const accountLocParser = new AccountLocParser(normalizedContractId)
     onMounted(() => accountLocParser.mount())
     onBeforeUnmount(() => accountLocParser.unmount())
+
+    const contractAnalyzer = new ContractAnalyzer(normalizedContractId)
+    onMounted(() => contractAnalyzer.mount())
+    onBeforeUnmount(() => contractAnalyzer.unmount())
 
     const autoRenewAccount = computed(() => {
       return contractLookup.entity.value?.auto_renew_account ?? null
@@ -335,7 +342,8 @@ export default defineComponent({
       obtainerId: obtainerId,
       proxyAccountId: proxyAccountId,
       normalizedContractId,
-      accountRoute
+      accountRoute,
+      contractAnalyzer
     }
   },
 });
