@@ -29,12 +29,14 @@ export class NetworkEntry {
     public readonly displayName: string
     public readonly url: string
     public readonly ledgerID: string
+    public sourcifyID: string|null
 
-    constructor(name: string, displayName: string, url: string, ledgerID: string) {
+    constructor(name: string, displayName: string, url: string, ledgerID: string, sourcifyID: string|null) {
         this.name = name
         this.displayName = displayName ?? name.toUpperCase()
         this.url = url
         this.ledgerID = ledgerID
+        this.sourcifyID = sourcifyID
     }
 }
 
@@ -56,19 +58,22 @@ export class NetworkRegistry {
             name: 'mainnet',
             displayName: 'MAINNET',
             url: "https://mainnet-public.mirrornode.hedera.com/",
-            ledgerID: '00'
+            ledgerID: '00',
+            sourcifyID: '296'
         },
         {
             name: 'testnet',
             displayName: 'TESTNET',
             url: "https://testnet.mirrornode.hedera.com/",
-            ledgerID: '01'
+            ledgerID: '01',
+            sourcifyID: '297'
         },
         {
             name: 'previewnet',
             displayName: 'PREVIEWNET',
             url: "https://previewnet.mirrornode.hedera.com/",
-            ledgerID: '02'
+            ledgerID: '02',
+            sourcifyID: null
         }
     ])
 
@@ -95,7 +100,7 @@ export class NetworkRegistry {
                         "Please use /public/networks-config.json configuration file instead")
 
                     this.entries.value.push(new NetworkEntry(
-                        'devnet', localNodeMenuName ?? "DEVNET", localNodeURL, 'FF'
+                        'devnet', localNodeMenuName ?? "DEVNET", localNodeURL, 'FF', null
                     ))
                 }
             })
@@ -171,7 +176,8 @@ export class NetworkRegistry {
                             n.name,
                             displayName.toUpperCase(),
                             n.url,
-                            n.ledgerID))
+                            n.ledgerID,
+                            null))
                     } else {
                         console.warn("Dropping network with duplicate name: " + n.name)
                     }
