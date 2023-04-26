@@ -28,6 +28,7 @@ import {ContractAnalyzer} from "@/utils/ContractAnalyzer";
 import {SAMPLE_CONTRACT} from "../Mocks";
 import {SolcMetadata} from "@/utils/solc/SolcMetadata";
 import {CacheUtils} from "@/utils/cache/CacheUtils";
+import {routeManager} from "@/router";
 
 describe("FunctionCallAnalyzer.spec.ts", () => {
 
@@ -87,8 +88,11 @@ describe("FunctionCallAnalyzer.spec.ts", () => {
 
         const matcher1 = "api/v1/contracts/" + SAMPLE_CONTRACT.contract_id
         mock.onGet(matcher1).reply(200, SAMPLE_CONTRACT)
-        const matcher2 = "https://sourcify.dev/server/repository/contracts/full_match/295/" + SAMPLE_CONTRACT.evm_address + "/metadata.json"
-        mock.onGet(matcher2).reply(200, SAMPLE_METADATA)
+
+        const networkEntry = routeManager.currentNetworkEntry.value
+        const metadataURL = networkEntry.sourcifySetup?.makeMetadataURL(SAMPLE_CONTRACT.evm_address, true)
+        const contractURL = networkEntry.sourcifySetup?.makeContractFolderURL(SAMPLE_CONTRACT.evm_address, true)
+        mock.onGet(metadataURL).reply(200, SAMPLE_METADATA)
 
         // 1) new
         const contractId: Ref<string|null> = ref(null)
@@ -117,7 +121,7 @@ describe("FunctionCallAnalyzer.spec.ts", () => {
         expect(contractAnalyzer.sourceFileName.value).toBe("contracts/Community.sol")
         expect(contractAnalyzer.contractName.value).toBe("Community")
         expect(contractAnalyzer.fullMatch.value).toBeTruthy()
-        expect(contractAnalyzer.sourcifyURL.value).toBe("https://repo.sourcify.dev/contracts/full_match/295/0x00000000000000000000000000000000000b70cf")
+        expect(contractAnalyzer.sourcifyURL.value).toBe(contractURL)
         expect(contractAnalyzer.interface.value).not.toBeNull()
 
         // 4) unmount
