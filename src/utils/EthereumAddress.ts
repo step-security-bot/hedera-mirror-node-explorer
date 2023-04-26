@@ -34,8 +34,17 @@ export class EthereumAddress {
         return bytes !== null && bytes.length == 20 ? new EthereumAddress(bytes) : null
     }
 
+    public static normalize(byteString: string): string {
+        const a = EthereumAddress.parse(byteString)
+        return a !== null ? a.toUppercaseString() : byteString
+    }
+
     public toString(): string {
         return "0x" + byteToHex(this.bytes)
+    }
+
+    public toUppercaseString(): string {
+        return "0x" + byteToHex(this.bytes).toUpperCase()
     }
 
     public toCompactString(digitKept=6): string {
