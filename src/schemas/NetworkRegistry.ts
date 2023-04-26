@@ -22,6 +22,7 @@ import {EntityID} from "@/utils/EntityID";
 import {getEnv} from "@/utils/getEnv";
 import axios from "axios";
 import {ref, Ref} from "vue";
+import {EthereumAddress} from "@/utils/EthereumAddress";
 
 export class NetworkEntry {
 
@@ -55,13 +56,15 @@ export class SourcifySetup {
     // https://docs.sourcify.dev/docs/api/repository/get-file-static/
 
     makeMetadataURL(contractAddress: string, full: boolean): string {
+        const normalizedAddress = EthereumAddress.normalize(contractAddress)
         const matchPrefix = full ? "full_match/" : "partial_match/"
-        return this.serverURL + matchPrefix + this.chainID + "/" + contractAddress + "/metadata.json"
+        return this.serverURL + matchPrefix + this.chainID + "/" + normalizedAddress + "/metadata.json"
     }
 
     makeContractFolderURL(contractAddress: string, full: boolean): string {
+        const normalizedAddress = EthereumAddress.normalize(contractAddress)
         const matchPrefix = full ? "full_match/" : "partial_match/"
-        return this.repoURL + matchPrefix + this.chainID + "/" + contractAddress
+        return this.repoURL + matchPrefix + this.chainID + "/" + normalizedAddress
     }
 }
 
