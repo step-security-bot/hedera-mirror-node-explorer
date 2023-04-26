@@ -29,14 +29,39 @@ export class NetworkEntry {
     public readonly displayName: string
     public readonly url: string
     public readonly ledgerID: string
-    public sourcifyID: string|null
+    public readonly sourcifySetup: SourcifySetup|null
 
-    constructor(name: string, displayName: string, url: string, ledgerID: string, sourcifyID: string|null) {
+    constructor(name: string, displayName: string, url: string, ledgerID: string, sourcifySetup: SourcifySetup|null) {
         this.name = name
         this.displayName = displayName ?? name.toUpperCase()
         this.url = url
         this.ledgerID = ledgerID
-        this.sourcifyID = sourcifyID
+        this.sourcifySetup = sourcifySetup
+    }
+}
+
+export class SourcifySetup {
+
+    public readonly repoURL: string
+    public readonly serverURL: string
+    public readonly chainID: number
+
+    constructor(repoURL: string, serverURL: string, chainID: number) {
+        this.repoURL = repoURL
+        this.serverURL = serverURL
+        this.chainID = chainID
+    }
+
+    // https://docs.sourcify.dev/docs/api/repository/get-file-static/
+
+    makeMetadataURL(contractAddress: string, full: boolean): string {
+        const matchPrefix = full ? "full_match/" : "partial_match/"
+        return this.serverURL + matchPrefix + this.chainID + "/" + contractAddress + "/metadata.json"
+    }
+
+    makeContractFolderURL(contractAddress: string, full: boolean): string {
+        const matchPrefix = full ? "full_match/" : "partial_match/"
+        return this.repoURL + matchPrefix + this.chainID + "/" + contractAddress
     }
 }
 
@@ -59,21 +84,29 @@ export class NetworkRegistry {
             displayName: 'MAINNET',
             url: "https://mainnet-public.mirrornode.hedera.com/",
             ledgerID: '00',
-            sourcifyID: '296'
+            sourcifySetup: new SourcifySetup(
+                "https://repo.sourcify.dev/contracts/",
+                "https://sourcify.dev/server/repository/contracts/",
+                0x127
+            )
         },
         {
             name: 'testnet',
             displayName: 'TESTNET',
             url: "https://testnet.mirrornode.hedera.com/",
             ledgerID: '01',
-            sourcifyID: '297'
+            sourcifySetup: new SourcifySetup(
+                "https://repo.sourcify.dev/contracts/",
+                "https://sourcify.dev/server/repository/contracts/",
+                0x128
+            )
         },
         {
             name: 'previewnet',
             displayName: 'PREVIEWNET',
             url: "https://previewnet.mirrornode.hedera.com/",
             ledgerID: '02',
-            sourcifyID: null
+            sourcifySetup: null
         }
     ])
 
