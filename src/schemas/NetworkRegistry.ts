@@ -88,8 +88,10 @@ export class NetworkRegistry {
             url: "https://mainnet-public.mirrornode.hedera.com/",
             ledgerID: '00',
             sourcifySetup: new SourcifySetup(
-                "https://repo.sourcify.dev/contracts/",
-                "https://sourcify.dev/server/repository/contracts/",
+                // "https://repo.sourcify.dev/contracts/",
+                // "https://sourcify.dev/server/repository/contracts/",
+                "http://164.132.52.6:10000/contracts/",
+                "http://164.132.52.6:5555/repository/contracts/",
                 0x127
             )
         },
@@ -99,8 +101,10 @@ export class NetworkRegistry {
             url: "https://testnet.mirrornode.hedera.com/",
             ledgerID: '01',
             sourcifySetup: new SourcifySetup(
-                "https://repo.sourcify.dev/contracts/",
-                "https://sourcify.dev/server/repository/contracts/",
+                // "https://repo.sourcify.dev/contracts/",
+                // "https://sourcify.dev/server/repository/contracts/",
+                "http://164.132.52.6:10000/contracts/",
+                "http://164.132.52.6:5555/repository/contracts/",
                 0x128
             )
         },
