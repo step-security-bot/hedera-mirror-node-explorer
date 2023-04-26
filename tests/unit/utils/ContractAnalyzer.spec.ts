@@ -87,7 +87,7 @@ describe("FunctionCallAnalyzer.spec.ts", () => {
 
         const matcher1 = "api/v1/contracts/" + SAMPLE_CONTRACT.contract_id
         mock.onGet(matcher1).reply(200, SAMPLE_CONTRACT)
-        const matcher2 = "https://sourcify.dev/server/repository/contracts/full_match/296/" + SAMPLE_CONTRACT.evm_address + "/metadata.json"
+        const matcher2 = "https://sourcify.dev/server/repository/contracts/full_match/295/" + SAMPLE_CONTRACT.evm_address + "/metadata.json"
         mock.onGet(matcher2).reply(200, SAMPLE_METADATA)
 
         // 1) new
@@ -117,7 +117,7 @@ describe("FunctionCallAnalyzer.spec.ts", () => {
         expect(contractAnalyzer.sourceFileName.value).toBe("contracts/Community.sol")
         expect(contractAnalyzer.contractName.value).toBe("Community")
         expect(contractAnalyzer.fullMatch.value).toBeTruthy()
-        expect(contractAnalyzer.sourcifyURL.value).toBe("https://repo.sourcify.dev/contracts/full_match/296/0x00000000000000000000000000000000000b70cf")
+        expect(contractAnalyzer.sourcifyURL.value).toBe("https://repo.sourcify.dev/contracts/full_match/295/0x00000000000000000000000000000000000b70cf")
         expect(contractAnalyzer.interface.value).not.toBeNull()
 
         // 4) unmount
