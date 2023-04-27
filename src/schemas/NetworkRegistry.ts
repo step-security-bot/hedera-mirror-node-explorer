@@ -91,7 +91,7 @@ export class NetworkRegistry {
                 // "https://repo.sourcify.dev/contracts/",
                 // "https://sourcify.dev/server/repository/contracts/",
                 "http://164.132.52.6:10000/contracts/",
-                "http://164.132.52.6:5555/repository/contracts/",
+                "https://registry.simonvienot.fr/sourcify/repository/contracts/",
                 0x127
             )
         },
@@ -104,7 +104,7 @@ export class NetworkRegistry {
                 // "https://repo.sourcify.dev/contracts/",
                 // "https://sourcify.dev/server/repository/contracts/",
                 "http://164.132.52.6:10000/contracts/",
-                "http://164.132.52.6:5555/repository/contracts/",
+                "https://registry.simonvienot.fr/sourcify/repository/contracts/",
                 0x128
             )
         },
