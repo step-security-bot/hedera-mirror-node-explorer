@@ -43,7 +43,7 @@
       <Property id="verificationStatus" :full-width="true">
         <template v-slot:name>Verification Status</template>
         <template v-slot:value>
-          <span v-if="fullMatch"><ContractVerificationStatus :full-match="fullMatch"/></span>
+          <span v-if="sourcifyURL"><ContractVerificationStatus :full-match="fullMatch"/></span>
 <!--          <span v-else-if="compiling">Verifying contract…</span>-->
           <span v-else>Not yet verified</span>
         </template>
