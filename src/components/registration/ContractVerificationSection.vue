@@ -37,6 +37,9 @@
       <span v-else-if="compiling" class="icon mr-2" style="font-size: 18px">
         <i class="fa fa-circle-notch fa-spin"></i>
       </span>
+      <div v-else id="showVerifier" class="is-inline-block ml-3">
+        <a :href="verifierURL" target="_blank">Verify in Sourcify</a>
+      </div>
     </template>
 
     <template v-slot:content>
@@ -104,6 +107,7 @@ export default defineComponent({
             sourceFileName: props.contractAnalyzer.sourceFileName,
             fullMatch: props.contractAnalyzer.fullMatch,
             sourcifyURL: props.contractAnalyzer.sourcifyURL,
+            verifierURL: ContractAnalyzer.verifierURL,
             compiling
         }
     }
