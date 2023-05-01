@@ -23,21 +23,12 @@
 <!-- --------------------------------------------------------------------------------------------------------------- -->
 
 <template>
-  <span v-if="isFullMatch">
-    Full Match
+  <span v-if="isFullMatch || isPartialMatch">
+    {{ isFullMatch ? "Full Match" : "Partial Match" }}
     <span class="has-text-grey">
-      <span class="ml-2">(see</span>
-      <a class="ml-1" href="https://docs.hedera.com/hedera/">docs.hedera.com</a>
-      <span>)</span>
-    </span>
-
-  </span>
-  <span v-else-if="isPartialMatch">
-    Partial Match
-    <span class="has-text-grey">
-      <span class="ml-2">(see</span>
-      <a class="ml-1 has-text-grey" href="https://docs.hedera.com/hedera/">docs.hedera.com</a>
-      <span>)</span>
+      <span class="ml-1">(see Sourcify</span>
+      <a class="ml-1" href="https://docs.sourcify.dev/docs/full-vs-partial-match/">documentation</a>
+      <span class="ml-1">for details)</span>
     </span>
   </span>
   <span v-else>Source code does not match contract bytecode</span>
