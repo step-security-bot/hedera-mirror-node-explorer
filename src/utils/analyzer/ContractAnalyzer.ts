@@ -26,6 +26,8 @@ import {SourcifyCache, SourcifyRecord} from "@/utils/cache/SourcifyCache";
 
 export class ContractAnalyzer {
 
+    static verifierURL = "http://164.132.52.6:3000/#/verifier"
+
     public readonly contractId: Ref<string|null>
     private readonly watchHandle: Ref<WatchStopHandle|null> = ref(null)
     private readonly systemContractEntryRef: Ref<SystemContractEntry|null> = ref(null)
