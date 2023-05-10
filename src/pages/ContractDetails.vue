@@ -203,7 +203,7 @@ import TransactionLink from "@/components/values/TransactionLink.vue";
 import EVMAddress from "@/components/values/EVMAddress.vue";
 import ContractResultsSection from "@/components/contracts/ContractResultsSection.vue";
 import ContractVerificationSection from "@/components/registration/ContractVerificationSection.vue";
-import {ContractAnalyzer} from "@/utils/ContractAnalyzer";
+import {ContractAnalyzer} from "@/utils/analyzer/ContractAnalyzer";
 
 const MAX_TOKEN_BALANCES = 3
 

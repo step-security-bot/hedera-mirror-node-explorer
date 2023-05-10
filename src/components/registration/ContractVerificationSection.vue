@@ -81,7 +81,7 @@
 <script lang="ts">
 
 import {computed, defineComponent, PropType} from 'vue';
-import {ContractAnalyzer} from "@/utils/ContractAnalyzer";
+import {ContractAnalyzer} from "@/utils/analyzer/ContractAnalyzer";
 import DashboardCard from "@/components/DashboardCard.vue";
 import Property from "@/components/Property.vue";
 import StringValue from "@/components/values/StringValue.vue";
