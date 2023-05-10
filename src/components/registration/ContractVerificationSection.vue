@@ -86,6 +86,7 @@ import DashboardCard from "@/components/DashboardCard.vue";
 import Property from "@/components/Property.vue";
 import StringValue from "@/components/values/StringValue.vue";
 import ContractVerificationStatus from "@/components/registration/ContractVerificationStatus.vue";
+import {routeManager} from "@/router";
 
 export default defineComponent({
     name: 'ContractVerificationSection',
@@ -107,7 +108,7 @@ export default defineComponent({
             sourceFileName: props.contractAnalyzer.sourceFileName,
             fullMatch: props.contractAnalyzer.fullMatch,
             sourcifyURL: props.contractAnalyzer.sourcifyURL,
-            verifierURL: ContractAnalyzer.verifierURL,
+            verifierURL: routeManager.currentNetworkEntry.value.sourcifySetup?.verifierURL,
             compiling
         }
     }

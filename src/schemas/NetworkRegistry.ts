@@ -84,11 +84,13 @@ export class SourcifySetup {
 
     public readonly repoURL: string
     public readonly serverURL: string
+    public readonly verifierURL: string
     public readonly chainID: number
 
-    constructor(repoURL: string, serverURL: string, chainID: number) {
+    constructor(repoURL: string, serverURL: string, verifierURL: string, chainID: number) {
         this.repoURL = repoURL
         this.serverURL = serverURL
+        this.verifierURL = verifierURL
         this.chainID = chainID
     }
 
@@ -96,11 +98,13 @@ export class SourcifySetup {
         let result: SourcifySetup|null
         const repoURL = encoding["repoURL"]
         const serverURL = encoding["serverURL"]
+        const verifierURL = encoding["verifierURL"]
         const chainID = encoding["chainID"]
         if (typeof repoURL == "string" &&
             typeof serverURL == "string" &&
+            typeof verifierURL == "string" &&
             typeof chainID == "number") {
-            result = new SourcifySetup(repoURL, serverURL, chainID)
+            result = new SourcifySetup(repoURL, serverURL, verifierURL, chainID)
         } else {
             result = null
         }
@@ -143,8 +147,10 @@ export class NetworkRegistry {
             sourcifySetup: new SourcifySetup(
                 // "https://repo.sourcify.dev/contracts/",
                 // "https://sourcify.dev/server/repository/contracts/",
+                // "https://sourcify.dev/#/verifier",
                 "http://164.132.52.6:10000/contracts/",
                 "https://registry.simonvienot.fr/sourcify/repository/contracts/",
+                "https://registry.simonvienot.fr/#/verifier",
                 0x127
             )
         },
@@ -156,8 +162,10 @@ export class NetworkRegistry {
             sourcifySetup: new SourcifySetup(
                 // "https://repo.sourcify.dev/contracts/",
                 // "https://sourcify.dev/server/repository/contracts/",
+                // "https://sourcify.dev/#/verifier",
                 "http://164.132.52.6:10000/contracts/",
                 "https://registry.simonvienot.fr/sourcify/repository/contracts/",
+                "https://registry.simonvienot.fr/#/verifier",
                 0x128
             )
         },
