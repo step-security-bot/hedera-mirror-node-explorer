@@ -212,7 +212,7 @@ import ContractResultsSection from "@/components/contracts/ContractResultsSectio
 import InfoTooltip from "@/components/InfoTooltip.vue";
 import Copyable from "@/components/Copyable.vue";
 import ContractVerificationSection from "@/components/registration/ContractVerificationSection.vue";
-import {ContractAnalyzer} from "@/utils/ContractAnalyzer";
+import {ContractAnalyzer} from "@/utils/analyzer/ContractAnalyzer";
 
 const MAX_TOKEN_BALANCES = 3
 

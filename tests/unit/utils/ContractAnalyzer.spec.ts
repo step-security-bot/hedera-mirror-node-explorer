@@ -24,7 +24,7 @@ import {Ref, ref} from "vue";
 import {flushPromises} from "@vue/test-utils";
 import MockAdapter from "axios-mock-adapter";
 import axios from "axios";
-import {ContractAnalyzer} from "@/utils/ContractAnalyzer";
+import {ContractAnalyzer} from "@/utils/analyzer/ContractAnalyzer";
 import {SAMPLE_CONTRACT} from "../Mocks";
 import {SolcMetadata} from "@/utils/solc/SolcMetadata";
 import {CacheUtils} from "@/utils/cache/CacheUtils";
