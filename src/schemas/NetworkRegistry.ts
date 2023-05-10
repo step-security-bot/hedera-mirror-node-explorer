@@ -145,12 +145,9 @@ export class NetworkRegistry {
             url: "https://mainnet-public.mirrornode.hedera.com/",
             ledgerID: '00',
             sourcifySetup: new SourcifySetup(
-                // "https://repo.sourcify.dev/contracts/",
-                // "https://sourcify.dev/server/repository/contracts/",
-                // "https://sourcify.dev/#/verifier",
-                "http://164.132.52.6:10000/contracts/",
-                "https://registry.simonvienot.fr/sourcify/repository/contracts/",
-                "https://registry.simonvienot.fr/#/verifier",
+                "https://repo.sourcify.dev/contracts/",
+                "https://sourcify.dev/server/repository/contracts/",
+                "https://sourcify.dev/#/verifier",
                 0x127
             )
         },
