@@ -115,8 +115,9 @@ export class ContractAnalyzer {
                 try {
                     this.sourcifyRecord.value = await SourcifyCache.instance.lookup(this.contractId.value)
                     if (this.sourcifyRecord.value !== null) {
-                        const abi = this.sourcifyRecord.value.metadata.output.abi
-                        this.interfaceRef.value = new ethers.utils.Interface(abi as ethers.utils.Fragment[])
+                        const abi = this.sourcifyRecord.value.metadata.output.abi as ethers.utils.Fragment[]
+                        const i = new ethers.utils.Interface(abi)
+                        this.interfaceRef.value = Object.preventExtensions(i) // Because ethers does not like Ref introspection
                     } else {
                         this.interfaceRef.value = null
                     }
