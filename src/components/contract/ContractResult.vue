@@ -233,6 +233,7 @@ export default defineComponent({
     const functionCallAnalyzer = new FunctionCallAnalyzer(
         contractResultDetailsLoader.functionParameters,
         contractResultDetailsLoader.callResult,
+        contractResultDetailsLoader.errorMessage,
         contractResultDetailsLoader.actualContractId)
     onMounted(() => functionCallAnalyzer.mount())
     onBeforeUnmount(() => functionCallAnalyzer.unmount())

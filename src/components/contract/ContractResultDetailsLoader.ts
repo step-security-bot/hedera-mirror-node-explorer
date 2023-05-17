@@ -23,7 +23,6 @@ import {EntityLoader} from "@/utils/loader/EntityLoader";
 import axios, {AxiosResponse} from "axios";
 import {computed, Ref} from "vue";
 import {EntityID} from "@/utils/EntityID";
-import {decodeSolidityErrorMessage} from "@/schemas/HederaUtils";
 
 export class ContractResultDetailsLoader extends EntityLoader<ContractResultDetails> {
 
@@ -65,7 +64,7 @@ export class ContractResultDetailsLoader extends EntityLoader<ContractResultDeta
     })
 
     public errorMessage = computed(
-        () => decodeSolidityErrorMessage(this.entity.value?.error_message ?? null))
+        () => this.entity.value?.error_message ?? null)
 
     //
     // EntityLoader

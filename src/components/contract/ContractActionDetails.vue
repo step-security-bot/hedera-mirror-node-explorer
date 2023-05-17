@@ -174,8 +174,9 @@ export default defineComponent({
 
     const input = computed(() => props.action?.input ?? null)
     const output = computed(() => null)
+    const error = computed(() => null)
     const contractId = computed(() => props.action?.recipient ?? null)
-    const functionCallAnalyzer = new FunctionCallAnalyzer(input, output, contractId)
+    const functionCallAnalyzer = new FunctionCallAnalyzer(input, output, error, contractId)
     onMounted(() => functionCallAnalyzer.mount())
     onBeforeUnmount(() => functionCallAnalyzer.unmount())
 
