@@ -41,12 +41,9 @@
             <StringValue :string-value="contractResult?.result"/>
           </template>
         </Property>
-        <Property id="errorMessage">
-          <template v-slot:name>Error Message</template>
-          <template v-slot:value>
-            <StringValue :string-value ="errorMessage"/>
-          </template>
-        </Property>
+
+        <FunctionError :analyzer="analyzer"/>
+
         <Property id="from">
           <template v-slot:name>From</template>
           <template v-slot:value>
@@ -68,6 +65,7 @@
         </Property>
         <FunctionInput :analyzer="analyzer"/>
         <FunctionResult :analyzer="analyzer"/>
+
       </template>
 
       <template v-slot:rightContent>
@@ -143,12 +141,14 @@ import {EntityID} from "@/utils/EntityID";
 import FunctionInput from "@/components/values/FunctionInput.vue";
 import FunctionResult from "@/components/values/FunctionResult.vue";
 import SignatureValue from "@/components/values/SignatureValue.vue";
+import FunctionError from "@/components/values/FunctionError.vue";
 
 export default defineComponent({
 
   name: 'ContractResult',
 
   components: {
+    FunctionError,
     SignatureValue,
     FunctionResult,
     FunctionInput,
