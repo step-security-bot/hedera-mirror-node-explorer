@@ -111,8 +111,8 @@ export class FunctionCallAnalyzer {
         if (this.decodedFunctionError.value !== null) {
             const results = this.decodedFunctionError.value
             const fragmentInputs = this.errorDescription.value?.errorFragment.inputs ?? []
-            for (let i = 0, count = results.args.length; i < count; i += 1) {
-                const value = results.args[i]
+            for (let i = 0, count = results.length; i < count; i += 1) {
+                const value = results[i]
                 const name = i < fragmentInputs.length ? fragmentInputs[i].name : "?"
                 const type = i < fragmentInputs.length ? fragmentInputs[i].type : "?"
                 result.push(new NameTypeValue(name, type, value))
@@ -145,7 +145,9 @@ export class FunctionCallAnalyzer {
         const error = this.error.value
         if (d !== null && i !== null && error !== null) {
             try {
-                result = i.decodeErrorResult(d.errorFragment, error)
+                // result = i.decodeErrorResult(d.errorFragment, error)
+                const bytes = ethers.utils.arrayify(error)
+                result = ethers.utils.defaultAbiCoder.decode(d.errorFragment.inputs, bytes.slice(4))
             } catch {
                 result = null
             }
