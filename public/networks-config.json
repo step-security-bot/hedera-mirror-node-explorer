@@ -6,7 +6,7 @@
     "ledgerID": "00",
     "sourcifySetup": {
       "repoURL": "http://54.38.184.179:10000/contracts/",
-      "serverURL": "https://54.38.184.179/server/repository/contracts/",
+      "serverURL": "https://registry.simonvienot.fr/server/repository/contracts/",
       "verifierURL": "http://54.38.184.179:3000/#/verifier",
       "chainID": 295
     }
@@ -18,7 +18,7 @@
     "ledgerID": "01",
     "sourcifySetup": {
       "repoURL": "http://54.38.184.179:10000/contracts/",
-      "serverURL": "https://54.38.184.179/server/repository/contracts/",
+      "serverURL": "https://registry.simonvienot.fr/server/repository/contracts/",
       "verifierURL": "http://54.38.184.179:3000/#/verifier",
       "chainID": 296
     }
@@ -30,7 +30,7 @@
     "ledgerID": "02",
     "sourcifySetup": {
       "repoURL": "http://54.38.184.179:10000/contracts/",
-      "serverURL": "https://54.38.184.179/server/repository/contracts/",
+      "serverURL": "https://registry.simonvienot.fr/server/repository/contracts/",
       "verifierURL": "http://54.38.184.179:3000/#/verifier",
       "chainID": 297
     }

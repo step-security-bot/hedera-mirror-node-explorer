@@ -146,7 +146,7 @@ export class NetworkRegistry {
             ledgerID: '00',
             sourcifySetup: new SourcifySetup(
                 "http://54.38.184.179:10000/contracts/",
-                "https://54.38.184.179/server/repository/contracts/",
+                "https://registry.simonvienot.fr/server/repository/contracts/",
                 "http://54.38.184.179:3000/#/verifier",
                 0x127
             )
@@ -158,7 +158,7 @@ export class NetworkRegistry {
             ledgerID: '01',
             sourcifySetup: new SourcifySetup(
                 "http://54.38.184.179:10000/contracts/",
-                "https://54.38.184.179/server/repository/contracts/",
+                "https://registry.simonvienot.fr/server/repository/contracts/",
                 "http://54.38.184.179:3000/#/verifier",
                 0x128
             )
@@ -170,7 +170,7 @@ export class NetworkRegistry {
             ledgerID: '02',
             sourcifySetup: new SourcifySetup(
                 "http://54.38.184.179:10000/contracts/",
-                "https://54.38.184.179/server/repository/contracts/",
+                "https://registry.simonvienot.fr/server/repository/contracts/",
                 "http://54.38.184.179:3000/#/verifier",
                 0x129
             )
