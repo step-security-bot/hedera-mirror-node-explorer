@@ -5,9 +5,9 @@
     "url": "https://mainnet-public.mirrornode.hedera.com/",
     "ledgerID": "00",
     "sourcifySetup": {
-      "repoURL": "https://repo.sourcify.dev/contracts/",
-      "serverURL": "https://sourcify.dev/server/repository/contracts/",
-      "verifierURL": "https://sourcify.dev/#/verifier",
+      "repoURL": "http://54.38.184.179:10000/contracts/",
+      "serverURL": "https://54.38.184.179/server/repository/contracts/",
+      "verifierURL": "http://54.38.184.179:3000/#/verifier",
       "chainID": 295
     }
   },
@@ -17,9 +17,9 @@
     "url": "https://testnet.mirrornode.hedera.com/",
     "ledgerID": "01",
     "sourcifySetup": {
-      "repoURL": "http://164.132.52.6:10000/contracts/",
-      "serverURL": "https://registry.simonvienot.fr/sourcify/repository/contracts/",
-      "verifierURL": "http://164.132.52.6:3000/#/verifier",
+      "repoURL": "http://54.38.184.179:10000/contracts/",
+      "serverURL": "https://54.38.184.179/server/repository/contracts/",
+      "verifierURL": "http://54.38.184.179:3000/#/verifier",
       "chainID": 296
     }
   },
@@ -29,9 +29,9 @@
     "url": "https://previewnet.mirrornode.hedera.com/",
     "ledgerID": "02",
     "sourcifySetup": {
-      "repoURL": "http://164.132.52.6:10000/contracts/",
-      "serverURL": "https://registry.simonvienot.fr/sourcify/repository/contracts/",
-      "verifierURL": "http://164.132.52.6:3000/#/verifier",
+      "repoURL": "http://54.38.184.179:10000/contracts/",
+      "serverURL": "https://54.38.184.179/server/repository/contracts/",
+      "verifierURL": "http://54.38.184.179:3000/#/verifier",
       "chainID": 297
     }
   }
