@@ -145,9 +145,9 @@ export class NetworkRegistry {
             url: "https://mainnet-public.mirrornode.hedera.com/",
             ledgerID: '00',
             sourcifySetup: new SourcifySetup(
-                "https://repo.sourcify.dev/contracts/",
-                "https://sourcify.dev/server/repository/contracts/",
-                "https://sourcify.dev/#/verifier",
+                "http://54.38.184.179:10000/contracts/",
+                "https://54.38.184.179/server/repository/contracts/",
+                "http://54.38.184.179:3000/#/verifier",
                 0x127
             )
         },
@@ -157,9 +157,9 @@ export class NetworkRegistry {
             url: "https://testnet.mirrornode.hedera.com/",
             ledgerID: '01',
             sourcifySetup: new SourcifySetup(
-                "http://164.132.52.6:10000/contracts/",
-                "https://registry.simonvienot.fr/sourcify/repository/contracts/",
-                "http://164.132.52.6:3000/#/verifier",
+                "http://54.38.184.179:10000/contracts/",
+                "https://54.38.184.179/server/repository/contracts/",
+                "http://54.38.184.179:3000/#/verifier",
                 0x128
             )
         },
@@ -169,9 +169,9 @@ export class NetworkRegistry {
             url: "https://previewnet.mirrornode.hedera.com/",
             ledgerID: '02',
             sourcifySetup: new SourcifySetup(
-                "http://164.132.52.6:10000/contracts/",
-                "https://registry.simonvienot.fr/sourcify/repository/contracts/",
-                "http://164.132.52.6:3000/#/verifier",
+                "http://54.38.184.179:10000/contracts/",
+                "https://54.38.184.179/server/repository/contracts/",
+                "http://54.38.184.179:3000/#/verifier",
                 0x129
             )
         }
