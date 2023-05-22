@@ -24,35 +24,38 @@
 
 <template>
 
-  <div v-if="errorSignature">
+    <div v-if="errorSignature">
 
-    <Property v-if="errorSignature" id="function">
-        <template v-slot:name>Error Message</template>
-        <template v-slot:value>
-            <HexaValue :byte-string="errorHash" show-none/>
-            <div class="h-is-extra-text h-is-text-size-3 should-wrap">{{ errorSignature }}</div>
+        <div class="h-is-tertiary-text my-2">Error</div>
+
+        <Property :custom-nb-col-class="customNbColClass" id="errorFunction">
+            <template v-slot:name>Signature</template>
+            <template v-slot:value>
+                <HexaValue :byte-string="errorHash" show-none/>
+                <div class="h-is-extra-text h-is-text-size-3 should-wrap">{{ errorSignature }}</div>
+            </template>
+        </Property>
+
+        <template v-for="arg in errorInputs" :key="arg.name">
+            <Property :custom-nb-col-class="customNbColClass">
+                <template v-slot:name>{{ arg.name }}</template>
+                <template v-slot:value>
+                    <FunctionValue :ntv="arg"/>
+                </template>
+            </Property>
         </template>
-    </Property>
 
+    </div>
 
-    <template v-for="arg in errorInputs" :key="arg.name">
-      <Property :custom-nb-col-class="customNbColClass">
-        <template v-slot:name>{{ arg.name }}</template>
-        <template v-slot:value>
-          <FunctionValue :ntv="arg"/>
-        </template>
-      </Property>
+    <template v-else>
+        <Property :custom-nb-col-class="customNbColClass" id="errorMessage">
+            <template v-slot:name>Error Message</template>
+            <template v-slot:value>
+                <StringValue v-if="decodedError" :string-value="decodedError"/>
+                <HexaValue v-else :byte-string="error" :show-none="true"/>
+            </template>
+        </Property>
     </template>
-
-  </div>
-  <div v-else>
-    <Property :custom-nb-col-class="customNbColClass" id="functionError">
-      <template v-slot:name>Error Message</template>
-      <template v-slot:value>
-        <HexaValue :byte-string="error" :show-none="true"/>
-      </template>
-    </Property>
-  </div>
 
 </template>
 
@@ -62,35 +65,45 @@
 
 <script lang="ts">
 
-import {defineComponent, inject, PropType, ref} from 'vue';
+import {computed, defineComponent, inject, PropType, ref} from 'vue';
 import {initialLoadingKey} from "@/AppKeys";
 import HexaValue from "@/components/values/HexaValue.vue";
 import {FunctionCallAnalyzer} from "@/utils/analyzer/FunctionCallAnalyzer";
 import Property from "@/components/Property.vue";
 import FunctionValue from "@/components/values/FunctionValue.vue";
+import {decodeSolidityErrorMessage} from "@/schemas/HederaUtils";
+import StringValue from "@/components/values/StringValue.vue";
 
 export default defineComponent({
-  name: 'FunctionError',
-  components: {FunctionValue, Property, HexaValue},
-  props: {
-    analyzer: {
-      type: Object as PropType<FunctionCallAnalyzer>,
-      required: true
+    name: 'FunctionError',
+    components: {StringValue, FunctionValue, Property, HexaValue},
+    props: {
+        analyzer: {
+            type: Object as PropType<FunctionCallAnalyzer>,
+            required: true
+        },
+        customNbColClass: String,
+        showNone: {
+            type: Boolean,
+            default: false
+        }
     },
-    customNbColClass: String
-  },
 
-  setup(props) {
+    setup(props) {
 
-    const initialLoading = inject(initialLoadingKey, ref(false))
-    return {
-      error: props.analyzer.error,
-      errorSignature: props.analyzer.errorSignature,
-      errorHash: props.analyzer.errorHash,
-      errorInputs: props.analyzer.errorInputs,
-      initialLoading
+        const initialLoading = inject(initialLoadingKey, ref(false))
+        const decodedError = computed( () =>
+            props.analyzer.normalizedError.value != null ? decodeSolidityErrorMessage(props.analyzer.normalizedError.value) : null)
+
+        return {
+            error: props.analyzer.normalizedError,
+            errorSignature: props.analyzer.errorSignature,
+            errorHash: props.analyzer.errorHash,
+            errorInputs: props.analyzer.errorInputs,
+            decodedError,
+            initialLoading
+        }
     }
-  }
 });
 
 </script>

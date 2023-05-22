@@ -24,27 +24,28 @@
 
 <template>
 
-  <div v-if="signature">
-    <div class="h-is-tertiary-text my-2">Output Result</div>
+    <div v-if="signature && output">
 
-    <template v-for="result in outputs" :key="result.name">
-      <Property :custom-nb-col-class="customNbColClass">
-        <template v-slot:name>{{ result.name }}</template>
-        <template v-slot:value>
-          <FunctionValue :ntv="result"/>
+        <div v-if="outputs.length >= 1" class="h-is-tertiary-text my-2">Output</div>
+
+        <template v-for="result in outputs" :key="result.name">
+            <Property :custom-nb-col-class="customNbColClass">
+                <template v-slot:name>{{ result.name }}</template>
+                <template v-slot:value>
+                    <FunctionValue :ntv="result"/>
+                </template>
+            </Property>
         </template>
-      </Property>
-    </template>
+    </div>
 
-  </div>
-  <div v-else>
-    <Property :custom-nb-col-class="customNbColClass" id="FunctionResult">
-      <template v-slot:name>Output Result</template>
-      <template v-slot:value>
-        <HexaValue :byte-string="output" :show-none="true"/>
-      </template>
-    </Property>
-  </div>
+    <template v-else-if="output||showNone">
+        <Property :custom-nb-col-class="customNbColClass" id="FunctionResult">
+            <template v-slot:name>Output Result</template>
+            <template v-slot:value>
+                <HexaValue :byte-string="output" :show-none="true"/>
+            </template>
+        </Property>
+    </template>
 
 </template>
 
@@ -63,20 +64,24 @@ import FunctionValue from "@/components/values/FunctionValue.vue";
 
 export default defineComponent({
   name: 'FunctionResult',
-  components: {FunctionValue, Property, HexaValue},
+  components: {HexaValue, FunctionValue, Property},
   props: {
     analyzer: {
       type: Object as PropType<FunctionCallAnalyzer>,
       required: true
     },
-    customNbColClass: String
+    customNbColClass: String,
+      showNone: {
+          type: Boolean,
+          default: false
+      }
   },
 
   setup(props) {
 
     const initialLoading = inject(initialLoadingKey, ref(false))
     return {
-      output: props.analyzer.output,
+      output: props.analyzer.normalizedOutput,
       signature: props.analyzer.signature,
       outputs: props.analyzer.outputs,
       initialLoading

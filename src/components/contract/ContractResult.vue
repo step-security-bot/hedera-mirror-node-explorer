@@ -24,98 +24,93 @@
 
 <template>
 
-  <div v-if="contractResult">
+    <div v-if="contractResult">
 
-    <DashboardCard class="h-card">
-      <template v-slot:title>
-        <span v-if="topLevel"  class="h-is-primary-title">
+        <DashboardCard class="h-card">
+            <template v-slot:title>
+        <span v-if="topLevel" class="h-is-primary-title">
           Contract Result for {{ contractResult?.contract_id }} at {{ contractResult?.timestamp }}
         </span>
-        <span v-else class="h-is-secondary-title">Contract Result</span>
-      </template>
+                <span v-else class="h-is-secondary-title">Contract Result</span>
+            </template>
 
-      <template v-slot:leftContent>
-        <Property id="result">
-          <template v-slot:name>Result</template>
-          <template v-slot:value>
-            <StringValue :string-value="contractResult?.result"/>
-          </template>
-        </Property>
+            <template v-slot:leftContent>
+                <Property id="result">
+                    <template v-slot:name>Result</template>
+                    <template v-slot:value>
+                        <StringValue :string-value="contractResult?.result"/>
+                    </template>
+                </Property>
 
-        <FunctionError :analyzer="analyzer"/>
+                <Property id="from">
+                    <template v-slot:name>From</template>
+                    <template v-slot:value>
+                        <EVMAddress :address="contractResult?.from" :id="fromId"
+                                    :compact="isSmallScreen && !isMediumScreen"/>
+                    </template>
+                </Property>
+                <Property id="to">
+                    <template v-slot:name>To</template>
+                    <template v-slot:value>
+                        <EVMAddress :address="contractResult?.to" :id="toId"
+                                    :compact="isSmallScreen && !isMediumScreen"/>
+                    </template>
+                </Property>
 
-        <Property id="from">
-          <template v-slot:name>From</template>
-          <template v-slot:value>
-            <EVMAddress :address="contractResult?.from" :id="fromId" :compact="isSmallScreen && !isMediumScreen"/>
-          </template>
-        </Property>
-        <Property id="to">
-          <template v-slot:name>To</template>
-          <template v-slot:value>
-            <EVMAddress :address="contractResult?.to" :id="toId" :compact="isSmallScreen && !isMediumScreen"/>
-          </template>
-        </Property>
+                <FunctionInput :analyzer="analyzer"/>
+                <FunctionResult :analyzer="analyzer"/>
+                <FunctionError :analyzer="analyzer"/>
 
-        <Property v-if="signature" id="function">
-          <template v-slot:name>Function</template>
-          <template v-slot:value>
-            <SignatureValue :analyzer="analyzer" />
-          </template>
-        </Property>
-        <FunctionInput :analyzer="analyzer"/>
-        <FunctionResult :analyzer="analyzer"/>
+            </template>
 
-      </template>
+            <template v-slot:rightContent>
+                <Property id="type">
+                    <template v-slot:name>Type</template>
+                    <template v-slot:value>
+                        <StringValue :string-value="contractType(contractResult?.type)"/>
+                    </template>
+                </Property>
+                <Property id="gasLimit">
+                    <template v-slot:name>Gas Limit</template>
+                    <template v-slot:value>
+                        <PlainAmount :amount="contractResult?.gas_limit" none-label="None"/>
+                    </template>
+                </Property>
+                <Property id="gasUsed">
+                    <template v-slot:name>Gas Used</template>
+                    <template v-slot:value>
+                        <PlainAmount :amount="contractResult?.gas_used" none-label="None"/>
+                    </template>
+                </Property>
+                <Property id="maxFeePerGas">
+                    <template v-slot:name>Max Fee Per Gas</template>
+                    <template v-slot:value>
+                        <PlainAmount :amount="maxFeePerGas" none-label="None"/>
+                    </template>
+                </Property>
+                <Property id="maxPriorityFeePerGas">
+                    <template v-slot:name>Max Priority Fee Per Gas</template>
+                    <template v-slot:value>
+                        <PlainAmount :amount="maxPriorityFeePerGas" none-label="None"/>
+                    </template>
+                </Property>
+                <Property id="gasPrice">
+                    <template v-slot:name>Gas Price</template>
+                    <template v-slot:value>
+                        <HbarAmount :amount="gasPrice" :timestamp="timestamp" :show-extra="true"/>
+                    </template>
+                </Property>
+            </template>
 
-      <template v-slot:rightContent>
-        <Property id="type">
-          <template v-slot:name>Type</template>
-          <template v-slot:value>
-            <StringValue :string-value="contractType(contractResult?.type)"/>
-          </template>
-        </Property>
-        <Property id="gasLimit">
-          <template v-slot:name>Gas Limit</template>
-          <template v-slot:value>
-            <PlainAmount :amount="contractResult?.gas_limit" none-label="None"/>
-          </template>
-        </Property>
-        <Property id="gasUsed">
-          <template v-slot:name>Gas Used</template>
-          <template v-slot:value>
-            <PlainAmount :amount="contractResult?.gas_used" none-label="None"/>
-          </template>
-        </Property>
-        <Property id="maxFeePerGas">
-          <template v-slot:name>Max Fee Per Gas</template>
-          <template v-slot:value>
-            <PlainAmount :amount="maxFeePerGas" none-label="None"/>
-          </template>
-        </Property>
-        <Property id="maxPriorityFeePerGas">
-          <template v-slot:name>Max Priority Fee Per Gas</template>
-          <template v-slot:value>
-            <PlainAmount :amount="maxPriorityFeePerGas" none-label="None"/>
-          </template>
-        </Property>
-        <Property id="gasPrice">
-          <template v-slot:name>Gas Price</template>
-          <template v-slot:value>
-            <HbarAmount :amount="gasPrice" :timestamp="timestamp" :show-extra="true"/>
-          </template>
-        </Property>
-      </template>
+        </DashboardCard>
 
-    </DashboardCard>
+        <ContractResultTrace v-if="isParent" :transaction-id-or-hash="transactionIdOrHash" :analyzer="analyzer"/>
 
-    <ContractResultTrace v-if="isParent" :transaction-id-or-hash="transactionIdOrHash" :analyzer="analyzer"/>
+        <ContractResultStates :state-changes="contractResult?.state_changes" :time-stamp="contractResult?.timestamp"/>
 
-    <ContractResultStates :state-changes="contractResult?.state_changes" :time-stamp="contractResult?.timestamp"/>
+        <ContractResultLogs :logs="contractResult?.logs"/>
 
-    <ContractResultLogs :logs="contractResult?.logs"/>
-
-  </div>
+    </div>
 
 </template>
 
@@ -140,131 +135,131 @@ import {FunctionCallAnalyzer} from "@/utils/analyzer/FunctionCallAnalyzer";
 import {EntityID} from "@/utils/EntityID";
 import FunctionInput from "@/components/values/FunctionInput.vue";
 import FunctionResult from "@/components/values/FunctionResult.vue";
-import SignatureValue from "@/components/values/SignatureValue.vue";
 import FunctionError from "@/components/values/FunctionError.vue";
 
 export default defineComponent({
 
-  name: 'ContractResult',
+    name: 'ContractResult',
 
-  components: {
-    FunctionError,
-    SignatureValue,
-    FunctionResult,
-    FunctionInput,
-    ContractResultLogs,
-    EVMAddress,
-    ContractResultStates,
-    ContractResultTrace,
-    PlainAmount,
-    Property,
-    HbarAmount,
-    DashboardCard,
-    StringValue
-  },
-
-  props: {
-    timestamp: String,
-    contractId: String,
-    transactionIdOrHash: String,
-    topLevel: {
-      type: Boolean,
-      default: false
+    components: {
+        FunctionError,
+        FunctionResult,
+        FunctionInput,
+        ContractResultLogs,
+        EVMAddress,
+        ContractResultStates,
+        ContractResultTrace,
+        PlainAmount,
+        Property,
+        HbarAmount,
+        DashboardCard,
+        StringValue
     },
-    isParent: {
-      type: Boolean,
-      default: false
-    }
-  },
 
-  setup(props) {
-    const isSmallScreen = inject('isSmallScreen', true)
-    const isMediumScreen = inject('isMediumScreen', true)
-    const isTouchDevice = inject('isTouchDevice', false)
+    props: {
+        timestamp: String,
+        contractId: String,
+        transactionIdOrHash: String,
+        topLevel: {
+            type: Boolean,
+            default: false
+        },
+        isParent: {
+            type: Boolean,
+            default: false
+        }
+    },
 
-    const fromId = computed(() => {
-      let result
-      if (contractResultDetailsLoader.entity.value?.from) {
-        const entity = EntityID.fromAddress(contractResultDetailsLoader.entity.value?.from)
-        result = entity ? entity.toString() : null
-      } else {
-        result = null
-      }
-      return result
-    })
+    setup(props) {
+        const isSmallScreen = inject('isSmallScreen', true)
+        const isMediumScreen = inject('isMediumScreen', true)
+        const isTouchDevice = inject('isTouchDevice', false)
 
-    const toId = computed(() => {
-      let result
-      if (contractResultDetailsLoader.entity.value?.to) {
-        const entity = EntityID.fromAddress(contractResultDetailsLoader.entity.value?.to)
-        result = entity ? entity.toString() : null
-      } else {
-        result = null
-      }
-      return result
-    })
+        const fromId = computed(() => {
+            let result
+            if (contractResultDetailsLoader.entity.value?.from) {
+                const entity = EntityID.fromAddress(contractResultDetailsLoader.entity.value?.from)
+                result = entity ? entity.toString() : null
+            } else {
+                result = null
+            }
+            return result
+        })
 
-    const gasPrice = computed(() => {
-      return (contractResultDetailsLoader.entity.value?.gas_price !== null)
-          ? Number(filter0x(contractResultDetailsLoader.entity.value?.gas_price))
-          : null
-    })
+        const toId = computed(() => {
+            let result
+            if (contractResultDetailsLoader.entity.value?.to) {
+                const entity = EntityID.fromAddress(contractResultDetailsLoader.entity.value?.to)
+                result = entity ? entity.toString() : null
+            } else {
+                result = null
+            }
+            return result
+        })
 
-    const maxFeePerGas = computed(() => {
-      return (contractResultDetailsLoader.entity.value?.max_fee_per_gas !== null)
-          ? Number(filter0x(contractResultDetailsLoader.entity.value?.max_fee_per_gas))
-          : null
-    })
+        const gasPrice = computed(() => {
+            return (contractResultDetailsLoader.entity.value?.gas_price !== null)
+                ? Number(filter0x(contractResultDetailsLoader.entity.value?.gas_price))
+                : null
+        })
 
-    const maxPriorityFeePerGas = computed(() => {
-      return (contractResultDetailsLoader.entity.value?.max_priority_fee_per_gas !== null)
-          ? Number(filter0x(contractResultDetailsLoader.entity.value?.max_priority_fee_per_gas))
-          : null
-    })
+        const maxFeePerGas = computed(() => {
+            return (contractResultDetailsLoader.entity.value?.max_fee_per_gas !== null)
+                ? Number(filter0x(contractResultDetailsLoader.entity.value?.max_fee_per_gas))
+                : null
+        })
 
-    const contractResultDetailsLoader = new ContractResultDetailsLoader(
-        computed(() => props.contractId ?? null),
-        computed(() => props.timestamp ?? null),
-        computed(() => props.transactionIdOrHash ?? null))
-    onMounted(() => contractResultDetailsLoader.requestLoad())
+        const maxPriorityFeePerGas = computed(() => {
+            return (contractResultDetailsLoader.entity.value?.max_priority_fee_per_gas !== null)
+                ? Number(filter0x(contractResultDetailsLoader.entity.value?.max_priority_fee_per_gas))
+                : null
+        })
 
-    const filter0x = (value: string|null|undefined) => value === '0x' ? '0' : value
+        const contractResultDetailsLoader = new ContractResultDetailsLoader(
+            computed(() => props.contractId ?? null),
+            computed(() => props.timestamp ?? null),
+            computed(() => props.transactionIdOrHash ?? null))
+        onMounted(() => contractResultDetailsLoader.requestLoad())
 
-    const functionCallAnalyzer = new FunctionCallAnalyzer(
-        contractResultDetailsLoader.functionParameters,
-        contractResultDetailsLoader.callResult,
-        contractResultDetailsLoader.errorMessage,
-        contractResultDetailsLoader.actualContractId)
-    onMounted(() => functionCallAnalyzer.mount())
-    onBeforeUnmount(() => functionCallAnalyzer.unmount())
+        const filter0x = (value: string | null | undefined) => value === '0x' ? '0' : value
 
-    const contractType = (typeValue: number | null): string | null => {
-      let result
-      if (typeValue !== null) {
-        result =  typeValue === 0 ? "Pre-Eip1559" : typeValue === 2 ? "Post-Eip1559" : typeValue.toString()
-      } else {
-        result = null
-      }
-      return result
-    }
+        const functionCallAnalyzer = new FunctionCallAnalyzer(
+            contractResultDetailsLoader.functionParameters,
+            contractResultDetailsLoader.callResult,
+            contractResultDetailsLoader.errorMessage,
+            contractResultDetailsLoader.actualContractId)
+        onMounted(() => functionCallAnalyzer.mount())
+        onBeforeUnmount(() => functionCallAnalyzer.unmount())
 
-    return {
-      isSmallScreen,
-      isMediumScreen,
-      isTouchDevice,
-      fromId,
-      toId,
-      gasPrice,
-      maxFeePerGas,
-      maxPriorityFeePerGas,
-      contractResult: contractResultDetailsLoader.entity,
-      errorMessage: contractResultDetailsLoader.errorMessage,
-      analyzer: functionCallAnalyzer,
-      functionHash: functionCallAnalyzer.functionHash,
-      signature: functionCallAnalyzer.signature,
-      contractType
-    }
-  },
+        const contractType = (typeValue: number | null): string | null => {
+            let result
+            if (typeValue !== null) {
+                result = typeValue === 0 ? "Pre-Eip1559" : typeValue === 2 ? "Post-Eip1559" : typeValue.toString()
+            } else {
+                result = null
+            }
+            return result
+        }
+
+        return {
+            isSmallScreen,
+            isMediumScreen,
+            isTouchDevice,
+            fromId,
+            toId,
+            gasPrice,
+            maxFeePerGas,
+            maxPriorityFeePerGas,
+            contractResult: contractResultDetailsLoader.entity,
+            functionParameters: contractResultDetailsLoader.functionParameters,
+            callResult: contractResultDetailsLoader.callResult,
+            errorMessage: contractResultDetailsLoader.errorMessage,
+            analyzer: functionCallAnalyzer,
+            functionHash: functionCallAnalyzer.functionHash,
+            signature: functionCallAnalyzer.signature,
+            contractType
+        }
+    },
 });
 
 </script>
