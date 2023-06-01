@@ -34,15 +34,48 @@
       <div v-if="sourcifyURL" id="showSource" class="is-inline-block ml-3">
         <a :href="sourcifyURL" target="_blank">View in Sourcify</a>
       </div>
-      <span v-else-if="compiling" class="icon mr-2" style="font-size: 18px">
-        <i class="fa fa-circle-notch fa-spin"></i>
-      </span>
       <div v-else id="showVerifier" class="is-inline-block ml-3">
         <a :href="verifierURL" target="_blank">Verify in Sourcify</a>
       </div>
     </template>
 
     <template v-slot:content>
+
+        <Property id="code" :full-width="true">
+            <template v-slot:name>Runtime Bytecode</template>
+            <template v-slot:value>
+                <ByteCodeValue :byte-code="byteCode"/>
+            </template>
+        </Property>
+
+        <Property id="solcVersion" :full-width="true">
+            <template v-slot:name>Compiler Version</template>
+            <template v-slot:value>
+                <StringValue :string-value="solcVersion"/>
+            </template>
+        </Property>
+
+        <Property id="metadataHash" :full-width="true">
+            <template v-slot:name>Metadata Hash</template>
+            <template v-slot:value>
+                <StringValue :string-value="metadataHash"/>
+                <div class="has-text-grey">
+                    <div v-if="metadata">
+                        <span class="icon fas fa-check-circle has-text-success ml-0"/>
+                        <span>Metadata are available on <a :href="ipfsURL" :target="metadata">IPFS</a></span>
+                    </div>
+                    <div v-else-if="checkingIPFS">
+                        <span class="icon fas fa-circle-notch fa-spin has-text-grey ml-0"/>
+                        <span>Checking IPFS…</span>
+                    </div>
+                    <div v-else>
+                        <span class="icon fas fa-info-circle has-text-grey ml-0"/>
+                        <span>Metadata are not available on IPFS</span>
+                    </div>
+                </div>
+            </template>
+        </Property>
+
       <Property id="verificationStatus" :full-width="true">
         <template v-slot:name>Verification Status</template>
         <template v-slot:value>
@@ -80,17 +113,20 @@
 
 <script lang="ts">
 
-import {computed, defineComponent, PropType} from 'vue';
+import {computed, defineComponent, onBeforeUnmount, onMounted, PropType} from 'vue';
 import {ContractAnalyzer} from "@/utils/analyzer/ContractAnalyzer";
 import DashboardCard from "@/components/DashboardCard.vue";
 import Property from "@/components/Property.vue";
 import StringValue from "@/components/values/StringValue.vue";
 import ContractVerificationStatus from "@/components/registration/ContractVerificationStatus.vue";
 import {routeManager} from "@/router";
+import {ByteCodeAnalyzer} from "@/utils/analyzer/ByteCodeAnalyzer";
+import {ContractByIdCache} from "@/utils/cache/ContractByIdCache";
+import ByteCodeValue from "@/components/values/ByteCodeValue.vue";
 
 export default defineComponent({
     name: 'ContractVerificationSection',
-    components: {ContractVerificationStatus, StringValue, Property, DashboardCard},
+    components: {ByteCodeValue, ContractVerificationStatus, StringValue, Property, DashboardCard},
     props: {
         contractAnalyzer: {
             type: Object as PropType<ContractAnalyzer>,
@@ -100,7 +136,14 @@ export default defineComponent({
 
     setup(props) {
 
-        const compiling = computed(() => false)
+        const contractLookup = ContractByIdCache.instance.makeLookup(props.contractAnalyzer.contractId)
+        onMounted(() => contractLookup.mount())
+        onBeforeUnmount(() => contractLookup.unmount())
+
+        const byteCode = computed(() => contractLookup.entity.value?.runtime_bytecode ?? undefined)
+        const byteCodeAnalyzer = new ByteCodeAnalyzer(byteCode)
+        onMounted(() => byteCodeAnalyzer.mount())
+        onBeforeUnmount(() => byteCodeAnalyzer.unmount())
 
         return {
             contractId: props.contractAnalyzer.contractId,
@@ -109,7 +152,12 @@ export default defineComponent({
             fullMatch: props.contractAnalyzer.fullMatch,
             sourcifyURL: props.contractAnalyzer.sourcifyURL,
             verifierURL: routeManager.currentNetworkEntry.value.sourcifySetup?.verifierURL,
-            compiling
+            byteCode: byteCodeAnalyzer.byteCode,
+            solcVersion: byteCodeAnalyzer.solcVersion,
+            metadataHash: byteCodeAnalyzer.metadataHash,
+            metadata: byteCodeAnalyzer.metadata,
+            ipfsURL: byteCodeAnalyzer.ipfsURL,
+            checkingIPFS: byteCodeAnalyzer.loading
         }
     }
 });
