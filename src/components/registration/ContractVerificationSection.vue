@@ -61,16 +61,16 @@
                 <StringValue :string-value="metadataHash"/>
                 <div class="has-text-grey">
                     <div v-if="metadata">
-                        <span class="icon fas fa-check-circle has-text-success ml-0"/>
-                        <span>Metadata are available on <a :href="ipfsURL" :target="metadata">IPFS</a></span>
+                        <span class="icon fas fa-check-circle has-text-success is-small mt-1 mr-1"/>
+                        <span>Metadata available on <a :href="ipfsURL" :target="metadata">IPFS</a></span>
                     </div>
                     <div v-else-if="checkingIPFS">
-                        <span class="icon fas fa-circle-notch fa-spin has-text-grey ml-0"/>
+                        <span class="icon fas fa-circle-notch fa-spin has-text-grey is-small mt-1 mr-1"/>
                         <span>Checking IPFS…</span>
                     </div>
                     <div v-else>
-                        <span class="icon fas fa-info-circle has-text-grey ml-0"/>
-                        <span>Metadata are not available on IPFS</span>
+                        <span class="icon fas fa-info-circle has-text-grey is-small mt-1 mr-1"/>
+                        <span>Metadata not available on IPFS</span>
                     </div>
                 </div>
             </template>
