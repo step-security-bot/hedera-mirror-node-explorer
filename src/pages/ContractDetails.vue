@@ -211,7 +211,6 @@ import ContractByteCodeSection from "@/components/contract/ContractByteCodeSecti
 import ContractResultsSection from "@/components/contracts/ContractResultsSection.vue";
 import InfoTooltip from "@/components/InfoTooltip.vue";
 import Copyable from "@/components/Copyable.vue";
-import ContractVerificationSection from "@/components/registration/ContractVerificationSection.vue";
 import {ContractAnalyzer} from "@/utils/analyzer/ContractAnalyzer";
 
 const MAX_TOKEN_BALANCES = 3
@@ -224,7 +223,6 @@ export default defineComponent({
     Copyable,
     ContractByteCodeSection,
     InfoTooltip,
-    ContractVerificationSection,
     ContractResultsSection,
     EVMAddress,
     TransactionLink,

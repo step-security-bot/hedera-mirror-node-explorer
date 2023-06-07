@@ -154,10 +154,10 @@ export default defineComponent({
             verifierURL: routeManager.currentNetworkEntry.value.sourcifySetup?.verifierURL,
             byteCode: byteCodeAnalyzer.byteCode,
             solcVersion: byteCodeAnalyzer.solcVersion,
-            metadataHash: byteCodeAnalyzer.metadataHash,
-            metadata: byteCodeAnalyzer.metadata,
+            metadataHash: byteCodeAnalyzer.ipfsHash,
+            metadata: byteCodeAnalyzer.ipfsMetadata,
             ipfsURL: byteCodeAnalyzer.ipfsURL,
-            checkingIPFS: byteCodeAnalyzer.loading
+            checkingIPFS: byteCodeAnalyzer.ipfsLoading
         }
     }
 });
