@@ -42,13 +42,13 @@ export class SourcifyCache extends EntityCache<string, SourcifyRecord|null> {
                 const partialMatchURL = sourcifySetup.makeMetadataURL(contractAddress, false)
                 const metadata = await SourcifyCache.loadSourcifyMetadata(partialMatchURL)
                 if (metadata !== null) {
-                    const repoURL = sourcifySetup.makeContractFolderURL(contractAddress, false)
+                    const repoURL = sourcifySetup.makeContractLookupURL(contractAddress)
                     result = new SourcifyRecord(metadata, false, repoURL)
                 } else {
                     const fullMatchURL = sourcifySetup.makeMetadataURL(contractAddress, true)
                     const metadata = await SourcifyCache.loadSourcifyMetadata(fullMatchURL)
                     if (metadata !== null) {
-                        const repoURL = sourcifySetup.makeContractFolderURL(contractAddress, true)
+                        const repoURL = sourcifySetup.makeContractLookupURL(contractAddress)
                         result = new SourcifyRecord(metadata, true, repoURL)
                     } else {
                         result = null

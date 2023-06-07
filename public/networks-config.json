@@ -7,7 +7,7 @@
     "sourcifySetup": {
       "repoURL": "https://repo.sourcify.simonvienot.fr/contracts/",
       "serverURL": "https://sourcify.simonvienot.fr/server/repository/contracts/",
-      "verifierURL": "https://sourcify.simonvienot.fr/#/verifier",
+      "verifierURL": "https://sourcify.simonvienot.fr/#/",
       "chainID": 295
     }
   },
@@ -19,7 +19,7 @@
     "sourcifySetup": {
       "repoURL": "https://repo.sourcify.simonvienot.fr/contracts/",
       "serverURL": "https://sourcify.simonvienot.fr/server/repository/contracts/",
-      "verifierURL": "https://sourcify.simonvienot.fr/#/verifier",
+      "verifierURL": "https://sourcify.simonvienot.fr/#/",
       "chainID": 296
     }
   },
@@ -31,7 +31,7 @@
     "sourcifySetup": {
       "repoURL": "https://repo.sourcify.simonvienot.fr/contracts/",
       "serverURL": "https://sourcify.simonvienot.fr/server/repository/contracts/",
-      "verifierURL": "https://sourcify.simonvienot.fr/#/verifier",
+      "verifierURL": "https://sourcify.simonvienot.fr/#/",
       "chainID": 297
     }
   }

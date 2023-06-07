@@ -124,6 +124,11 @@ export class SourcifySetup {
         const matchPrefix = full ? "full_match/" : "partial_match/"
         return this.repoURL + matchPrefix + this.chainID + "/" + normalizedAddress
     }
+
+    makeContractLookupURL(contractAddress: string): string {
+        const normalizedAddress = EthereumAddress.normalizeEIP55(contractAddress)
+        return this.verifierURL + "lookup/" + normalizedAddress
+    }
 }
 
 export class NetworkRegistry {
@@ -147,7 +152,7 @@ export class NetworkRegistry {
             sourcifySetup: new SourcifySetup(
                 "https://repo.sourcify.simonvienot.fr/contracts/",
                 "https://sourcify.simonvienot.fr/server/repository/contracts/",
-                "https://sourcify.simonvienot.fr/#/verifier",
+                "https://sourcify.simonvienot.fr/#/",
                 0x127
             )
         },
@@ -159,7 +164,7 @@ export class NetworkRegistry {
             sourcifySetup: new SourcifySetup(
                 "https://repo.sourcify.simonvienot.fr/contracts/",
                 "https://sourcify.simonvienot.fr/server/repository/contracts/",
-                "https://sourcify.simonvienot.fr/#/verifier",
+                "https://sourcify.simonvienot.fr/#/",
                 0x128
             )
         },
@@ -171,7 +176,7 @@ export class NetworkRegistry {
             sourcifySetup: new SourcifySetup(
                 "https://repo.sourcify.simonvienot.fr/contracts/",
                 "https://sourcify.simonvienot.fr/server/repository/contracts/",
-                "https://sourcify.simonvienot.fr/#/verifier",
+                "https://sourcify.simonvienot.fr/#/",
                 0x129
             )
         }
