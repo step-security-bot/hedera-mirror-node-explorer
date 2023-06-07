@@ -26,23 +26,36 @@
 
   <DashboardCard>
     <template v-slot:title>
-      <p class="h-is-secondary-title">Contract Bytecode</p>
+      <span class="h-is-secondary-title">Contract Code</span>
+      <span v-if="contractName" class="icon has-text-success ml-2"><i class="far fa-check-circle"></i></span>
+    </template>
+
+    <template v-slot:control>
+      <div v-if="sourcifyURL" id="showSource" class="is-inline-block ml-3">
+        <a :href="sourcifyURL" target="_blank">View in Sourcify</a>
+      </div>
+      <div v-else id="showVerifier" class="is-inline-block ml-3">
+        <a :href="verifierURL" target="_blank">Verify in Sourcify</a>
+      </div>
     </template>
 
     <template v-slot:content>
-        <Property id="code">
+
+        <Property id="code" :full-width="true">
             <template v-slot:name>Runtime Bytecode</template>
             <template v-slot:value>
                 <ByteCodeValue :byte-code="byteCode"/>
             </template>
         </Property>
-        <Property id="solcVersion">
+
+        <Property id="solcVersion" :full-width="true">
             <template v-slot:name>Compiler Version</template>
             <template v-slot:value>
                 <StringValue :string-value="solcVersion"/>
             </template>
         </Property>
-        <Property id="ipfsHash">
+
+        <Property id="ipfsHash" :full-width="true">
             <template v-slot:name>IPFS Hash</template>
             <template v-slot:value>
                 <StringValue :string-value="ipfsHash"/>
@@ -62,10 +75,27 @@
                 </div>
             </template>
         </Property>
-        <Property id="swarmHash">
+
+        <Property id="swarmHash" :full-width="true">
             <template v-slot:name>SWARM Hash</template>
             <template v-slot:value>
                 <StringValue :string-value="swarmHash"/>
+            </template>
+        </Property>
+
+        <Property id="verificationStatus" :full-width="true">
+            <template v-slot:name>Verification Status</template>
+            <template v-slot:value>
+                <span v-if="sourcifyURL"><ContractVerificationStatus :full-match="fullMatch ?? undefined"/></span>
+                <!--          <span v-else-if="compiling">Verifying contract…</span>-->
+                <span v-else>Not yet verified</span>
+            </template>
+        </Property>
+
+        <Property id="contractName" :full-width="true">
+            <template v-slot:name>Contract Name</template>
+            <template v-slot:value>
+                <StringValue :string-value="contractName ?? undefined"/>
             </template>
         </Property>
 
@@ -87,11 +117,14 @@ import StringValue from "@/components/values/StringValue.vue";
 import Property from "@/components/Property.vue";
 import {ContractByIdCache} from "@/utils/cache/ContractByIdCache";
 import {ByteCodeAnalyzer} from "@/utils/analyzer/ByteCodeAnalyzer";
+import {ContractAnalyzer} from "@/utils/analyzer/ContractAnalyzer";
+import {routeManager} from "@/router";
+import ContractVerificationStatus from "@/components/registration/ContractVerificationStatus.vue";
 
 export default defineComponent({
   name: 'ContractByteCodeSection',
 
-  components: {Property, StringValue, ByteCodeValue, DashboardCard},
+  components: {ContractVerificationStatus, Property, StringValue, ByteCodeValue, DashboardCard},
 
   props: {
     contractId: String,
@@ -102,7 +135,8 @@ export default defineComponent({
     const isSmallScreen = inject('isSmallScreen', true)
     const isMediumScreen = inject('isMediumScreen', true)
 
-    const contractLookup = ContractByIdCache.instance.makeLookup(computed(() => props.contractId ?? null))
+    const contractId = computed(() => props.contractId ?? null)
+    const contractLookup = ContractByIdCache.instance.makeLookup(contractId)
     onMounted(() => contractLookup.mount())
     onBeforeUnmount(() => contractLookup.unmount())
 
@@ -110,6 +144,10 @@ export default defineComponent({
     const byteCodeAnalyzer = new ByteCodeAnalyzer(byteCode)
     onMounted(() => byteCodeAnalyzer.mount())
     onBeforeUnmount(() => byteCodeAnalyzer.unmount())
+
+    const contractAnalyzer = new ContractAnalyzer(contractId)
+    onMounted(() => contractAnalyzer.mount())
+    onBeforeUnmount(() => contractAnalyzer.unmount())
 
     return {
       isTouchDevice,
@@ -122,6 +160,11 @@ export default defineComponent({
       ipfsURL: byteCodeAnalyzer.ipfsURL,
       ipfsLoading: byteCodeAnalyzer.ipfsLoading,
       swarmHash: byteCodeAnalyzer.swarmHash,
+      contractName: contractAnalyzer.contractName,
+      fullMatch: contractAnalyzer.fullMatch,
+      sourcifyURL: contractAnalyzer.sourcifyURL,
+      verifierURL: routeManager.currentNetworkEntry.value.sourcifySetup?.verifierURL,
+
     }
   }
 });

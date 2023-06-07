@@ -157,7 +157,7 @@
             </Property>
             <Property id="validUntil">
               <template v-slot:name>Valid until</template>
-              <template v-slot:value>
+               <template v-slot:value>
                 <TimestampValue :timestamp="contract?.timestamp?.to ?? undefined" :show-none="true"/>
               </template>
             </Property>
@@ -273,10 +273,6 @@ export default defineComponent({
     onMounted(() => accountLocParser.mount())
     onBeforeUnmount(() => accountLocParser.unmount())
 
-    const contractAnalyzer = new ContractAnalyzer(normalizedContractId)
-    onMounted(() => contractAnalyzer.mount())
-    onBeforeUnmount(() => contractAnalyzer.unmount())
-
     const autoRenewAccount = computed(() => {
       return contractLookup.entity.value?.auto_renew_account ?? null
     })
@@ -340,8 +336,7 @@ export default defineComponent({
       obtainerId: obtainerId,
       proxyAccountId: proxyAccountId,
       normalizedContractId,
-      accountRoute,
-      contractAnalyzer
+      accountRoute
     }
   },
 });
