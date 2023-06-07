@@ -91,7 +91,7 @@ describe("FunctionCallAnalyzer.spec.ts", () => {
 
         const networkEntry = routeManager.currentNetworkEntry.value
         const metadataURL = networkEntry.sourcifySetup?.makeMetadataURL(SAMPLE_CONTRACT.evm_address, true)
-        const contractURL = networkEntry.sourcifySetup?.makeContractFolderURL(SAMPLE_CONTRACT.evm_address, true)
+        const contractURL = networkEntry.sourcifySetup?.makeContractLookupURL(SAMPLE_CONTRACT.evm_address)
         mock.onGet(metadataURL).reply(200, SAMPLE_METADATA)
 
         // 1) new

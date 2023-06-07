@@ -119,12 +119,6 @@ export class SourcifySetup {
         return this.serverURL + matchPrefix + this.chainID + "/" + normalizedAddress + "/metadata.json"
     }
 
-    makeContractFolderURL(contractAddress: string, full: boolean): string {
-        const normalizedAddress = EthereumAddress.normalizeEIP55(contractAddress)
-        const matchPrefix = full ? "full_match/" : "partial_match/"
-        return this.repoURL + matchPrefix + this.chainID + "/" + normalizedAddress
-    }
-
     makeContractLookupURL(contractAddress: string): string {
         const normalizedAddress = EthereumAddress.normalizeEIP55(contractAddress)
         return this.verifierURL + "lookup/" + normalizedAddress
