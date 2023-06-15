@@ -40,58 +40,23 @@ describe("ByteCodeAnalyzer.spec.ts", () => {
         expect(analyzer.solcVersion.value).toBeUndefined()
         expect(analyzer.ipfsHash.value).toBeUndefined()
         expect(analyzer.ipfsURL.value).toBeUndefined()
-        expect(analyzer.ipfsLoading.value).toBeFalsy()
-        expect(analyzer.ipfsMetadata.value).toBeUndefined()
         expect(analyzer.swarmHash.value).toBeUndefined()
 
-        // 2) mount (without flushing promises)
-        analyzer.mount()
-        expect(analyzer.byteCode.value).toBeUndefined()
-        expect(analyzer.solcVersion.value).toBeUndefined()
-        expect(analyzer.ipfsHash.value).toBeUndefined()
-        expect(analyzer.ipfsURL.value).toBeUndefined()
-        // expect(analyzer.ipfsLoading.value).toBeTruthy() // Analyzer is loading
-        expect(analyzer.ipfsMetadata.value).toBeUndefined()
-        expect(analyzer.swarmHash.value).toBeUndefined()
-
-        // 3) flush promises
-        await flushPromises()
-        expect(analyzer.byteCode.value).toBeUndefined()
-        expect(analyzer.solcVersion.value).toBeUndefined()
-        expect(analyzer.ipfsHash.value).toBeUndefined()
-        expect(analyzer.ipfsURL.value).toBeUndefined()
-        expect(analyzer.ipfsLoading.value).toBeFalsy()
-        expect(analyzer.ipfsMetadata.value).toBeUndefined()
-        expect(analyzer.swarmHash.value).toBeUndefined()
-
-        // 4) setup with BYTECODE1
+        // 2) setup with BYTECODE1
         bytecode.value = BYTECODE1
         await flushPromises()
         expect(analyzer.byteCode.value).toBe(BYTECODE1)
         expect(analyzer.solcVersion.value).toBe(BYTECODE1_COMPILER_VERSION)
         expect(analyzer.ipfsHash.value).toBe(BYTECODE1_IPFS_HASH)
         expect(analyzer.ipfsURL.value).toBe(BYTECODE1_IPFS_URL)
-        expect(analyzer.ipfsLoading.value).toBeFalsy()
-        expect(analyzer.ipfsMetadata.value).toStrictEqual(JSON.parse(BYTECODE1_METADATA))
         expect(analyzer.swarmHash.value).toBeUndefined()
 
-        // 4) setup with BYTECODE2
+        // 3) setup with BYTECODE2
         bytecode.value = BYTECODE2
         await flushPromises()
         expect(analyzer.byteCode.value).toBe(BYTECODE2)
         expect(analyzer.solcVersion.value).toBe(BYTECODE2_COMPILER_VERSION)
         expect(analyzer.ipfsURL.value).toBeUndefined()
-        expect(analyzer.ipfsLoading.value).toBeFalsy()
-        expect(analyzer.ipfsMetadata.value).toBeUndefined()
-        expect(analyzer.swarmHash.value).toBe(BYTECODE2_SWARM_HASH)
-
-        // 6) unmount
-        analyzer.unmount()
-        expect(analyzer.byteCode.value).toBe(BYTECODE2)
-        expect(analyzer.solcVersion.value).toBe(BYTECODE2_COMPILER_VERSION)
-        expect(analyzer.ipfsURL.value).toBeUndefined()
-        expect(analyzer.ipfsLoading.value).toBeFalsy()
-        expect(analyzer.ipfsMetadata.value).toBeUndefined()
         expect(analyzer.swarmHash.value).toBe(BYTECODE2_SWARM_HASH)
 
     })

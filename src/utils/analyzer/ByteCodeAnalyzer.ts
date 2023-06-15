@@ -26,9 +26,6 @@ import axios from "axios";
 export class ByteCodeAnalyzer {
 
     public readonly byteCode = ref<string|undefined>(undefined)
-    private readonly watchHandle: Ref<WatchStopHandle|null> = ref(null)
-    public readonly ipfsLoading = ref<boolean>(false)
-    public readonly ipfsMetadata: Ref<SolcMetadata|undefined> = ref(undefined)
 
     //
     // Public
@@ -36,18 +33,6 @@ export class ByteCodeAnalyzer {
 
     public constructor(byteCode: Ref<string|undefined>) {
         this.byteCode = byteCode
-    }
-
-    public mount(): void {
-        this.watchHandle.value = watch(this.ipfsURL,this.ipfsUrlDidChange, { immediate: true})
-    }
-
-    public unmount(): void {
-        if (this.watchHandle.value !== null) {
-            this.watchHandle.value()
-            this.watchHandle.value = null
-        }
-        this.ipfsMetadata.value = undefined
     }
 
     public readonly solcVersion = computed(() => this.decodedObject.value?.solcVersion)
@@ -77,23 +62,6 @@ export class ByteCodeAnalyzer {
         }
         return result
     })
-
-    private readonly ipfsUrlDidChange = async () => {
-        if (this.ipfsURL.value) {
-            this.ipfsLoading.value = true
-            try {
-                const options = { timeout: 10000 }
-                const stealthAxios = axios.create()
-                this.ipfsMetadata.value = (await stealthAxios.get<SolcMetadata>(this.ipfsURL.value, options)).data
-            } catch {
-                this.ipfsMetadata.value = undefined
-            } finally {
-                this.ipfsLoading.value = false
-            }
-        } else {
-            this.ipfsMetadata.value = undefined
-        }
-    }
 
 }
 

@@ -173,6 +173,8 @@
 
     <ContractByteCodeSection :contract-id="normalizedContractId ?? undefined"/>
 
+    <ContractSourceSection :contract-id="normalizedContractId ?? undefined"/>
+
     <ContractResultsSection :contract-id="normalizedContractId ?? undefined"/>
 
   </section>
@@ -211,6 +213,7 @@ import ContractByteCodeSection from "@/components/contract/ContractByteCodeSecti
 import ContractResultsSection from "@/components/contracts/ContractResultsSection.vue";
 import InfoTooltip from "@/components/InfoTooltip.vue";
 import Copyable from "@/components/Copyable.vue";
+import ContractSourceSection from "@/components/contract/ContractSourceSection.vue";
 
 const MAX_TOKEN_BALANCES = 3
 
@@ -219,6 +222,7 @@ export default defineComponent({
   name: 'ContractDetails',
 
   components: {
+    ContractSourceSection,
     Copyable,
     ContractByteCodeSection,
     InfoTooltip,

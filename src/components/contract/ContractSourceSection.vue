@@ -26,35 +26,11 @@
 
   <DashboardCard>
     <template v-slot:title>
-      <p class="h-is-secondary-title">Contract Bytecode</p>
+      <span class="h-is-secondary-title">Contract Source</span>
     </template>
 
     <template v-slot:content>
-        <Property id="code">
-            <template v-slot:name>Runtime Bytecode</template>
-            <template v-slot:value>
-                <ByteCodeValue :byte-code="byteCode"/>
-            </template>
-        </Property>
-        <Property id="solcVersion">
-            <template v-slot:name>Compiler Version</template>
-            <template v-slot:value>
-                <StringValue :string-value="solcVersion"/>
-            </template>
-        </Property>
-        <Property id="ipfsHash">
-            <template v-slot:name>IPFS Hash</template>
-            <template v-slot:value>
-                <StringValue :string-value="ipfsHash"/>
-            </template>
-        </Property>
-        <Property id="swarmHash">
-            <template v-slot:name>SWARM Hash</template>
-            <template v-slot:value>
-                <StringValue :string-value="swarmHash"/>
-            </template>
-        </Property>
-
+        <span>{{ contractId }}</span>
     </template>
   </DashboardCard>
 
@@ -72,15 +48,15 @@ import ByteCodeValue from "@/components/values/ByteCodeValue.vue";
 import StringValue from "@/components/values/StringValue.vue";
 import Property from "@/components/Property.vue";
 import {ContractByIdCache} from "@/utils/cache/ContractByIdCache";
-import {ByteCodeAnalyzer} from "@/utils/analyzer/ByteCodeAnalyzer";
+import {ContractSourceAnalyzer} from "@/utils/analyzer/ContractSourceAnalyzer";
 
 export default defineComponent({
-  name: 'ContractByteCodeSection',
+  name: 'ContractSourceSection',
 
-  components: {Property, StringValue, ByteCodeValue, DashboardCard},
+  components: {Property,StringValue, ByteCodeValue, DashboardCard},
 
   props: {
-    contractId: String,
+    contractId: String
   },
 
   setup: function (props) {
@@ -88,22 +64,19 @@ export default defineComponent({
     const isSmallScreen = inject('isSmallScreen', true)
     const isMediumScreen = inject('isMediumScreen', true)
 
-    const contractLookup = ContractByIdCache.instance.makeLookup(computed(() => props.contractId ?? null))
+    const contractId = computed(() => props.contractId ?? null)
+    const contractLookup = ContractByIdCache.instance.makeLookup(contractId)
     onMounted(() => contractLookup.mount())
     onBeforeUnmount(() => contractLookup.unmount())
 
-    const byteCode = computed(() => contractLookup.entity.value?.runtime_bytecode ?? undefined)
-    const byteCodeAnalyzer = new ByteCodeAnalyzer(byteCode)
+    const contractSourceAnalyzer = new ContractSourceAnalyzer(computed(() => contractLookup.entity.value ?? undefined))
+    onMounted(() => contractSourceAnalyzer.mount())
+    onBeforeUnmount(() => contractSourceAnalyzer.unmount())
 
     return {
       isTouchDevice,
       isSmallScreen,
       isMediumScreen,
-      byteCode: byteCodeAnalyzer.byteCode,
-      solcVersion: byteCodeAnalyzer.solcVersion,
-      ipfsHash: byteCodeAnalyzer.ipfsHash,
-      ipfsURL: byteCodeAnalyzer.ipfsURL,
-      swarmHash: byteCodeAnalyzer.swarmHash,
     }
   }
 });
