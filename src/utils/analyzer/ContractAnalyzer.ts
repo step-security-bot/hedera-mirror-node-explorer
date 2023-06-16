@@ -22,13 +22,24 @@ import {computed, ComputedRef, ref, Ref, watch, WatchStopHandle} from "vue";
 import {SystemContractEntry, systemContractRegistry} from "@/schemas/SystemContractRegistry";
 import {ethers} from "ethers";
 import {AssetCache} from "@/utils/cache/AssetCache";
+import {SourcifyCache, SourcifyRecord} from "@/utils/cache/SourcifyCache";
+import {SolcMetadata} from "@/utils/solc/SolcMetadata";
+import {ByteCodeAnalyzer} from "@/utils/analyzer/ByteCodeAnalyzer";
+import {ContractResponse} from "@/schemas/HederaSchemas";
+import {ContractByIdCache} from "@/utils/cache/ContractByIdCache";
+import axios from "axios";
 
 export class ContractAnalyzer {
 
     public readonly contractId: Ref<string|null>
     private readonly watchHandle: Ref<WatchStopHandle|null> = ref(null)
-    private readonly systemContractEntryRef: Ref<SystemContractEntry|null> = ref(null)
-    private readonly interfaceRef: Ref<ethers.utils.Interface|null> = ref(null)
+    private readonly byteCodeAnalyzer: ByteCodeAnalyzer
+    private readonly contractResponse: Ref<ContractResponse|null> = ref(null)
+    private readonly systemContractEntry: Ref<SystemContractEntry|null> = ref(null)
+    private readonly sourcifyRecord: Ref<SourcifyRecord|null> = ref(null)
+    private readonly ipfsMetadata: Ref<SolcMetadata|null> = ref(null)
+    private readonly ipfsLoading: Ref<boolean> = ref(false)
+    private readonly abi: Ref<ethers.utils.Fragment[]|null> = ref(null)
 
     //
     // Public
@@ -36,6 +47,7 @@ export class ContractAnalyzer {
 
     public constructor(contractId: Ref<string|null>) {
         this.contractId = contractId
+        this.byteCodeAnalyzer = new ByteCodeAnalyzer(this.byteCode)
     }
 
     public mount(): void {
@@ -47,14 +59,103 @@ export class ContractAnalyzer {
             this.watchHandle.value()
             this.watchHandle.value = null
         }
-        this.systemContractEntryRef.value = null
-        this.interfaceRef.value = null
+        this.contractResponse.value = null
+        this.systemContractEntry.value = null
+        this.sourcifyRecord.value = null
+        this.abi.value = null
     }
 
-    public readonly interface: ComputedRef<ethers.utils.Interface|null> = computed(
-        () => this.interfaceRef.value)
+    public readonly metadataOrigin: ComputedRef<MetadataOrigin|null> = computed(() => {
+        let result: MetadataOrigin|null
+        if (this.systemContractEntry.value !== null) {
+            result = MetadataOrigin.System
+        } else if (this.sourcifyRecord.value !== null) {
+            result = MetadataOrigin.Sourcify
+        } else if (this.ipfsMetadata.value !==  null) {
+            result = MetadataOrigin.IPFS
+        } else {
+            result = null
+        }
+        return result
+    })
 
+    public readonly isUnknownContract = computed(
+        () => this.metadataOrigin.value === null)
+    public readonly isSystemContract = computed(
+        () => this.metadataOrigin.value === MetadataOrigin.System)
+    public readonly isContractOnSourcify = computed(
+        () => this.metadataOrigin.value === MetadataOrigin.Sourcify)
+    public readonly isContractOnIPFS = computed(
+        () => this.metadataOrigin.value === MetadataOrigin.IPFS)
 
+    public readonly sourceFileName: ComputedRef<string|null> = computed(() => {
+        let result: string|null
+        if (this.systemContractEntry.value !== null) {
+            result = this.systemContractEntry.value.abiFileName
+        } else if (this.sourcifyRecord.value !== null) {
+            const target = this.sourcifyRecord.value.metadata.settings.compilationTarget
+            const keys = Object.keys(target)
+            result = keys.length >= 1 ? keys[0] : null
+        } else if (this.ipfsMetadata.value !== null) {
+            const target = this.ipfsMetadata.value.settings.compilationTarget
+            const keys = Object.keys(target)
+            result = keys.length >= 1 ? keys[0] : null
+        } else {
+            result = null
+        }
+        return result
+    })
+
+    public readonly contractName: ComputedRef<string|null> = computed(() => {
+        let result: string|null
+        if (this.systemContractEntry.value !== null) {
+            result = null
+        } else if (this.sourcifyRecord.value !== null) {
+            const target = this.sourcifyRecord.value.metadata.settings.compilationTarget
+            const keys = Object.keys(target)
+            result = keys.length >= 1 ? target[keys[0]] : null
+        } else if (this.ipfsMetadata.value !== null) {
+            const target = this.ipfsMetadata.value.settings.compilationTarget
+            const keys = Object.keys(target)
+            result = keys.length >= 1 ? target[keys[0]] : null
+        } else {
+            result = null
+        }
+        return result
+    })
+
+    public readonly interface: ComputedRef<ethers.utils.Interface|null> = computed(() => {
+        let result: ethers.utils.Interface|null
+        if (this.abi.value !== null) {
+            try {
+                const i = new ethers.utils.Interface(this.abi.value)
+                result = Object.preventExtensions(i) // Because ethers does not like Ref introspection
+            } catch {
+                result = null
+            }
+        } else {
+            result = null
+        }
+        return result
+    })
+
+    //
+    // Public (null if contractId is a system contract)
+    //
+
+    public readonly byteCode: ComputedRef<string|undefined> = computed(() => {
+        return this.contractResponse.value?.runtime_bytecode ?? undefined
+    })
+
+    //
+    // Public (null if contractId is not on Sourcify)
+    //
+
+    public readonly fullMatch: ComputedRef<boolean|null> = computed(
+        () => this.sourcifyRecord.value?.fullMatch ?? null)
+
+    public readonly sourcifyURL: ComputedRef<string|null> = computed(
+        () => this.sourcifyRecord.value?.folderURL ?? null)
 
     //
     // Private
@@ -65,20 +166,71 @@ export class ContractAnalyzer {
             const sce = systemContractRegistry.lookup(this.contractId.value)
             if (sce !== null) {
                 // This is a system contract
-                this.systemContractEntryRef.value = sce
+                this.contractResponse.value = null
+                this.systemContractEntry.value = sce
+                this.sourcifyRecord.value = null
+                this.ipfsMetadata.value = null
                 try {
                     const asset = await AssetCache.instance.lookup(sce.abiURL) as { abi: ethers.utils.Fragment[]}
-                    const i = new ethers.utils.Interface(asset.abi)
-                    this.interfaceRef.value = Object.preventExtensions(i) // Because ethers does not like Ref introspection
+                    this.abi.value = asset.abi
                 } catch {
-                    this.interfaceRef.value = null
+                    this.abi.value = null
                 }
             } else {
-                // Check if contract metadata are available and fetch abi
-                this.systemContractEntryRef.value = null
+                // This is a custom contract: may be it's on sourcify or IPFS or not
+                this.systemContractEntry.value = null
+                try {
+                    this.contractResponse.value = await ContractByIdCache.instance.lookup(this.contractId.value)
+                } catch {
+                    this.contractResponse.value = null
+                }
+                try {
+                    this.sourcifyRecord.value = await SourcifyCache.instance.lookup(this.contractId.value)
+                    if (this.sourcifyRecord.value !== null) {
+                        // Contract is on sourcify
+                        this.ipfsMetadata.value = null
+                        this.abi.value = this.sourcifyRecord.value.metadata.output.abi as ethers.utils.Fragment[]
+                    } else if (this.byteCodeAnalyzer.ipfsURL.value) {
+                        // Checks IPFS
+                        this.ipfsMetadata.value = await this.loadFromIPFS(this.byteCodeAnalyzer.ipfsURL.value)
+                        this.abi.value = this.ipfsMetadata.value?.output.abi as ethers.utils.Fragment[]|null
+                    } else {
+                        this.ipfsMetadata.value = null
+                        this.abi.value = null
+                    }
+                } catch {
+                    this.sourcifyRecord.value = null
+                    this.ipfsMetadata.value = null
+                    this.abi.value = null
+                }
             }
         } else {
-            this.systemContractEntryRef.value = null
+            this.systemContractEntry.value = null
+            this.sourcifyRecord.value = null
+            this.ipfsMetadata.value = null
+            this.abi.value = null
         }
     }
+
+    private async loadFromIPFS(ipfsURL: string): Promise<SolcMetadata|null> {
+        let result: SolcMetadata|null
+        this.ipfsLoading.value = true
+        try {
+            const options = { timeout: 10000 }
+            const stealthAxios = axios.create()
+            result = (await stealthAxios.get<SolcMetadata>(ipfsURL, options)).data
+        } catch {
+            result = null
+        } finally {
+            this.ipfsLoading.value = false
+        }
+        return Promise.resolve(result)
+    }
+}
+
+export enum MetadataOrigin {
+    System,
+    Sourcify,
+    IPFS,
+    // LocalStorage,
 }
