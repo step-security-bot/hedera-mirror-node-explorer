@@ -18,32 +18,47 @@
  *
  */
 
-import {computed, Ref, ref, watch, WatchStopHandle} from "vue";
+import {computed, Ref, ref} from "vue";
 import {decode} from "@ethereum-sourcify/bytecode-utils";
 import {SolcMetadata} from "@/utils/solc/SolcMetadata";
-import axios from "axios";
+import {Lookup} from "@/utils/cache/base/EntityCache";
+import {IPFSCache} from "@/utils/cache/IPFSCache";
 
 export class ByteCodeAnalyzer {
 
-    public readonly byteCode = ref<string|undefined>(undefined)
+    public readonly byteCode = ref<string|null>(null)
+    public readonly ipfsLookup: Lookup<string, unknown|undefined>
 
     //
     // Public
     //
 
-    public constructor(byteCode: Ref<string|undefined>) {
+    public constructor(byteCode: Ref<string|null>) {
         this.byteCode = byteCode
+        this.ipfsLookup = IPFSCache.instance.makeLookup(this.ipfsHash)
+        // this.swarmLookup = SWARMCache.instance.makeLookup(computed(() => this.swarmHash.value ?? null))
     }
 
-    public readonly solcVersion = computed(() => this.decodedObject.value?.solcVersion)
+    public mount(): void {
+        this.ipfsLookup.mount()
+    }
 
-    public readonly ipfsHash = computed(() => this.decodedObject.value?.ipfs)
+    public unmount(): void {
+        this.ipfsLookup.unmount()
+    }
 
-    public readonly swarmHash = computed(() => this.decodedObject.value?.bzzr1)
+    public readonly solcVersion = computed(() => this.decodedObject.value?.solcVersion ?? null)
 
-    public readonly ipfsURL = computed(() => {
-        return this.ipfsHash.value ? "https://ipfs.io/ipfs/" + this.ipfsHash.value : undefined
-    })
+    public readonly ipfsHash = computed(() => this.decodedObject.value?.ipfs ?? null)
+
+    public readonly swarmHash = computed(() => this.decodedObject.value?.bzzr1 ?? null)
+
+    public readonly ipfsURL = computed(() => this.ipfsHash.value ? "https://ipfs.io/ipfs/" + this.ipfsHash.value : null)
+
+    public readonly ipfsMetadata = computed(() => this.ipfsLookup.entity.value as SolcMetadata|null)
+
+    public readonly metadata = computed(() => this.ipfsMetadata.value)
+
 
     //
     // Private

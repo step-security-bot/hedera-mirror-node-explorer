@@ -33,25 +33,25 @@
         <Property id="code">
             <template v-slot:name>Runtime Bytecode</template>
             <template v-slot:value>
-                <ByteCodeValue :byte-code="byteCode"/>
+                <ByteCodeValue :byte-code="byteCode ?? undefined"/>
             </template>
         </Property>
         <Property id="solcVersion">
             <template v-slot:name>Compiler Version</template>
             <template v-slot:value>
-                <StringValue :string-value="solcVersion"/>
+                <StringValue :string-value="solcVersion ?? undefined"/>
             </template>
         </Property>
         <Property id="ipfsHash">
             <template v-slot:name>IPFS Hash</template>
             <template v-slot:value>
-                <StringValue :string-value="ipfsHash"/>
+                <StringValue :string-value="ipfsHash ?? undefined"/>
             </template>
         </Property>
         <Property id="swarmHash">
             <template v-slot:name>SWARM Hash</template>
             <template v-slot:value>
-                <StringValue :string-value="swarmHash"/>
+                <StringValue :string-value="swarmHash ?? undefined"/>
             </template>
         </Property>
 
@@ -92,7 +92,7 @@ export default defineComponent({
     onMounted(() => contractLookup.mount())
     onBeforeUnmount(() => contractLookup.unmount())
 
-    const byteCode = computed(() => contractLookup.entity.value?.runtime_bytecode ?? undefined)
+    const byteCode = computed(() => contractLookup.entity.value?.runtime_bytecode ?? null)
     const byteCodeAnalyzer = new ByteCodeAnalyzer(byteCode)
 
     return {

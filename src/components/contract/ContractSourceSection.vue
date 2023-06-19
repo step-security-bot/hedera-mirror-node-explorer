@@ -30,7 +30,15 @@
     </template>
 
     <template v-slot:content>
-        <span>{{ contractId }}</span>
+      <template v-if="isUnknownContract">
+        <span>Contract sources are not available</span>
+      </template><template v-if="isSystemContract">
+        <span>This is a system contract</span>
+      </template><template v-if="isContractOnSourcify">
+        <span>Contract is verified on Sourcify</span>
+      </template><template v-if="isContractOnIPFS">
+        <span>Contract is available on IPFS</span>
+      </template>
     </template>
   </DashboardCard>
 
@@ -44,16 +52,12 @@
 
 import {computed, defineComponent, inject, onBeforeUnmount, onMounted} from 'vue';
 import DashboardCard from "@/components/DashboardCard.vue";
-import ByteCodeValue from "@/components/values/ByteCodeValue.vue";
-import StringValue from "@/components/values/StringValue.vue";
-import Property from "@/components/Property.vue";
-import {ContractByIdCache} from "@/utils/cache/ContractByIdCache";
-import {ContractSourceAnalyzer} from "@/utils/analyzer/ContractSourceAnalyzer";
+import {ContractAnalyzer} from "@/utils/analyzer/ContractAnalyzer";
 
 export default defineComponent({
   name: 'ContractSourceSection',
 
-  components: {Property,StringValue, ByteCodeValue, DashboardCard},
+  components: {DashboardCard},
 
   props: {
     contractId: String
@@ -65,18 +69,18 @@ export default defineComponent({
     const isMediumScreen = inject('isMediumScreen', true)
 
     const contractId = computed(() => props.contractId ?? null)
-    const contractLookup = ContractByIdCache.instance.makeLookup(contractId)
-    onMounted(() => contractLookup.mount())
-    onBeforeUnmount(() => contractLookup.unmount())
-
-    const contractSourceAnalyzer = new ContractSourceAnalyzer(computed(() => contractLookup.entity.value ?? undefined))
-    onMounted(() => contractSourceAnalyzer.mount())
-    onBeforeUnmount(() => contractSourceAnalyzer.unmount())
+    const contractAnalyzer = new ContractAnalyzer(contractId)
+    onMounted(() => contractAnalyzer.mount())
+    onBeforeUnmount(() => contractAnalyzer.unmount())
 
     return {
       isTouchDevice,
       isSmallScreen,
       isMediumScreen,
+      isUnknownContract: contractAnalyzer.isUnknownContract,
+      isSystemContract: contractAnalyzer.isSystemContract,
+      isContractOnSourcify: contractAnalyzer.isContractOnSourcify,
+      isContractOnIPFS: contractAnalyzer.isContractOnIPFS,
     }
   }
 });

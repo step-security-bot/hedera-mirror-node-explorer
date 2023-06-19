@@ -23,24 +23,26 @@
 import {ref} from "vue";
 import {flushPromises} from "@vue/test-utils";
 import MockAdapter from "axios-mock-adapter";
-import axios from "axios";
 import {ByteCodeAnalyzer} from "@/utils/analyzer/ByteCodeAnalyzer";
+import {IPFSCache} from "@/utils/cache/IPFSCache";
 
 describe("ByteCodeAnalyzer.spec.ts", () => {
 
     test("basic flow", async () => {
 
-        const mock = new MockAdapter(axios);
+        const mock = new MockAdapter(IPFSCache.instance.privateAxios)
         mock.onGet(BYTECODE1_IPFS_URL).reply(200, BYTECODE1_METADATA)
 
         // 1) new
-        const bytecode = ref<string|undefined>()
+        const bytecode = ref<string|null>(null)
         const analyzer = new ByteCodeAnalyzer(bytecode)
-        expect(analyzer.byteCode.value).toBeUndefined()
-        expect(analyzer.solcVersion.value).toBeUndefined()
-        expect(analyzer.ipfsHash.value).toBeUndefined()
-        expect(analyzer.ipfsURL.value).toBeUndefined()
-        expect(analyzer.swarmHash.value).toBeUndefined()
+        expect(analyzer.byteCode.value).toBeNull()
+        expect(analyzer.solcVersion.value).toBeNull()
+        expect(analyzer.ipfsHash.value).toBeNull()
+        expect(analyzer.ipfsURL.value).toBeNull()
+        expect(analyzer.swarmHash.value).toBeNull()
+        expect(analyzer.ipfsMetadata.value).toBeNull()
+        expect(analyzer.metadata.value).toBeNull()
 
         // 2) setup with BYTECODE1
         bytecode.value = BYTECODE1
@@ -49,15 +51,40 @@ describe("ByteCodeAnalyzer.spec.ts", () => {
         expect(analyzer.solcVersion.value).toBe(BYTECODE1_COMPILER_VERSION)
         expect(analyzer.ipfsHash.value).toBe(BYTECODE1_IPFS_HASH)
         expect(analyzer.ipfsURL.value).toBe(BYTECODE1_IPFS_URL)
-        expect(analyzer.swarmHash.value).toBeUndefined()
+        expect(analyzer.swarmHash.value).toBeNull()
+        expect(analyzer.ipfsMetadata.value).toBeNull()  // Because not mounted
+        expect(analyzer.metadata.value).toBeNull()      // Because not mounted
 
-        // 3) setup with BYTECODE2
+        // 3) mount
+        analyzer.mount()
+        await flushPromises()
+        expect(analyzer.byteCode.value).toBe(BYTECODE1)
+        expect(analyzer.solcVersion.value).toBe(BYTECODE1_COMPILER_VERSION)
+        expect(analyzer.ipfsHash.value).toBe(BYTECODE1_IPFS_HASH)
+        expect(analyzer.ipfsURL.value).toBe(BYTECODE1_IPFS_URL)
+        expect(analyzer.swarmHash.value).toBeNull()
+        expect(analyzer.ipfsMetadata.value).toStrictEqual(JSON.parse(BYTECODE1_METADATA))
+        expect(analyzer.metadata.value).toStrictEqual(JSON.parse(BYTECODE1_METADATA))
+
+
+        // 4) setup with BYTECODE2
         bytecode.value = BYTECODE2
         await flushPromises()
         expect(analyzer.byteCode.value).toBe(BYTECODE2)
         expect(analyzer.solcVersion.value).toBe(BYTECODE2_COMPILER_VERSION)
-        expect(analyzer.ipfsURL.value).toBeUndefined()
+        expect(analyzer.ipfsURL.value).toBeNull()
         expect(analyzer.swarmHash.value).toBe(BYTECODE2_SWARM_HASH)
+        expect(analyzer.ipfsMetadata.value).toBeNull()
+        expect(analyzer.metadata.value).toBeNull()
+
+        // 5) unmount
+        analyzer.unmount()
+        expect(analyzer.byteCode.value).toBe(BYTECODE2)
+        expect(analyzer.solcVersion.value).toBe(BYTECODE2_COMPILER_VERSION)
+        expect(analyzer.ipfsURL.value).toBeNull()
+        expect(analyzer.swarmHash.value).toBe(BYTECODE2_SWARM_HASH)
+        expect(analyzer.ipfsMetadata.value).toBeNull()
+        expect(analyzer.metadata.value).toBeNull()
 
     })
 
