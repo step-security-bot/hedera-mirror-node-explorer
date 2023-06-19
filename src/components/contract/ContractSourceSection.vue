@@ -29,15 +29,17 @@
       <span class="h-is-secondary-title">Contract Source</span>
     </template>
 
-    <template v-slot:content>
-      <template v-if="isUnknownContract">
+    <template v-slot:content v-if="analyzer">
+      <template v-if="analyzer.metadataOrigin">
+          <div>
+              <div>Metadata Origin: {{ analyzer.metadataOrigin.value }}</div>
+              <div>Contract Name: {{ analyzer.contractName.value }}</div>
+              <template v-for="f of analyzer.sourceFileNames.value" :key="f">
+                  <div>{{ f }}</div>
+              </template>
+          </div>
+      </template><template v-else>
         <span>Contract sources are not available</span>
-      </template><template v-if="isSystemContract">
-        <span>This is a system contract</span>
-      </template><template v-if="isContractOnSourcify">
-        <span>Contract is verified on Sourcify</span>
-      </template><template v-if="isContractOnIPFS">
-        <span>Contract is available on IPFS</span>
       </template>
     </template>
   </DashboardCard>
@@ -50,7 +52,7 @@
 
 <script lang="ts">
 
-import {computed, defineComponent, inject, onBeforeUnmount, onMounted} from 'vue';
+import {defineComponent, inject, PropType} from 'vue';
 import DashboardCard from "@/components/DashboardCard.vue";
 import {ContractAnalyzer} from "@/utils/analyzer/ContractAnalyzer";
 
@@ -60,7 +62,7 @@ export default defineComponent({
   components: {DashboardCard},
 
   props: {
-    contractId: String
+    analyzer: Object as PropType<ContractAnalyzer>
   },
 
   setup: function (props) {
@@ -68,19 +70,10 @@ export default defineComponent({
     const isSmallScreen = inject('isSmallScreen', true)
     const isMediumScreen = inject('isMediumScreen', true)
 
-    const contractId = computed(() => props.contractId ?? null)
-    const contractAnalyzer = new ContractAnalyzer(contractId)
-    onMounted(() => contractAnalyzer.mount())
-    onBeforeUnmount(() => contractAnalyzer.unmount())
-
     return {
       isTouchDevice,
       isSmallScreen,
       isMediumScreen,
-      isUnknownContract: contractAnalyzer.isUnknownContract,
-      isSystemContract: contractAnalyzer.isSystemContract,
-      isContractOnSourcify: contractAnalyzer.isContractOnSourcify,
-      isContractOnIPFS: contractAnalyzer.isContractOnIPFS,
     }
   }
 });
