@@ -86,6 +86,53 @@ export class AppStorage {
     }
 
     //
+    // IPFS
+    //
+
+    private static readonly IPFS_KEY = 'ipfs'
+
+    public static getIPFSContent(ipfsHash: string): string | null {
+        const suffix = this.IPFS_KEY + "/" + ipfsHash + "/content"
+        return this.getLocalStorageItem(suffix)
+    }
+
+    public static setIPFSContent(newValue: string | null, ipfsHash: string ): void {
+        const suffix = this.IPFS_KEY + "/" + ipfsHash + "/content"
+        this.setLocalStorageItem(suffix, newValue)
+    }
+
+    public static getIPFContentJSON(ipfsHash: string): unknown | null {
+        let result: unknown|null
+        const v = this.getIPFSContent(ipfsHash)
+        if (v !== null) {
+            try {
+                result = JSON.parse(v)
+            } catch {
+                result = null
+            }
+        } else {
+            result = null
+        }
+        return result
+    }
+
+    public static setIPFSContentJSON(newValue: unknown|null, ipfsHash: string): void {
+        const jsonText = newValue !== null ? JSON.stringify(newValue) : null
+        this.setIPFSContent(jsonText, ipfsHash)
+    }
+
+    public static getIPFSName(ipfsHash: string): string|null {
+        const suffix = this.IPFS_KEY + "/" + ipfsHash + "/name"
+        return this.getLocalStorageItem(suffix)
+    }
+
+    public static setIPFSName(newValue: string|null, ipfsHash: string): void {
+        const suffix = this.IPFS_KEY + "/" + ipfsHash + "/name"
+        this.setLocalStorageItem(suffix, newValue)
+    }
+
+
+    //
     // Private
     //
 
