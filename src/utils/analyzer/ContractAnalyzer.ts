@@ -83,7 +83,9 @@ export class ContractAnalyzer {
             result = MetadataOrigin.System
         } else if (this.sourcifyRecord.value !== null) {
             result = MetadataOrigin.Sourcify
-        } else if (this.byteCodeAnalyzer.metadata.value !==  null) {
+        } else if (this.byteCodeAnalyzer.localStorageMetadata.value !==  null) {
+            result = MetadataOrigin.LocalStorage
+        } else if (this.byteCodeAnalyzer.ipfsMetadata.value !==  null) {
             result = MetadataOrigin.IPFS
         } else {
             result = null
@@ -99,6 +101,8 @@ export class ContractAnalyzer {
         () => this.metadataOrigin.value === MetadataOrigin.Sourcify)
     public readonly isContractOnIPFS = computed(
         () => this.metadataOrigin.value === MetadataOrigin.IPFS)
+    public readonly isContractOnLocalStorage = computed(
+        () => this.metadataOrigin.value === MetadataOrigin.LocalStorage)
 
     public readonly interface: ComputedRef<ethers.utils.Interface|null> = computed(() => {
         let result: ethers.utils.Interface|null
@@ -219,5 +223,5 @@ export enum MetadataOrigin {
     System,
     Sourcify,
     IPFS,
-    // LocalStorage,
+    LocalStorage,
 }

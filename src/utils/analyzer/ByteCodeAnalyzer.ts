@@ -23,6 +23,7 @@ import {decode} from "@ethereum-sourcify/bytecode-utils";
 import {SolcMetadata} from "@/utils/solc/SolcMetadata";
 import {Lookup} from "@/utils/cache/base/EntityCache";
 import {IPFSCache} from "@/utils/cache/IPFSCache";
+import {AppStorage} from "@/AppStorage";
 
 export class ByteCodeAnalyzer {
 
@@ -57,7 +58,17 @@ export class ByteCodeAnalyzer {
 
     public readonly ipfsMetadata = computed(() => this.ipfsLookup.entity.value as SolcMetadata|null)
 
-    public readonly metadata = computed(() => this.ipfsMetadata.value)
+    public readonly localStorageMetadata = computed(() => {
+        let result: SolcMetadata|null
+        if (this.ipfsHash.value !== null) {
+            result = AppStorage.getIPFContentJSON(this.ipfsHash.value) as SolcMetadata|null
+        } else {
+            result = null
+        }
+        return result
+    })
+
+    public readonly metadata = computed(() => this.localStorageMetadata.value ?? this.ipfsMetadata.value)
 
 
     //
