@@ -147,6 +147,19 @@ export class ContractAnalyzer {
         return result
     })
 
+    public readonly sourceFileNames: ComputedRef<string[]> = computed(() => {
+        let result: string[]
+        if (this.systemContractEntry.value !== null) {
+            result = []
+        } else if (this.metadata.value !== null) {
+            const sources = this.metadata.value.sources
+            result = Object.keys(sources)
+        } else {
+            result = []
+        }
+        return result
+    })
+
     //
     // Public (null if contractId is a system contract)
     //
