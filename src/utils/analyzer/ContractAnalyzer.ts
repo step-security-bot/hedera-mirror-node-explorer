@@ -233,8 +233,8 @@ export class ContractAnalyzer {
  }
 
 export enum MetadataOrigin {
-    System,
-    Sourcify,
-    IPFS,
-    LocalStorage,
+    System = "System",
+    Sourcify = "Sourcify",
+    IPFS = "IPFS",
+    LocalStorage = "Local Storage",
 }
