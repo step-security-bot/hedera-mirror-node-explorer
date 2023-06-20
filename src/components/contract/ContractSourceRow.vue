@@ -23,30 +23,12 @@
 <!-- --------------------------------------------------------------------------------------------------------------- -->
 
 <template>
-
-  <DashboardCard>
-    <template v-slot:title>
-      <span class="h-is-secondary-title">Contract Source</span>
-    </template>
-
-    <template v-slot:control>{{ status }}</template>
-
-    <template v-slot:content v-if="analyzer">
-      <template v-if="metadataOrigin">
-          <div>
-              <div>Contract Name: {{ contractName }}</div>
-              <div>Metadata File: {{ metadataOrigin }}</div>
-              <template v-for="f of analyzer.sourceFileNames.value" :key="f">
-                  <ContractSourceRow :file-name="f" :analyzer="analyzer"/>
-              </template>
-          </div>
-      </template><template v-else>
-        <span>Contract sources are not available</span>
-      </template>
-    </template>
-  </DashboardCard>
-
+    <div>
+        <span>{{ fileName }}: </span>
+        <span>{{ status }}</span>
+    </div>
 </template>
+
 
 <!-- --------------------------------------------------------------------------------------------------------------- -->
 <!--                                                      SCRIPT                                                     -->
@@ -54,47 +36,40 @@
 
 <script lang="ts">
 
-import {computed, defineComponent, inject, PropType} from 'vue';
-import DashboardCard from "@/components/DashboardCard.vue";
+import {computed, defineComponent, inject, onBeforeUnmount, onMounted, PropType} from "vue";
 import {ContractAnalyzer} from "@/utils/analyzer/ContractAnalyzer";
-import ContractSourceRow from "@/components/contract/ContractSourceRow.vue";
+import {ContractSourceAnalyzer} from "@/utils/analyzer/ContractSourceAnalyzer";
 
 export default defineComponent({
-  name: 'ContractSourceSection',
+    name: 'ContractSourceRow',
 
-  components: {ContractSourceRow, DashboardCard},
+    components: {},
 
-  props: {
-    analyzer: {
-        type: Object as PropType<ContractAnalyzer>,
-        required: true
-    }
-  },
-
-  setup: function (props) {
-    const isTouchDevice = inject('isTouchDevice', false)
-    const isSmallScreen = inject('isSmallScreen', true)
-    const isMediumScreen = inject('isMediumScreen', true)
-
-    const status = computed(() => {
-        let result: string
-        if (props.analyzer.fullMatch.value !== null) {
-            result = props.analyzer.fullMatch.value ? "Verified (full match)" : "Verified (partial match)"
-        } else {
-            result = "Unverified"
+    props: {
+        fileName: String,
+        analyzer: {
+            type: Object as PropType<ContractAnalyzer>,
+            required: true
         }
-        return result
-    })
-    return {
-      isTouchDevice,
-      isSmallScreen,
-      isMediumScreen,
-      contractName: props.analyzer.contractName,
-      metadataOrigin: props.analyzer.metadataOrigin,
-      status
+    },
+
+    setup: function (props) {
+        const isTouchDevice = inject('isTouchDevice', false)
+        const isSmallScreen = inject('isSmallScreen', true)
+        const isMediumScreen = inject('isMediumScreen', true)
+
+        const sourceAnalyzer = new ContractSourceAnalyzer(computed(() => props.fileName ?? null), props.analyzer)
+        onMounted(() => sourceAnalyzer.mount())
+        onBeforeUnmount(() => sourceAnalyzer.unmount())
+
+        return {
+            isTouchDevice,
+            isSmallScreen,
+            isMediumScreen,
+            status: sourceAnalyzer.status,
+        }
     }
-  }
-});
+})
 
 </script>
 
