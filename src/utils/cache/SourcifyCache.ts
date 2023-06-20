@@ -28,6 +28,28 @@ export class SourcifyCache extends EntityCache<string, SourcifyRecord|null> {
 
     public static readonly instance = new SourcifyCache()
 
+
+    //
+    // Public
+    //
+
+    public static fetchMetadata(response: SourcifyResponse): SolcMetadata|null {
+
+        // https://docs.sourcify.dev/docs/api/server/get-source-files-all/
+
+        let result: SolcMetadata|null = null
+        try {
+            for (const i of response.files) {
+                if (i.name === "metadata.json") {
+                    result = JSON.parse(i.content)
+                    break
+                }
+            }
+        } catch {}
+
+        return result
+    }
+
     //
     // Cache
     //
@@ -39,19 +61,16 @@ export class SourcifyCache extends EntityCache<string, SourcifyRecord|null> {
             const contractResponse = await ContractByIdCache.instance.lookup(contractId)
             const contractAddress = contractResponse?.evm_address
             if (contractAddress) {
-                const partialMatchURL = sourcifySetup.makeMetadataURL(contractAddress, false)
-                const metadata = await SourcifyCache.loadSourcifyMetadata(partialMatchURL)
-                if (metadata !== null) {
+                const requestURL = sourcifySetup.makeRequestURL(contractAddress)
+                try {
+                    const response = await axios.get<SourcifyResponse>(requestURL)
                     const repoURL = sourcifySetup.makeContractLookupURL(contractAddress)
-                    result = new SourcifyRecord(metadata, false, repoURL)
-                } else {
-                    const fullMatchURL = sourcifySetup.makeMetadataURL(contractAddress, true)
-                    const metadata = await SourcifyCache.loadSourcifyMetadata(fullMatchURL)
-                    if (metadata !== null) {
-                        const repoURL = sourcifySetup.makeContractLookupURL(contractAddress)
-                        result = new SourcifyRecord(metadata, true, repoURL)
-                    } else {
+                    result = new SourcifyRecord(response.data, response.data.status === "full", repoURL)
+                } catch(error) {
+                    if (axios.isAxiosError(error) && error.response?.status == 404) {
                         result = null
+                    } else {
+                        throw error
                     }
                 }
             } else {
@@ -62,35 +81,26 @@ export class SourcifyCache extends EntityCache<string, SourcifyRecord|null> {
         }
         return Promise.resolve(result)
     }
-
-
-    //
-    // Private
-    //
-
-    private static async loadSourcifyMetadata(metadataURL: string): Promise<SolcMetadata|null> {
-        let result: SolcMetadata|null
-        try {
-            const response = await axios.get<SolcMetadata>(metadataURL)
-            result = response.data
-        } catch(error) {
-            if (axios.isAxiosError(error) && error.response?.status == 404) {
-                result = null
-            } else {
-                throw error
-            }
-        }
-        return Promise.resolve(result)
-    }
 }
 
 export class SourcifyRecord {
-    public readonly metadata: SolcMetadata
+    public readonly response: SourcifyResponse
     public readonly fullMatch: boolean
     public readonly folderURL: string
-    constructor(metadata: SolcMetadata, fullMatch: boolean, folderURL: string) {
-        this.metadata = metadata
+    constructor(response: SourcifyResponse, fullMatch: boolean, folderURL: string) {
+        this.response = response
         this.fullMatch = fullMatch
         this.folderURL = folderURL
     }
+}
+
+export interface SourcifyResponse {
+    status: string,
+    files: SourcifyResponseItem[]
+}
+
+export interface SourcifyResponseItem {
+    name: string,
+    path: string,
+    content: string
 }

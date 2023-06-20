@@ -68,7 +68,7 @@ export class ContractAnalyzer {
     public readonly metadata: ComputedRef<SolcMetadata|null> = computed(() => {
         let result: SolcMetadata|null
         if (this.sourcifyRecord.value !== null) {
-            result = this.sourcifyRecord.value.metadata
+            result = SourcifyCache.fetchMetadata(this.sourcifyRecord.value.response)
         } else if (this.byteCodeAnalyzer.metadata.value !== null) {
             result = this.byteCodeAnalyzer.metadata.value
         } else {

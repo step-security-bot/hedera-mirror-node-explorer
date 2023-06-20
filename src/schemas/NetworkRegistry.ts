@@ -113,6 +113,11 @@ export class SourcifySetup {
 
     // https://docs.sourcify.dev/docs/api/repository/get-file-static/
 
+    makeRequestURL(contractAddress: string): string {
+        const normalizedAddress = EthereumAddress.normalizeEIP55(contractAddress)
+        return this.serverURL + "files/any/" + this.chainID + "/" + normalizedAddress
+    }
+
     makeMetadataURL(contractAddress: string, full: boolean): string {
         const normalizedAddress = EthereumAddress.normalizeEIP55(contractAddress)
         const matchPrefix = full ? "full_match/" : "partial_match/"
@@ -145,7 +150,7 @@ export class NetworkRegistry {
             ledgerID: '00',
             sourcifySetup: new SourcifySetup(
                 "https://repo.sourcify.simonvienot.fr/contracts/",
-                "https://sourcify.simonvienot.fr/server/repository/contracts/",
+                "https://sourcify.simonvienot.fr/server/",
                 "https://sourcify.simonvienot.fr/#/",
                 0x127
             )
@@ -157,7 +162,7 @@ export class NetworkRegistry {
             ledgerID: '01',
             sourcifySetup: new SourcifySetup(
                 "https://repo.sourcify.simonvienot.fr/contracts/",
-                "https://sourcify.simonvienot.fr/server/repository/contracts/",
+                "https://sourcify.simonvienot.fr/server/",
                 "https://sourcify.simonvienot.fr/#/",
                 0x128
             )
@@ -169,7 +174,7 @@ export class NetworkRegistry {
             ledgerID: '02',
             sourcifySetup: new SourcifySetup(
                 "https://repo.sourcify.simonvienot.fr/contracts/",
-                "https://sourcify.simonvienot.fr/server/repository/contracts/",
+                "https://sourcify.simonvienot.fr/server/",
                 "https://sourcify.simonvienot.fr/#/",
                 0x129
             )
