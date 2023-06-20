@@ -133,6 +133,33 @@ export class AppStorage {
 
 
     //
+    // keccak
+    //
+
+    private static readonly KECCAK_KEY = 'keccak'
+
+    public static getKeccakContent(keccak: string): string | null {
+        const suffix = this.KECCAK_KEY + "/" + keccak + "/content"
+        return this.getLocalStorageItem(suffix)
+    }
+
+    public static setKeccakContent(newValue: string | null, keccak: string ): void {
+        const suffix = this.KECCAK_KEY + "/" + keccak + "/content"
+        this.setLocalStorageItem(suffix, newValue)
+    }
+
+    public static getKeccakName(keccak: string): string|null {
+        const suffix = this.KECCAK_KEY + "/" + keccak + "/name"
+        return this.getLocalStorageItem(suffix)
+    }
+
+    public static setKeccakName(newValue: string|null, keccak: string): void {
+        const suffix = this.KECCAK_KEY + "/" + keccak + "/name"
+        this.setLocalStorageItem(suffix, newValue)
+    }
+
+
+    //
     // Private
     //
 
