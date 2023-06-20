@@ -34,7 +34,7 @@ export class ContractAnalyzer {
     private readonly byteCodeAnalyzer: ByteCodeAnalyzer
     private readonly contractResponse: Ref<ContractResponse|null> = ref(null)
     private readonly systemContractEntry: Ref<SystemContractEntry|null> = ref(null)
-    private readonly sourcifyRecord: Ref<SourcifyRecord|null> = ref(null)
+    public readonly sourcifyRecord: Ref<SourcifyRecord|null> = ref(null)
     private readonly abi: Ref<ethers.utils.Fragment[]|null> = ref(null)
 
     private watchHandles: WatchStopHandle[] = []

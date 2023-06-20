@@ -18,61 +18,146 @@
  *
  */
 
-import {computed, ref, Ref, watch, WatchStopHandle} from 'vue';
-import {ContractResponse} from "@/schemas/HederaSchemas";
-import {ByteCodeAnalyzer} from "@/utils/analyzer/ByteCodeAnalyzer";
-import {SolcMetadata} from "@/utils/solc/SolcMetadata";
-import axios from "axios";
+import {computed, Ref} from 'vue';
+import {ContractAnalyzer, MetadataOrigin} from "@/utils/analyzer/ContractAnalyzer";
+import {Lookup} from "@/utils/cache/base/EntityCache";
+import {IPFSCache} from "@/utils/cache/IPFSCache";
+import {SolcUtils} from "@/utils/solc/SolcUtils";
+import {SourcifyCache} from "@/utils/cache/SourcifyCache";
+import {AppStorage} from "@/AppStorage";
+import {ethers} from "ethers";
 
 export class ContractSourceAnalyzer {
 
-    public readonly contract: Ref<ContractResponse|undefined>
-    private readonly byteCodeAnalyzer: ByteCodeAnalyzer
-    private readonly watchHandle: Ref<WatchStopHandle|null> = ref(null)
-    private readonly ipfsLoading = ref<boolean>(false)
-    private readonly ipfsMetadata: Ref<SolcMetadata|undefined> = ref(undefined)
+    public readonly sourceFileName: Ref<string|null>
+    public readonly contractAnalyzer: ContractAnalyzer
+    public readonly ipfsLookup: Lookup<string, unknown|undefined>
 
     //
     // Public
     //
 
-    public constructor(contract: Ref<ContractResponse|undefined>) {
-        this.contract = contract
-        this.byteCodeAnalyzer = new ByteCodeAnalyzer(computed(() => contract.value?.runtime_bytecode ?? undefined))
+    public constructor(sourceFileName: Ref<string|null>, contractAnalyzer: ContractAnalyzer) {
+        this.sourceFileName = sourceFileName
+        this.contractAnalyzer = contractAnalyzer
+        this.ipfsLookup = IPFSCache.instance.makeLookup(this.ipfsHash)
     }
 
+
     public mount(): void {
-        this.watchHandle.value = watch(this.byteCodeAnalyzer.ipfsURL,this.ipfsUrlDidChange, { immediate: true})
+        this.ipfsLookup.mount()
     }
 
     public unmount(): void {
-        if (this.watchHandle.value !== null) {
-            this.watchHandle.value()
-            this.watchHandle.value = null
-        }
-        this.ipfsMetadata.value = undefined
+        this.ipfsLookup.unmount()
     }
+
+    //
+    // Public (computed)
+    //
+
+    public readonly content = computed(
+        () => this.sourcifyContent.value ?? this.localStorageContent.value ?? this.ipfsContent.value)
+
+    public readonly fullMatch = computed(() => {
+        let result: boolean
+        if (this.content.value !== null && this.keccakHash.value !== null) {
+            const encoder = new TextEncoder()
+            const contentBytes = encoder.encode(this.content.value)
+            const contentHash = ethers.utils.keccak256(contentBytes)
+            result = contentHash === this.keccakHash.value
+        } else {
+            result = false
+        }
+        return result
+    })
+
+    public readonly origin = computed(() => {
+        let result: MetadataOrigin|null
+        if (this.sourcifyContent.value !== null) {
+            result = MetadataOrigin.Sourcify
+        } else if (this.localStorageContent.value !== null) {
+            result = MetadataOrigin.LocalStorage
+        } else if (this.ipfsContent.value !== null) {
+            result = MetadataOrigin.IPFS
+        } else {
+            result = null
+        }
+        return result
+    })
+
+    public readonly status = computed(() => {
+        let result: string
+        if (this.origin.value !== null) {
+            result = this.origin.value
+            if (!this.fullMatch.value) {
+                result += " (mismatch)"
+            }
+        } else {
+            result = "Missing"
+        }
+        return result
+    })
 
     //
     // Private
     //
 
-    private readonly ipfsUrlDidChange = async () => {
-        const ipfsURL = this.byteCodeAnalyzer.ipfsURL.value
-        if (ipfsURL) {
-            this.ipfsLoading.value = true
-            try {
-                const options = { timeout: 10000 }
-                const stealthAxios = axios.create()
-                this.ipfsMetadata.value = (await stealthAxios.get<SolcMetadata>(ipfsURL, options)).data
-            } catch {
-                this.ipfsMetadata.value = undefined
-            } finally {
-                this.ipfsLoading.value = false
-            }
+    private readonly sourcifyContent = computed(() => {
+        let result: string|null
+        const response = this.contractAnalyzer.sourcifyRecord.value?.response ?? null
+        if (response !== null && this.sourceFileName.value !== null) {
+            result = SourcifyCache.fetchSource(this.sourceFileName.value, response)
         } else {
-            this.ipfsMetadata.value = undefined
+            result = null
         }
-    }
+        return result
+    })
+
+    private readonly localStorageContent = computed(
+        () => this.keccakHash.value !== null ? AppStorage.getKeccakContent(this.keccakHash.value) : null)
+
+    private readonly ipfsContent = computed(() => {
+        let result: string|null
+        const content = this.ipfsLookup.entity.value
+        if (typeof content == "string") {
+            result = content
+        } else if (typeof content === "object") {
+            result = JSON.stringify(content)
+        } else {
+            result = null
+        }
+        return result
+    })
+
+    private readonly ipfsHash = computed(() => {
+        let result: string|null
+        if (this.sourceFileName.value !== null && this.contractAnalyzer.metadata.value !== null) {
+            result = SolcUtils.fetchIPFSHash(this.sourceFileName.value, this.contractAnalyzer.metadata.value)
+        } else {
+            result = null
+        }
+        return result
+    })
+
+    private readonly swarmHash = computed(() => {
+        let result: string|null
+        if (this.sourceFileName.value !== null && this.contractAnalyzer.metadata.value !== null) {
+            result = SolcUtils.fetchSWARMHash(this.sourceFileName.value, this.contractAnalyzer.metadata.value)
+        } else {
+            result = null
+        }
+        return result
+    })
+
+    private readonly keccakHash = computed(() => {
+        let result: string|null
+        if (this.sourceFileName.value !== null && this.contractAnalyzer.metadata.value !== null) {
+            result = SolcUtils.fetchKeccakHash(this.sourceFileName.value, this.contractAnalyzer.metadata.value)
+        } else {
+            result = null
+        }
+        return result
+    })
 
 }
