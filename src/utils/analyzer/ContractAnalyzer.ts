@@ -49,6 +49,7 @@ export class ContractAnalyzer {
     }
 
     public mount(): void {
+        this.byteCodeAnalyzer.mount()
         this.watchHandles = [
             watch(this.contractId, this.contractIdDidChange, { immediate: true}),
             watch(this.contractResponse, this.contractResponseDidChange, { immediate: true}),
@@ -57,6 +58,7 @@ export class ContractAnalyzer {
     }
 
     public unmount(): void {
+        this.byteCodeAnalyzer.unmount()
         for (const wh of this.watchHandles) wh()
         this.watchHandles = []
         this.contractResponse.value = null
