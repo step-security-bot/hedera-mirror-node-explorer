@@ -122,7 +122,7 @@ export class ContractSourceAnalyzer {
         const content = this.ipfsLookup.entity.value
         if (typeof content == "string") {
             result = content
-        } else if (typeof content === "object") {
+        } else if (typeof content === "object" && content !== null) {
             result = JSON.stringify(content)
         } else {
             result = null
