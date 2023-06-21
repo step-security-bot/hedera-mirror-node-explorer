@@ -62,8 +62,7 @@ export class ContractSourceAnalyzer {
     public readonly fullMatch = computed(() => {
         let result: boolean
         if (this.content.value !== null && this.keccakHash.value !== null) {
-            const encoder = new TextEncoder()
-            const contentBytes = encoder.encode(this.content.value)
+            const contentBytes = ethers.utils.toUtf8Bytes(this.content.value)
             const contentHash = ethers.utils.keccak256(contentBytes)
             result = contentHash === this.keccakHash.value
         } else {
