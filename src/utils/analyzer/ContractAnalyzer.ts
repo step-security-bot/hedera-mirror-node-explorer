@@ -27,6 +27,7 @@ import {SolcMetadata} from "@/utils/solc/SolcMetadata";
 import {ByteCodeAnalyzer} from "@/utils/analyzer/ByteCodeAnalyzer";
 import {ContractResponse} from "@/schemas/HederaSchemas";
 import {ContractByIdCache} from "@/utils/cache/ContractByIdCache";
+import { AppStorage } from "@/AppStorage";
 
 export class ContractAnalyzer {
 
@@ -34,6 +35,7 @@ export class ContractAnalyzer {
     private readonly byteCodeAnalyzer: ByteCodeAnalyzer
     private readonly contractResponse: Ref<ContractResponse|null> = ref(null)
     private readonly systemContractEntry: Ref<SystemContractEntry|null> = ref(null)
+    private readonly localStorageMetadata: Ref<SolcMetadata|null> = ref(null)
     public readonly sourcifyRecord: Ref<SourcifyRecord|null> = ref(null)
     private readonly abi: Ref<ethers.utils.Fragment[]|null> = ref(null)
 
@@ -71,6 +73,8 @@ export class ContractAnalyzer {
         let result: SolcMetadata|null
         if (this.sourcifyRecord.value !== null) {
             result = SourcifyCache.fetchMetadata(this.sourcifyRecord.value.response)
+        } else if (this.localStorageMetadata.value !== null) {
+            result = this.localStorageMetadata.value
         } else if (this.byteCodeAnalyzer.metadata.value !== null) {
             result = this.byteCodeAnalyzer.metadata.value
         } else {
@@ -85,7 +89,7 @@ export class ContractAnalyzer {
             result = MetadataOrigin.System
         } else if (this.sourcifyRecord.value !== null) {
             result = MetadataOrigin.Sourcify
-        } else if (this.byteCodeAnalyzer.localStorageMetadata.value !==  null) {
+        } else if (this.localStorageMetadata.value !== null || this.byteCodeAnalyzer.localStorageMetadata.value !==  null) {
             result = MetadataOrigin.LocalStorage
         } else if (this.byteCodeAnalyzer.ipfsMetadata.value !==  null) {
             result = MetadataOrigin.IPFS
@@ -180,6 +184,19 @@ export class ContractAnalyzer {
     public readonly sourcifyURL: ComputedRef<string|null> = computed(
         () => this.sourcifyRecord.value?.folderURL ?? null)
 
+
+    //
+    // Public (user actions)
+    //
+
+    public userDidSelectMetadata(metadata: SolcMetadata): void {
+        if (this.contractId.value !== null) {
+            AppStorage.setMetadata(metadata, this.contractId.value)
+            this.updateLocalStorageMetadata()
+        }
+        // else should not happen
+    }
+
     //
     // Private
     //
@@ -202,6 +219,7 @@ export class ContractAnalyzer {
             this.systemContractEntry.value = null
             this.contractResponse.value = null
         }
+        this.updateLocalStorageMetadata()
     }
 
     private contractResponseDidChange = async () => {
@@ -232,6 +250,9 @@ export class ContractAnalyzer {
         }
     }
 
+    private updateLocalStorageMetadata(): void {
+        this.localStorageMetadata.value = this.contractId.value != null ? AppStorage.getMetadata(this.contractId.value) : null
+    }
  }
 
 export enum MetadataOrigin {

@@ -41,8 +41,12 @@
               </template>
           </div>
       </template><template v-else>
-        <span>Contract sources are not available</span>
-      </template>
+        <div>Contract sources are not available</div>
+        <FileChooserAction  v-model:file-content="selectedMetadataContent"
+                            v-model:file-name="selectedMetadataName"
+                            actionLabel="Set Metadata JSON File…"
+                            fileType=".json"/>
+    </template>
     </template>
   </DashboardCard>
 
@@ -54,15 +58,16 @@
 
 <script lang="ts">
 
-import {computed, defineComponent, inject, PropType} from 'vue';
+import {computed, defineComponent, inject, PropType, ref, watch} from 'vue';
 import DashboardCard from "@/components/DashboardCard.vue";
 import {ContractAnalyzer} from "@/utils/analyzer/ContractAnalyzer";
 import ContractSourceRow from "@/components/contract/ContractSourceRow.vue";
+import FileChooserAction from "@/components/FileChooserAction.vue";
 
 export default defineComponent({
   name: 'ContractSourceSection',
 
-  components: {ContractSourceRow, DashboardCard},
+  components: {FileChooserAction, ContractSourceRow, DashboardCard},
 
   props: {
     analyzer: {
@@ -85,13 +90,30 @@ export default defineComponent({
         }
         return result
     })
+
+    const selectedMetadataContent = ref<string|null>(null)
+    const selectedMetadataName = ref<string|null>(null)
+    watch(selectedMetadataContent, () => {
+        if (selectedMetadataContent.value !==  null) {
+            try {
+                const metadata = JSON.parse(selectedMetadataContent.value)
+                props.analyzer.userDidSelectMetadata(metadata)
+            } catch {
+                console.log("Failed to parse metadata content")
+            }
+            selectedMetadataContent.value = null
+        }
+    })
+
     return {
       isTouchDevice,
       isSmallScreen,
       isMediumScreen,
       contractName: props.analyzer.contractName,
       metadataOrigin: props.analyzer.metadataOrigin,
-      status
+      status,
+      selectedMetadataContent,
+      selectedMetadataName
     }
   }
 });
