@@ -18,7 +18,7 @@
  *
  */
 
-import {computed, Ref} from 'vue';
+import {computed, ref, Ref, watch, WatchStopHandle} from 'vue';
 import {ContractAnalyzer, MetadataOrigin} from "@/utils/analyzer/ContractAnalyzer";
 import {Lookup} from "@/utils/cache/base/EntityCache";
 import {IPFSCache} from "@/utils/cache/IPFSCache";
@@ -32,6 +32,8 @@ export class ContractSourceAnalyzer {
     public readonly sourceFileName: Ref<string|null>
     public readonly contractAnalyzer: ContractAnalyzer
     public readonly ipfsLookup: Lookup<string, unknown|undefined>
+    private readonly localStorageContent: Ref<string|null> = ref(null)
+    private watchHandle: WatchStopHandle|null = null
 
     //
     // Public
@@ -46,10 +48,15 @@ export class ContractSourceAnalyzer {
 
     public mount(): void {
         this.ipfsLookup.mount()
+        this.watchHandle = watch(this.sourceFileName, this.updateLocalStorageContent, {immediate: true})
     }
 
     public unmount(): void {
         this.ipfsLookup.unmount()
+        if (this.watchHandle !== null) {
+            this.watchHandle()
+            this.watchHandle = null
+        }
     }
 
     //
@@ -85,15 +92,16 @@ export class ContractSourceAnalyzer {
         return result
     })
 
-    public readonly status = computed(() => {
-        let result: string
-        if (this.origin.value !== null) {
-            result = this.origin.value + (this.fullMatch.value ? " (match)" : " (mismatch)")
-        } else {
-            result = "Missing"
+    //
+    // Public (user actions)
+    //
+
+    public userDidSelectContent(content: string): void {
+        if (this.sourceFileName.value !== null) {
+            AppStorage.setSource(content, this.sourceFileName.value)
+            this.updateLocalStorageContent()
         }
-        return result
-    })
+    }
 
     //
     // Private
@@ -109,9 +117,6 @@ export class ContractSourceAnalyzer {
         }
         return result
     })
-
-    private readonly localStorageContent = computed(
-        () => this.keccakHash.value !== null ? AppStorage.getKeccakContent(this.keccakHash.value) : null)
 
     private readonly ipfsContent = computed(() => {
         let result: string|null
@@ -156,4 +161,11 @@ export class ContractSourceAnalyzer {
         return result
     })
 
+    private readonly updateLocalStorageContent = () => {
+        if (this.sourceFileName.value !== null) {
+            this.localStorageContent.value = AppStorage.getSource(this.sourceFileName.value)
+        } else {
+            this.localStorageContent.value = null
+        }
+    }
 }

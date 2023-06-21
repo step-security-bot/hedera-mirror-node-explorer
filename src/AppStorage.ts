@@ -115,77 +115,19 @@ export class AppStorage {
         this.setLocalStorageItem(suffix, JSON.stringify(newValue))
     }
 
-
     //
-    // IPFS
+    // source
     //
 
-    private static readonly IPFS_KEY = 'ipfs'
+    private static readonly SOURCE = 'source'
 
-    public static getIPFSContent(ipfsHash: string): string | null {
-        const suffix = this.IPFS_KEY + "/" + ipfsHash + "/content"
+    public static getSource(name: string): string | null {
+        const suffix = this.SOURCE + "/" + name
         return this.getLocalStorageItem(suffix)
     }
 
-    public static setIPFSContent(newValue: string | null, ipfsHash: string ): void {
-        const suffix = this.IPFS_KEY + "/" + ipfsHash + "/content"
-        this.setLocalStorageItem(suffix, newValue)
-    }
-
-    public static getIPFContentJSON(ipfsHash: string): unknown | null {
-        let result: unknown|null
-        const v = this.getIPFSContent(ipfsHash)
-        if (v !== null) {
-            try {
-                result = JSON.parse(v)
-            } catch {
-                result = null
-            }
-        } else {
-            result = null
-        }
-        return result
-    }
-
-    public static setIPFSContentJSON(newValue: unknown|null, ipfsHash: string): void {
-        const jsonText = newValue !== null ? JSON.stringify(newValue) : null
-        this.setIPFSContent(jsonText, ipfsHash)
-    }
-
-    public static getIPFSName(ipfsHash: string): string|null {
-        const suffix = this.IPFS_KEY + "/" + ipfsHash + "/name"
-        return this.getLocalStorageItem(suffix)
-    }
-
-    public static setIPFSName(newValue: string|null, ipfsHash: string): void {
-        const suffix = this.IPFS_KEY + "/" + ipfsHash + "/name"
-        this.setLocalStorageItem(suffix, newValue)
-    }
-
-
-    //
-    // keccak
-    //
-
-    private static readonly KECCAK_KEY = 'keccak'
-
-    public static getKeccakContent(keccak: string): string | null {
-        const suffix = this.KECCAK_KEY + "/" + keccak + "/content"
-        return this.getLocalStorageItem(suffix)
-    }
-
-    public static setKeccakContent(newValue: string | null, keccak: string ): void {
-        const suffix = this.KECCAK_KEY + "/" + keccak + "/content"
-        this.setLocalStorageItem(suffix, newValue)
-    }
-
-    public static getKeccakName(keccak: string): string|null {
-        const suffix = this.KECCAK_KEY + "/" + keccak + "/name"
-        return this.getLocalStorageItem(suffix)
-    }
-
-    public static setKeccakName(newValue: string|null, keccak: string): void {
-        const suffix = this.KECCAK_KEY + "/" + keccak + "/name"
+    public static setSource(newValue: string | null, contractId: string ): void {
+        const suffix = this.SOURCE + "/" + contractId
         this.setLocalStorageItem(suffix, newValue)
     }
 

@@ -75,8 +75,8 @@ export class ContractAnalyzer {
             result = SourcifyCache.fetchMetadata(this.sourcifyRecord.value.response)
         } else if (this.localStorageMetadata.value !== null) {
             result = this.localStorageMetadata.value
-        } else if (this.byteCodeAnalyzer.metadata.value !== null) {
-            result = this.byteCodeAnalyzer.metadata.value
+        } else if (this.byteCodeAnalyzer.ipfsMetadata.value !== null) {
+            result = this.byteCodeAnalyzer.ipfsMetadata.value
         } else {
             result = null
         }
@@ -89,7 +89,7 @@ export class ContractAnalyzer {
             result = MetadataOrigin.System
         } else if (this.sourcifyRecord.value !== null) {
             result = MetadataOrigin.Sourcify
-        } else if (this.localStorageMetadata.value !== null || this.byteCodeAnalyzer.localStorageMetadata.value !==  null) {
+        } else if (this.localStorageMetadata.value !== null) {
             result = MetadataOrigin.LocalStorage
         } else if (this.byteCodeAnalyzer.ipfsMetadata.value !==  null) {
             result = MetadataOrigin.IPFS

@@ -42,7 +42,6 @@ describe("ByteCodeAnalyzer.spec.ts", () => {
         expect(analyzer.ipfsURL.value).toBeNull()
         expect(analyzer.swarmHash.value).toBeNull()
         expect(analyzer.ipfsMetadata.value).toBeNull()
-        expect(analyzer.metadata.value).toBeNull()
 
         // 2) setup with BYTECODE1
         bytecode.value = BYTECODE1
@@ -53,7 +52,6 @@ describe("ByteCodeAnalyzer.spec.ts", () => {
         expect(analyzer.ipfsURL.value).toBe(BYTECODE1_IPFS_URL)
         expect(analyzer.swarmHash.value).toBeNull()
         expect(analyzer.ipfsMetadata.value).toBeNull()  // Because not mounted
-        expect(analyzer.metadata.value).toBeNull()      // Because not mounted
 
         // 3) mount
         analyzer.mount()
@@ -64,7 +62,6 @@ describe("ByteCodeAnalyzer.spec.ts", () => {
         expect(analyzer.ipfsURL.value).toBe(BYTECODE1_IPFS_URL)
         expect(analyzer.swarmHash.value).toBeNull()
         expect(analyzer.ipfsMetadata.value).toStrictEqual(JSON.parse(BYTECODE1_METADATA))
-        expect(analyzer.metadata.value).toStrictEqual(JSON.parse(BYTECODE1_METADATA))
 
 
         // 4) setup with BYTECODE2
@@ -75,7 +72,6 @@ describe("ByteCodeAnalyzer.spec.ts", () => {
         expect(analyzer.ipfsURL.value).toBeNull()
         expect(analyzer.swarmHash.value).toBe(BYTECODE2_SWARM_HASH)
         expect(analyzer.ipfsMetadata.value).toBeNull()
-        expect(analyzer.metadata.value).toBeNull()
 
         // 5) unmount
         analyzer.unmount()
@@ -84,7 +80,6 @@ describe("ByteCodeAnalyzer.spec.ts", () => {
         expect(analyzer.ipfsURL.value).toBeNull()
         expect(analyzer.swarmHash.value).toBe(BYTECODE2_SWARM_HASH)
         expect(analyzer.ipfsMetadata.value).toBeNull()
-        expect(analyzer.metadata.value).toBeNull()
 
     })
 
