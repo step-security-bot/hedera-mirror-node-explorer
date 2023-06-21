@@ -88,10 +88,7 @@ export class ContractSourceAnalyzer {
     public readonly status = computed(() => {
         let result: string
         if (this.origin.value !== null) {
-            result = this.origin.value
-            if (!this.fullMatch.value) {
-                result += " (mismatch)"
-            }
+            result = this.origin.value + (this.fullMatch.value ? " (match)" : " (mismatch)")
         } else {
             result = "Missing"
         }
