@@ -57,11 +57,11 @@ export default defineComponent({
     components: {FileChooserAction},
 
     props: {
-        fileName: {
-            type: String,
+        sourceAnalyzer: {
+            type: Object as PropType<ContractSourceAnalyzer>,
             required: true
         },
-        analyzer: {
+        contractAnalyzer: {
             type: Object as PropType<ContractAnalyzer>,
             required: true
         }
@@ -72,16 +72,16 @@ export default defineComponent({
         const isSmallScreen = inject('isSmallScreen', true)
         const isMediumScreen = inject('isMediumScreen', true)
 
-        const sourceAnalyzer = new ContractSourceAnalyzer(props.fileName, props.analyzer)
-        onMounted(() => sourceAnalyzer.mount())
-        onBeforeUnmount(() => sourceAnalyzer.unmount())
+        onMounted(() => props.sourceAnalyzer.mount())
+        onBeforeUnmount(() => props.sourceAnalyzer.unmount())
 
         const selectedContent = ref<string|null>(null)
         const selectedName = ref<string|null>(null)
         watch(selectedContent, () => {
-            if (selectedContent.value !==  null) {
+            const content = selectedContent.value
+            if (content !== null) {
                 try {
-                    sourceAnalyzer.userDidSelectContent(selectedContent.value)
+                    props.sourceAnalyzer.userDidSelectContent(content)
                 } catch {
                     console.log("Failed to parse metadata content")
                 }
@@ -93,8 +93,9 @@ export default defineComponent({
             isTouchDevice,
             isSmallScreen,
             isMediumScreen,
-            origin: sourceAnalyzer.origin,
-            fullMatch: sourceAnalyzer.fullMatch,
+            fileName: props.sourceAnalyzer.sourceFileName,
+            origin: props.sourceAnalyzer.origin,
+            fullMatch: props.sourceAnalyzer.fullMatch,
             selectedContent,
             selectedName,
         }

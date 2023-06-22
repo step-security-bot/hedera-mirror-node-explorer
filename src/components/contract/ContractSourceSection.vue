@@ -36,8 +36,8 @@
           <div>
               <div>Contract Name: {{ contractName }}</div>
               <div>Metadata File: {{ metadataOrigin }}</div>
-              <template v-for="f of analyzer.sourceFileNames.value" :key="f">
-                  <ContractSourceRow :file-name="f" :analyzer="analyzer"/>
+              <template v-for="a of analyzer.sourceAnalyzers.value" :key="a.sourceFileName">
+                  <ContractSourceRow :source-analyzer="a" :contract-analyzer="analyzer"/>
               </template>
           </div>
       </template><template v-else>

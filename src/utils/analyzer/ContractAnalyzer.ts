@@ -25,6 +25,7 @@ import {AssetCache} from "@/utils/cache/AssetCache";
 import {SourcifyCache, SourcifyRecord} from "@/utils/cache/SourcifyCache";
 import {SolcMetadata} from "@/utils/solc/SolcMetadata";
 import {ByteCodeAnalyzer} from "@/utils/analyzer/ByteCodeAnalyzer";
+import {ContractSourceAnalyzer} from "@/utils/analyzer/ContractSourceAnalyzer";
 import {ContractResponse} from "@/schemas/HederaSchemas";
 import {ContractByIdCache} from "@/utils/cache/ContractByIdCache";
 import {AppStorage} from "@/AppStorage";
@@ -162,6 +163,14 @@ export class ContractAnalyzer {
             result = Object.keys(sources)
         } else {
             result = []
+        }
+        return result
+    })
+
+    public readonly sourceAnalyzers: ComputedRef<ContractSourceAnalyzer[]> = computed(() => {
+        const result: ContractSourceAnalyzer[] = []
+        for (const f of this.sourceFileNames.value) {
+            result.push(new ContractSourceAnalyzer(f, this))
         }
         return result
     })
