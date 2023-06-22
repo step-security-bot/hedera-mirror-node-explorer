@@ -27,7 +27,7 @@ import {SolcMetadata} from "@/utils/solc/SolcMetadata";
 import {ByteCodeAnalyzer} from "@/utils/analyzer/ByteCodeAnalyzer";
 import {ContractResponse} from "@/schemas/HederaSchemas";
 import {ContractByIdCache} from "@/utils/cache/ContractByIdCache";
-import { AppStorage } from "@/AppStorage";
+import {AppStorage} from "@/AppStorage";
 
 export class ContractAnalyzer {
 

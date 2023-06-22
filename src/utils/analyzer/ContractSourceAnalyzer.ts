@@ -18,7 +18,7 @@
  *
  */
 
-import {computed, ref, Ref, watch, WatchStopHandle} from 'vue';
+import {computed, ref, Ref, WatchStopHandle} from 'vue';
 import {ContractAnalyzer, MetadataOrigin} from "@/utils/analyzer/ContractAnalyzer";
 import {Lookup} from "@/utils/cache/base/EntityCache";
 import {IPFSCache} from "@/utils/cache/IPFSCache";
@@ -29,7 +29,7 @@ import {ethers} from "ethers";
 
 export class ContractSourceAnalyzer {
 
-    public readonly sourceFileName: Ref<string|null>
+    public readonly sourceFileName: string
     public readonly contractAnalyzer: ContractAnalyzer
     public readonly ipfsLookup: Lookup<string, unknown|undefined>
     private readonly localStorageContent: Ref<string|null> = ref(null)
@@ -39,7 +39,7 @@ export class ContractSourceAnalyzer {
     // Public
     //
 
-    public constructor(sourceFileName: Ref<string|null>, contractAnalyzer: ContractAnalyzer) {
+    public constructor(sourceFileName: string, contractAnalyzer: ContractAnalyzer) {
         this.sourceFileName = sourceFileName
         this.contractAnalyzer = contractAnalyzer
         this.ipfsLookup = IPFSCache.instance.makeLookup(this.ipfsHash)
@@ -48,11 +48,12 @@ export class ContractSourceAnalyzer {
 
     public mount(): void {
         this.ipfsLookup.mount()
-        this.watchHandle = watch(this.sourceFileName, this.updateLocalStorageContent, {immediate: true})
+        this.updateLocalStorageContent()
     }
 
     public unmount(): void {
         this.ipfsLookup.unmount()
+        this.localStorageContent.value = null
         if (this.watchHandle !== null) {
             this.watchHandle()
             this.watchHandle = null
@@ -97,10 +98,8 @@ export class ContractSourceAnalyzer {
     //
 
     public userDidSelectContent(content: string): void {
-        if (this.sourceFileName.value !== null) {
-            AppStorage.setSource(content, this.sourceFileName.value)
-            this.updateLocalStorageContent()
-        }
+        AppStorage.setSource(content, this.sourceFileName)
+        this.updateLocalStorageContent()
     }
 
     //
@@ -110,8 +109,8 @@ export class ContractSourceAnalyzer {
     private readonly sourcifyContent = computed(() => {
         let result: string|null
         const response = this.contractAnalyzer.sourcifyRecord.value?.response ?? null
-        if (response !== null && this.sourceFileName.value !== null) {
-            result = SourcifyCache.fetchSource(this.sourceFileName.value, response)
+        if (response !== null) {
+            result = SourcifyCache.fetchSource(this.sourceFileName, response)
         } else {
             result = null
         }
@@ -133,8 +132,8 @@ export class ContractSourceAnalyzer {
 
     private readonly ipfsHash = computed(() => {
         let result: string|null
-        if (this.sourceFileName.value !== null && this.contractAnalyzer.metadata.value !== null) {
-            result = SolcUtils.fetchIPFSHash(this.sourceFileName.value, this.contractAnalyzer.metadata.value)
+        if (this.contractAnalyzer.metadata.value !== null) {
+            result = SolcUtils.fetchIPFSHash(this.sourceFileName, this.contractAnalyzer.metadata.value)
         } else {
             result = null
         }
@@ -143,8 +142,8 @@ export class ContractSourceAnalyzer {
 
     private readonly swarmHash = computed(() => {
         let result: string|null
-        if (this.sourceFileName.value !== null && this.contractAnalyzer.metadata.value !== null) {
-            result = SolcUtils.fetchSWARMHash(this.sourceFileName.value, this.contractAnalyzer.metadata.value)
+        if (this.contractAnalyzer.metadata.value !== null) {
+            result = SolcUtils.fetchSWARMHash(this.sourceFileName, this.contractAnalyzer.metadata.value)
         } else {
             result = null
         }
@@ -153,8 +152,8 @@ export class ContractSourceAnalyzer {
 
     private readonly keccakHash = computed(() => {
         let result: string|null
-        if (this.sourceFileName.value !== null && this.contractAnalyzer.metadata.value !== null) {
-            result = SolcUtils.fetchKeccakHash(this.sourceFileName.value, this.contractAnalyzer.metadata.value)
+        if (this.contractAnalyzer.metadata.value !== null) {
+            result = SolcUtils.fetchKeccakHash(this.sourceFileName, this.contractAnalyzer.metadata.value)
         } else {
             result = null
         }
@@ -162,10 +161,6 @@ export class ContractSourceAnalyzer {
     })
 
     private readonly updateLocalStorageContent = () => {
-        if (this.sourceFileName.value !== null) {
-            this.localStorageContent.value = AppStorage.getSource(this.sourceFileName.value)
-        } else {
-            this.localStorageContent.value = null
-        }
+        this.localStorageContent.value = AppStorage.getSource(this.sourceFileName)
     }
 }

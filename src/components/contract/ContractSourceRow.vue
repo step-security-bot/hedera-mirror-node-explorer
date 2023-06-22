@@ -46,7 +46,7 @@
 
 <script lang="ts">
 
-import {computed, defineComponent, inject, onBeforeUnmount, onMounted, PropType, ref, watch} from "vue";
+import {defineComponent, inject, onBeforeUnmount, onMounted, PropType, ref, watch} from "vue";
 import {ContractAnalyzer} from "@/utils/analyzer/ContractAnalyzer";
 import {ContractSourceAnalyzer} from "@/utils/analyzer/ContractSourceAnalyzer";
 import FileChooserAction from "@/components/FileChooserAction.vue";
@@ -57,7 +57,10 @@ export default defineComponent({
     components: {FileChooserAction},
 
     props: {
-        fileName: String,
+        fileName: {
+            type: String,
+            required: true
+        },
         analyzer: {
             type: Object as PropType<ContractAnalyzer>,
             required: true
@@ -69,7 +72,7 @@ export default defineComponent({
         const isSmallScreen = inject('isSmallScreen', true)
         const isMediumScreen = inject('isMediumScreen', true)
 
-        const sourceAnalyzer = new ContractSourceAnalyzer(computed(() => props.fileName ?? null), props.analyzer)
+        const sourceAnalyzer = new ContractSourceAnalyzer(props.fileName, props.analyzer)
         onMounted(() => sourceAnalyzer.mount())
         onBeforeUnmount(() => sourceAnalyzer.unmount())
 
