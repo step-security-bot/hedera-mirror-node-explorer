@@ -38,7 +38,9 @@ export class ContractAnalyzer {
     private readonly systemContractEntry: Ref<SystemContractEntry|null> = ref(null)
     private readonly localStorageMetadata: Ref<SolcMetadata|null> = ref(null)
     public readonly sourcifyRecord: Ref<SourcifyRecord|null> = ref(null)
+    public readonly missingSourceCount = ref<number>(0)
     private readonly abi: Ref<ethers.utils.Fragment[]|null> = ref(null)
+
 
     private watchHandles: WatchStopHandle[] = []
 
@@ -56,7 +58,8 @@ export class ContractAnalyzer {
         this.watchHandles = [
             watch(this.contractId, this.contractIdDidChange, { immediate: true}),
             watch(this.contractResponse, this.contractResponseDidChange, { immediate: true}),
-            watch([this.systemContractEntry, this.metadata], this.updateABI, { immediate: true})
+            watch([this.systemContractEntry, this.metadata], this.updateABI, { immediate: true}),
+            watch([this.metadata, this.sourceAnalyzers], this.updateMissingSourceCount, { immediate: true, deep: true}),
         ]
     }
 
@@ -69,6 +72,22 @@ export class ContractAnalyzer {
         this.sourcifyRecord.value = null
         this.abi.value = null
     }
+
+    public readonly globalState = computed<GlobalState|null>(() => {
+        let result: GlobalState|null
+        if (this.contractId.value !== null) {
+            if (this.sourcifyRecord.value !== null) {
+                result = this.sourcifyRecord.value.fullMatch ? GlobalState.FullMatch : GlobalState.PartialMatch
+            } else if (this.metadata.value !== null) {
+                result = this.missingSourceCount.value >= 1 ? GlobalState.MissingSources : GlobalState.ReadyToVerifiy
+            } else {
+                result = GlobalState.Unknown
+            }
+        } else {
+            result = null
+        }
+        return result
+    })
 
     public readonly metadata: ComputedRef<SolcMetadata|null> = computed(() => {
         let result: SolcMetadata|null
@@ -167,6 +186,16 @@ export class ContractAnalyzer {
         return result
     })
 
+    public readonly sourceContents: ComputedRef<Record<string, string>> = computed(() => {
+        const result: Record<string, string> = {}
+        for (const f of this.sourceAnalyzers.value) {
+            if (f.content.value !== null) {
+                result[f.sourceFileName] = f.content.value
+            }
+        }
+        return result
+    })
+
     public readonly sourceAnalyzers: ComputedRef<ContractSourceAnalyzer[]> = computed(() => {
         const result: ContractSourceAnalyzer[] = []
         for (const f of this.sourceFileNames.value) {
@@ -204,6 +233,13 @@ export class ContractAnalyzer {
             this.updateLocalStorageMetadata()
         }
         // else should not happen
+    }
+
+    public verifyDidComplete(): void {
+        if (this.contractId.value !== null) {
+            SourcifyCache.instance.forget(this.contractId.value)
+            this.contractResponseDidChange().finally()
+        }
     }
 
     //
@@ -259,6 +295,20 @@ export class ContractAnalyzer {
         }
     }
 
+    private readonly updateMissingSourceCount = () => {
+        if (this.metadata.value !== null) {
+            let newValue = 0
+            for (const a of this.sourceAnalyzers.value) {
+                if (a.content.value === null) {
+                    newValue += 1
+                }
+            }
+            this.missingSourceCount.value = newValue
+        } else {
+            this.missingSourceCount.value = 0
+        }
+    }
+
     private updateLocalStorageMetadata(): void {
         this.localStorageMetadata.value = this.contractId.value != null ? AppStorage.getMetadata(this.contractId.value) : null
     }
@@ -269,4 +319,12 @@ export enum MetadataOrigin {
     Sourcify = "Sourcify",
     IPFS = "IPFS",
     LocalStorage = "Local Storage",
+}
+
+export enum GlobalState {
+    Unknown, // Metadata file is missing
+    MissingSources, // Metadata file is available but some/all sources are missing
+    ReadyToVerifiy, // Metadata file and sources are available but are not verified
+    FullMatch, // Fully verified on sourcify
+    PartialMatch, // Partially verified on sourcify
 }

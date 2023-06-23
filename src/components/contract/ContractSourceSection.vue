@@ -29,10 +29,19 @@
       <span class="h-is-secondary-title">Contract Source</span>
     </template>
 
-    <template v-slot:control>{{ status }}</template>
+    <template v-slot:control>
+        <template v-if="showVerifyAction">
+            <button id="verifyButton"
+                    class="button is-white is-small"
+                    :disabled="verifyRunning"
+                    @click="startVerification">VERIFY</button>
+        </template><template v-else>
+            {{ status }}
+        </template>
+    </template>
 
-    <template v-slot:content v-if="analyzer">
-      <template v-if="metadataOrigin">
+    <template v-slot:content>
+      <template v-if="globalState">
           <div>
               <div>Contract Name: {{ contractName }}</div>
               <div>Metadata File: {{ metadataOrigin }}</div>
@@ -60,9 +69,10 @@
 
 import {computed, defineComponent, inject, PropType, ref, watch} from 'vue';
 import DashboardCard from "@/components/DashboardCard.vue";
-import {ContractAnalyzer} from "@/utils/analyzer/ContractAnalyzer";
+import {ContractAnalyzer, GlobalState} from "@/utils/analyzer/ContractAnalyzer";
 import ContractSourceRow from "@/components/contract/ContractSourceRow.vue";
 import FileChooserAction from "@/components/FileChooserAction.vue";
+import {VerifyRequest} from "@/utils/VerifyRequest";
 
 export default defineComponent({
   name: 'ContractSourceSection',
@@ -83,12 +93,52 @@ export default defineComponent({
 
     const status = computed(() => {
         let result: string
-        if (props.analyzer.fullMatch.value !== null) {
-            result = props.analyzer.fullMatch.value ? "Verified (full match)" : "Verified (partial match)"
-        } else {
-            result = "Unverified"
+        switch(props.analyzer.globalState.value) {
+            case GlobalState.Unknown:
+                result = "Unverified"
+                break
+            case GlobalState.MissingSources: {
+                const sourceFileCount = props.analyzer.sourceFileNames.value.length
+                const missingSourceFileCount = props.analyzer.missingSourceCount.value
+                if (missingSourceFileCount < sourceFileCount) {
+                    result = "Some source files are missing"
+                } else {
+                    result = "Source files are missing"
+                }
+                break
+            }
+            case GlobalState.ReadyToVerifiy:
+                result = "Ready to Verify"
+                break;
+            case GlobalState.PartialMatch:
+                result = "Verified (partial match)"
+                break
+            case GlobalState.FullMatch:
+                result = "Verified (full match)"
+                break
+            case null:
+                result = ""
+                break
         }
         return result
+    })
+
+    const showVerifyAction = computed(() => {
+        return props.analyzer.globalState.value == GlobalState.ReadyToVerifiy
+    })
+    const verifyRequest = new VerifyRequest()
+    const startVerification = () => {
+        const contractId = props.analyzer.contractId.value
+        const metadata = props.analyzer.metadata.value
+        const sources = props.analyzer.sourceContents.value
+        if (contractId !== null && metadata !== null) {
+            verifyRequest.start(contractId, metadata, sources)
+        }
+    }
+    watch(verifyRequest.running, (newValue, oldValue: boolean) => {
+        if (oldValue && !newValue) {
+            props.analyzer.verifyDidComplete()
+        }
     })
 
     const selectedMetadataContent = ref<string|null>(null)
@@ -109,9 +159,13 @@ export default defineComponent({
       isTouchDevice,
       isSmallScreen,
       isMediumScreen,
+      globalState: props.analyzer.globalState,
       contractName: props.analyzer.contractName,
       metadataOrigin: props.analyzer.metadataOrigin,
       status,
+      showVerifyAction,
+      verifyRunning: verifyRequest.running,
+      startVerification,
       selectedMetadataContent,
       selectedMetadataName
     }
