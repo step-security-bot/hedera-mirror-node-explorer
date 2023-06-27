@@ -235,6 +235,14 @@ export class ContractAnalyzer {
         // else should not happen
     }
 
+    public userRequestClearMetadata(): void {
+        if (this.contractId.value !== null) {
+            AppStorage.setMetadata(null, this.contractId.value)
+            this.updateLocalStorageMetadata()
+        }
+        // else should not happen
+    }
+
     public verifyDidComplete(): void {
         if (this.contractId.value !== null) {
             SourcifyCache.instance.forget(this.contractId.value)

@@ -102,6 +102,11 @@ export class ContractSourceAnalyzer {
         this.updateLocalStorageContent()
     }
 
+    public userRequestClear(): void {
+        AppStorage.setSource(null, this.sourceFileName)
+        this.updateLocalStorageContent()
+    }
+
     //
     // Private
     //

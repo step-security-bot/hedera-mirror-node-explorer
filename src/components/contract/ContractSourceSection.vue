@@ -48,7 +48,10 @@
           </Property>
           <Property id="metadata">
               <template v-slot:name>Metadata file</template>
-              <template v-slot:value>{{ metadataOrigin }}</template>
+              <template v-slot:value>
+                  {{ metadataOrigin }}
+                  <span v-if="isLocalStorageOrigin"><button @click="clearFromLocalStorage">Forget</button></span>
+              </template>
           </Property>
           <template v-for="a of analyzer.sourceAnalyzers.value" :key="a.sourceFileName">
               <ContractSourceRow :source-analyzer="a" :contract-analyzer="analyzer"/>
@@ -79,7 +82,7 @@
 
 import {computed, defineComponent, inject, PropType, ref, watch} from 'vue';
 import DashboardCard from "@/components/DashboardCard.vue";
-import {ContractAnalyzer, GlobalState} from "@/utils/analyzer/ContractAnalyzer";
+import {ContractAnalyzer, GlobalState, MetadataOrigin} from "@/utils/analyzer/ContractAnalyzer";
 import ContractSourceRow from "@/components/contract/ContractSourceRow.vue";
 import FileChooserAction from "@/components/FileChooserAction.vue";
 import {VerifyRequest} from "@/utils/VerifyRequest";
@@ -166,6 +169,13 @@ export default defineComponent({
         }
     })
 
+    const isLocalStorageOrigin = computed(
+        () => props.analyzer.metadataOrigin.value == MetadataOrigin.LocalStorage)
+
+    const clearFromLocalStorage = () => {
+        props.analyzer.userRequestClearMetadata()
+    }
+
     return {
       isTouchDevice,
       isSmallScreen,
@@ -173,6 +183,8 @@ export default defineComponent({
       globalState: props.analyzer.globalState,
       contractName: props.analyzer.contractName,
       metadataOrigin: props.analyzer.metadataOrigin,
+      isLocalStorageOrigin,
+      clearFromLocalStorage,
       status,
       showVerifyAction,
       verifyRunning: verifyRequest.running,

@@ -29,6 +29,7 @@
             <template v-if="origin">
                 <span v-if="fullMatch">{{ origin }}</span>
                 <span v-else>{{ origin }} (mismatch) </span>
+                <span v-if="isLocalStorageOrigin"><button @click="clearFromLocalStorage">Forget</button></span>
             </template><template v-else>
             <span>Missing </span>
             <FileChooserAction  v-model:file-content="selectedContent"
@@ -47,8 +48,8 @@
 
 <script lang="ts">
 
-import {defineComponent, inject, onBeforeUnmount, onMounted, PropType, ref, watch} from "vue";
-import {ContractAnalyzer} from "@/utils/analyzer/ContractAnalyzer";
+import {computed, defineComponent, inject, onBeforeUnmount, onMounted, PropType, ref, watch} from "vue";
+import {ContractAnalyzer, MetadataOrigin} from "@/utils/analyzer/ContractAnalyzer";
 import {ContractSourceAnalyzer} from "@/utils/analyzer/ContractSourceAnalyzer";
 import FileChooserAction from "@/components/FileChooserAction.vue";
 import Property from "@/components/Property.vue";
@@ -91,13 +92,22 @@ export default defineComponent({
             }
         })
 
+        const isLocalStorageOrigin = computed(() =>
+            props.sourceAnalyzer.origin.value === MetadataOrigin.LocalStorage)
+
+        const clearFromLocalStorage = () => {
+            props.sourceAnalyzer.userRequestClear()
+        }
+
         return {
             isTouchDevice,
             isSmallScreen,
             isMediumScreen,
             fileName: props.sourceAnalyzer.sourceFileName,
             origin: props.sourceAnalyzer.origin,
+            isLocalStorageOrigin,
             fullMatch: props.sourceAnalyzer.fullMatch,
+            clearFromLocalStorage,
             selectedContent,
             selectedName,
         }
