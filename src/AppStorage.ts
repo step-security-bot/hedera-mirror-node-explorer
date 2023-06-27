@@ -126,8 +126,8 @@ export class AppStorage {
         return this.getLocalStorageItem(suffix)
     }
 
-    public static setSource(newValue: string | null, contractId: string ): void {
-        const suffix = this.SOURCE + "/" + contractId
+    public static setSource(newValue: string | null, name: string ): void {
+        const suffix = this.SOURCE + "/" + name
         this.setLocalStorageItem(suffix, newValue)
     }
 
