@@ -42,19 +42,29 @@
 
     <template v-slot:content>
       <template v-if="globalState">
-          <div>
-              <div>Contract Name: {{ contractName }}</div>
-              <div>Metadata File: {{ metadataOrigin }}</div>
-              <template v-for="a of analyzer.sourceAnalyzers.value" :key="a.sourceFileName">
-                  <ContractSourceRow :source-analyzer="a" :contract-analyzer="analyzer"/>
-              </template>
-          </div>
+          <Property id="contractName">
+              <template v-slot:name>Contract Name</template>
+              <template v-slot:value>{{ contractName }}</template>
+          </Property>
+          <Property id="metadata">
+              <template v-slot:name>Metadata file</template>
+              <template v-slot:value>{{ metadataOrigin }}</template>
+          </Property>
+          <template v-for="a of analyzer.sourceAnalyzers.value" :key="a.sourceFileName">
+              <ContractSourceRow :source-analyzer="a" :contract-analyzer="analyzer"/>
+          </template>
       </template><template v-else>
-        <div>Contract sources are not available</div>
-        <FileChooserAction  v-model:file-content="selectedMetadataContent"
-                            v-model:file-name="selectedMetadataName"
-                            actionLabel="Set Metadata JSON File…"
-                            fileType=".json"/>
+        <div class="has-text-centered">
+            <div class="mb-4">Contract sources are not available.</div>
+            <div class="mb-4 has-text-grey">
+                If you detain those sources, you may load them into Explorer.<br>
+                This will enable contract call decoding and contract verification.
+            </div>
+            <FileChooserAction  v-model:file-content="selectedMetadataContent"
+                                v-model:file-name="selectedMetadataName"
+                                actionLabel="Set Metadata JSON File…"
+                                fileType=".json"/>
+        </div>
     </template>
     </template>
   </DashboardCard>
@@ -73,11 +83,12 @@ import {ContractAnalyzer, GlobalState} from "@/utils/analyzer/ContractAnalyzer";
 import ContractSourceRow from "@/components/contract/ContractSourceRow.vue";
 import FileChooserAction from "@/components/FileChooserAction.vue";
 import {VerifyRequest} from "@/utils/VerifyRequest";
+import Property from "@/components/Property.vue";
 
 export default defineComponent({
   name: 'ContractSourceSection',
 
-  components: {FileChooserAction, ContractSourceRow, DashboardCard},
+  components: {Property, FileChooserAction, ContractSourceRow, DashboardCard},
 
   props: {
     analyzer: {
@@ -95,7 +106,7 @@ export default defineComponent({
         let result: string
         switch(props.analyzer.globalState.value) {
             case GlobalState.Unknown:
-                result = "Unverified"
+                result = ""
                 break
             case GlobalState.MissingSources: {
                 const sourceFileCount = props.analyzer.sourceFileNames.value.length

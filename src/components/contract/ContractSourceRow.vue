@@ -23,20 +23,21 @@
 <!-- --------------------------------------------------------------------------------------------------------------- -->
 
 <template>
-    <div>
-        <span>{{ fileName }}: </span>
-        <template v-if="origin">
-            <span>{{ origin }}</span>
-            <span v-if="fullMatch"> (match) </span>
-            <span v-else> (mismatch) </span>
-        </template><template v-else>
+    <Property>
+        <template v-slot:name>{{ fileName }}</template>
+        <template v-slot:value>
+            <template v-if="origin">
+                <span v-if="fullMatch">{{ origin }}</span>
+                <span v-else>{{ origin }} (mismatch) </span>
+            </template><template v-else>
             <span>Missing </span>
             <FileChooserAction  v-model:file-content="selectedContent"
                                 v-model:file-name="selectedName"
                                 actionLabel="Set…"
                                 fileType=".sol"/>
         </template>
-    </div>
+        </template>
+    </Property>
 </template>
 
 
@@ -50,11 +51,12 @@ import {defineComponent, inject, onBeforeUnmount, onMounted, PropType, ref, watc
 import {ContractAnalyzer} from "@/utils/analyzer/ContractAnalyzer";
 import {ContractSourceAnalyzer} from "@/utils/analyzer/ContractSourceAnalyzer";
 import FileChooserAction from "@/components/FileChooserAction.vue";
+import Property from "@/components/Property.vue";
 
 export default defineComponent({
     name: 'ContractSourceRow',
 
-    components: {FileChooserAction},
+    components: {Property, FileChooserAction},
 
     props: {
         sourceAnalyzer: {
