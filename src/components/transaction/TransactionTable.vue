@@ -53,7 +53,7 @@
 
     <o-table-column v-slot="props" field="name" label="Type">
       <div class="h-has-pill" style="display: inline-block">
-        <div class="h-is-text-size-2">{{ makeTypeLabel(props.row.name) }}</div>
+        <div class="h-is-text-size-2">{{ makeTypeLabel(props.row.name ? props.row.name : props.row.type) }}</div>
       </div>
     </o-table-column>
 
@@ -116,6 +116,8 @@ export default defineComponent({
     const handleClick = (t: Transaction, c: unknown, i: number, ci: number, event: MouseEvent) => {
       routeManager.routeToTransaction(t, event.ctrlKey || event.metaKey)
     }
+
+    console.log(props.controller.rows);
 
     return {
       isTouchDevice,

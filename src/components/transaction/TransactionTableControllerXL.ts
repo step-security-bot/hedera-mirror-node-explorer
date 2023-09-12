@@ -19,16 +19,16 @@
  */
 
 import {KeyOperator, SortOrder, TableController} from "@/utils/table/TableController";
-import {Transaction, TransactionResponse} from "@/schemas/HederaSchemas";
+import {NftTransaction, NftTransactionResponse, Transaction, TransactionResponse} from "@/schemas/HederaSchemas";
 import {ComputedRef, ref, Ref, watch, WatchStopHandle} from "vue";
 import axios, {AxiosResponse} from "axios";
 import {LocationQuery, Router} from "vue-router";
 import {fetchStringQueryParam} from "@/utils/RouteManager";
 
 
-export class TransactionTableControllerXL extends TableController<Transaction, string> {
+export class TransactionTableControllerXL extends TableController<Transaction | NftTransaction, string> {
 
-    private readonly accountId: Ref<string | null>
+    private readonly entityId: Ref<string | null>
     private readonly accountIdMandatory: boolean
 
     //
@@ -36,15 +36,15 @@ export class TransactionTableControllerXL extends TableController<Transaction, s
     //
 
     public constructor(router: Router,
-                       accountId: Ref<string | null>,
+                       entityId: Ref<string | null>,
                        pageSize: ComputedRef<number>,
                        accountIdMandatory: boolean,
                        pageParamName = "p", keyParamName= "k") {
         super(router, pageSize, 10 * pageSize.value, 5000, 10, 100,
             pageParamName, keyParamName);
-        this.accountId = accountId
+        this.entityId = entityId
         this.accountIdMandatory = accountIdMandatory
-        this.watchAndReload([this.transactionType, this.accountId])
+        this.watchAndReload([this.transactionType, this.entityId])
     }
 
     public readonly transactionType: Ref<string> = ref("")
@@ -54,11 +54,32 @@ export class TransactionTableControllerXL extends TableController<Transaction, s
     //
 
     public async load(consensusTimestamp: string | null, operator: KeyOperator,
-                      order: SortOrder, limit: number): Promise<Transaction[] | null> {
-        let result: Promise<Transaction[] | null>
+                      order: SortOrder, limit: number): Promise<Transaction[] | NftTransaction[] | null> {
+        let result: Promise<Transaction[] | NftTransaction[] | null>
 
-        if (this.accountIdMandatory && this.accountId.value === null) {
+        if (this.accountIdMandatory && this.entityId.value === null) {
             result = Promise.resolve(null)
+        } else if (this.entityId.value?.includes("---")) {
+            const entityArray = this.entityId.value.split("---");
+            const params = {} as {
+                limit: number
+                order: string
+                transactiontype: string | undefined
+                timestamp: string | undefined
+            }
+            params.limit = limit
+            params.order = order
+            if (this.transactionType.value != "") {
+                params.transactiontype = this.transactionType.value
+            }
+            if (consensusTimestamp !== null) {
+                params.timestamp = operator + ":" + consensusTimestamp
+            }
+            const cb = (r: AxiosResponse<NftTransactionResponse>): Promise<NftTransaction[] | null> => {
+                return Promise.resolve(r.data.transactions ?? [])
+            }
+            result = axios.get<NftTransactionResponse>(`api/v1/tokens/${entityArray[0]}/nfts/${entityArray[1]}/transactions`, {params: params}).then(cb)
+            console.log(result)
         } else {
             const params = {} as {
                 limit: number
@@ -69,8 +90,8 @@ export class TransactionTableControllerXL extends TableController<Transaction, s
             }
             params.limit = limit
             params.order = order
-            if (this.accountId.value !== null) {
-                params["account.id"] = this.accountId.value
+            if (this.entityId.value !== null) {
+                params["account.id"] = this.entityId.value
             }
             if (this.transactionType.value != "") {
                 params.transactiontype = this.transactionType.value

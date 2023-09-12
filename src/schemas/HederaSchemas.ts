@@ -132,6 +132,11 @@ export interface TransactionResponse {
     links: Links | undefined
 }
 
+export interface NftTransactionResponse {
+    transactions: Array<NftTransaction> | undefined
+    links: Links | undefined
+}
+
 export interface TransactionByIdResponse {
     transactions: Array<TransactionDetail> | undefined
 }
@@ -144,6 +149,28 @@ export interface Transaction {
     max_fee: string | undefined
     memo_base64: string | undefined                 // To be checked
     name: TransactionType | undefined
+    node: string | null |  undefined                // Network entity ID in the format of shard.realm.num
+    nonce: number | undefined
+    parent_consensus_timestamp: string | null | undefined
+    result: string | undefined
+    scheduled: boolean | undefined
+    staking_reward_transfers: StakingRewardTransfer[] | undefined
+    token_transfers: TokenTransfer[] | undefined
+    transaction_hash: string | undefined
+    transaction_id: string | undefined
+    transfers: Transfer[] | undefined
+    valid_duration_seconds: string | undefined
+    valid_start_timestamp: string | undefined
+
+}
+
+export interface NftTransaction {
+
+    consensus_timestamp: string | undefined
+    entity_id: string |null | undefined             // Network entity ID in the format of shard.realm.num
+    max_fee: string | undefined
+    memo_base64: string | undefined                 // To be checked
+    type: TransactionType | undefined
     node: string | null |  undefined                // Network entity ID in the format of shard.realm.num
     nonce: number | undefined
     parent_consensus_timestamp: string | null | undefined
