@@ -19,14 +19,14 @@
  */
 
 import {KeyOperator, SortOrder, TableController} from "@/utils/table/TableController";
-import {NftTransaction, NftTransactionResponse, Transaction, TransactionResponse} from "@/schemas/HederaSchemas";
+import {NftTransactionTransfer, NftTransactionHistory, Transaction, TransactionResponse} from "@/schemas/HederaSchemas";
 import {ComputedRef, ref, Ref, watch, WatchStopHandle} from "vue";
 import axios, {AxiosResponse} from "axios";
 import {LocationQuery, Router} from "vue-router";
 import {fetchStringQueryParam} from "@/utils/RouteManager";
 
 
-export class TransactionTableControllerXL extends TableController<Transaction | NftTransaction, string> {
+export class TransactionTableControllerXL extends TableController<Transaction | NftTransactionTransfer, string> {
 
     private readonly entityId: Ref<string | null>
     private readonly accountIdMandatory: boolean
@@ -54,13 +54,15 @@ export class TransactionTableControllerXL extends TableController<Transaction | 
     //
 
     public async load(consensusTimestamp: string | null, operator: KeyOperator,
-                      order: SortOrder, limit: number): Promise<Transaction[] | NftTransaction[] | null> {
-        let result: Promise<Transaction[] | NftTransaction[] | null>
+                      order: SortOrder, limit: number): Promise<Transaction[] | null> {
+        let result: Promise<Transaction[] | null>
 
         if (this.accountIdMandatory && this.entityId.value === null) {
             result = Promise.resolve(null)
         } else if (this.entityId.value?.includes("---")) {
             const entityArray = this.entityId.value.split("---");
+            const tokenId = entityArray[0]
+            const serialNumber = entityArray[1]
             const params = {} as {
                 limit: number
                 order: string
@@ -75,11 +77,29 @@ export class TransactionTableControllerXL extends TableController<Transaction | 
             if (consensusTimestamp !== null) {
                 params.timestamp = operator + ":" + consensusTimestamp
             }
-            const cb = (r: AxiosResponse<NftTransactionResponse>): Promise<NftTransaction[] | null> => {
-                return Promise.resolve(r.data.transactions ?? [])
+            const getTransactions = async() => {
+                const r = await axios.get<NftTransactionHistory>(`api/v1/tokens/${tokenId}/nfts/${serialNumber}/transactions`, {params: params})
+                const transactions = r.data.transactions?.map(transaction => {
+                    return <Transaction> {
+                        consensus_timestamp: transaction.consensus_timestamp,
+                        nonce: transaction.nonce,
+                        transaction_id: transaction.transaction_id,
+                        name: transaction.type,
+                        entity_id: transaction.sender_account_id,
+                        nft_transfers: [
+                            {
+                                is_approval: transaction.is_approval,
+                                receiver_account_id: transaction.receiver_account_id,
+                                sender_account_id: transaction.sender_account_id,
+                                serial_number: Number(serialNumber),
+                                token_id: tokenId,
+                            }
+                        ],
+                    }
+                })
+                return transactions ?? []
             }
-            result = axios.get<NftTransactionResponse>(`api/v1/tokens/${entityArray[0]}/nfts/${entityArray[1]}/transactions`, {params: params}).then(cb)
-            console.log(result)
+            result = getTransactions()
         } else {
             const params = {} as {
                 limit: number
@@ -103,6 +123,8 @@ export class TransactionTableControllerXL extends TableController<Transaction | 
                 return Promise.resolve(r.data.transactions ?? [])
             }
             result = axios.get<TransactionResponse>("api/v1/transactions", {params: params}).then(cb)
+            let res = await axios.get<TransactionResponse>("api/v1/transactions", {params: params})
+            console.log(result)
         }
 
         return result

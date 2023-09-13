@@ -132,8 +132,8 @@ export interface TransactionResponse {
     links: Links | undefined
 }
 
-export interface NftTransactionResponse {
-    transactions: Array<NftTransaction> | undefined
+export interface NftTransactionHistory {
+    transactions: Array<NftTransactionTransfer> | undefined
     links: Links | undefined
 }
 
@@ -142,6 +142,7 @@ export interface TransactionByIdResponse {
 }
 export interface Transaction {
 
+    hello: string | null | undefined
     bytes: string | null | undefined
     charged_tx_fee: number | undefined
     consensus_timestamp: string | undefined
@@ -149,6 +150,7 @@ export interface Transaction {
     max_fee: string | undefined
     memo_base64: string | undefined                 // To be checked
     name: TransactionType | undefined
+    nft_transfers: NftTransfer[] | undefined
     node: string | null |  undefined                // Network entity ID in the format of shard.realm.num
     nonce: number | undefined
     parent_consensus_timestamp: string | null | undefined
@@ -164,25 +166,15 @@ export interface Transaction {
 
 }
 
-export interface NftTransaction {
+export interface NftTransactionTransfer {
 
     consensus_timestamp: string | undefined
-    entity_id: string |null | undefined             // Network entity ID in the format of shard.realm.num
-    max_fee: string | undefined
-    memo_base64: string | undefined                 // To be checked
-    type: TransactionType | undefined
-    node: string | null |  undefined                // Network entity ID in the format of shard.realm.num
     nonce: number | undefined
-    parent_consensus_timestamp: string | null | undefined
-    result: string | undefined
-    scheduled: boolean | undefined
-    staking_reward_transfers: StakingRewardTransfer[] | undefined
-    token_transfers: TokenTransfer[] | undefined
-    transaction_hash: string | undefined
     transaction_id: string | undefined
-    transfers: Transfer[] | undefined
-    valid_duration_seconds: string | undefined
-    valid_start_timestamp: string | undefined
+    type: TransactionType | undefined
+    is_approval: false
+    receiver_account_id: string |null | undefined             // account ID in the format of shard.realm.num
+    sender_account_id: string |null | undefined             // account ID in the format of shard.realm.num
 
 }
 
@@ -195,6 +187,7 @@ export interface TransactionDetail extends Transaction {
 
 
 export interface NftTransfer {
+    is_approval: boolean
     receiver_account_id: string | null | undefined  // Network entity ID in the format of shard.realm.num
     sender_account_id: string | null | undefined    // Network entity ID in the format of shard.realm.num
     serial_number: number
@@ -339,6 +332,37 @@ export interface Token {
 }
 
 export interface TokenInfo {
+
+    admin_key: Key | null
+    auto_renew_account: string | null   // Network entity ID in the format of shard.realm.num
+    auto_renew_period: number | null
+    created_timestamp: string
+    decimals: string
+    deleted: boolean | null
+    expiry_timestamp: string | null
+    fee_schedule_key: Key | null
+    freeze_default: boolean
+    freeze_key: Key | null
+    initial_supply: string
+    kyc_key: Key | null
+    max_supply: string
+    modified_timestamp: string
+    name: string
+    memo: string
+    pause_key: Key | null
+    pause_status: string // NOT_APPLICABLE, PAUSED, UNPAUSED
+    supply_key: Key | null
+    supply_type: string // FINITE, INFINITE
+    symbol: string
+    token_id: string | null     // Network entity ID in the format of shard.realm.num
+    total_supply: string
+    treasury_account_id: string | null   // Network entity ID in the format of shard.realm.num
+    type: string // FUNGIBLE_COMMON, NON_FUNGIBLE_UNIQUE
+    wipe_key: Key | null
+    custom_fees: CustomFees
+}
+
+export interface NftInfo {
 
     admin_key: Key | null
     auto_renew_account: string | null   // Network entity ID in the format of shard.realm.num
