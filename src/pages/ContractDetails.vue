@@ -179,6 +179,8 @@
 
     <ContractByteCodeSection :contract-analyzer="contractAnalyzer"/>
 
+    <ContractVerificationSection :analyzer="contractAnalyzer ?? undefined"/>
+
     <ContractResultsSection :contract-id="normalizedContractId ?? undefined"/>
 
   </section>
@@ -214,6 +216,7 @@ import router, {routeManager} from "@/router";
 import TransactionLink from "@/components/values/TransactionLink.vue";
 import EVMAddress from "@/components/values/EVMAddress.vue";
 import ContractByteCodeSection from "@/components/contract/ContractByteCodeSection.vue";
+import ContractVerificationSection from "@/components/contract/ContractVerificationSection.vue";
 import ContractResultsSection from "@/components/contracts/ContractResultsSection.vue";
 import InfoTooltip from "@/components/InfoTooltip.vue";
 import Copyable from "@/components/Copyable.vue";
@@ -228,6 +231,7 @@ export default defineComponent({
   components: {
     Copyable,
     ContractByteCodeSection,
+    ContractVerificationSection,
     InfoTooltip,
     ContractResultsSection,
     EVMAddress,
@@ -327,6 +331,10 @@ export default defineComponent({
     const accountRoute = computed(() => {
       return normalizedContractId.value !== null ?  routeManager.makeRouteToAccount(normalizedContractId.value) : null
     })
+
+    //
+    // ContractAnalyzer
+    //
 
     const contractAnalyzer = new ContractAnalyzer(normalizedContractId)
     onMounted(() => contractAnalyzer.mount())
