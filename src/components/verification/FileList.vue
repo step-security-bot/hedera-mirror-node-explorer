@@ -85,8 +85,7 @@
 <script lang="ts">
 
 import {computed, defineComponent, inject, PropType, ref} from "vue";
-import {ContractAuditItem, ContractAuditItemStatus} from "@/utils/analyzer/ContractSourceAudit";
-import {SourcifySessionItem} from "@/utils/sourcify/SourcifySession";
+import {ContractSourceAnalyzerItem} from "@/utils/analyzer/ContractSourceAnalyzer";
 
 export default defineComponent({
     name: 'FileList',
@@ -95,7 +94,7 @@ export default defineComponent({
 
     props: {
         auditItems: {
-            type: Array as PropType<SourcifySessionItem[]>,
+            type: Array as PropType<ContractSourceAnalyzerItem[]>,
             default: []
         }
     },
@@ -114,7 +113,7 @@ export default defineComponent({
         const tableTitle = computed(() => `Added Files (${props.auditItems.length})`)
 
         const filteredAuditItems = computed(() => {
-            let result: Array<SourcifySessionItem> = []
+            let result: Array<ContractSourceAnalyzerItem> = []
             for (let i = 0; i < props.auditItems.length; i++) {
                 if (!props.auditItems[i].unused) {
                     result.push(props.auditItems[i])
@@ -137,14 +136,14 @@ export default defineComponent({
             return result
         })
 
-        const isMetadata = (auditItem: SourcifySessionItem) => {
-            const parts = auditItem.path.split('.')
+        const isMetadata = (item: ContractSourceAnalyzerItem) => {
+            const parts = item.path.split('.')
             const suffix = parts[parts.length - 1].toLowerCase()
             return suffix.toLowerCase() === 'json'
         }
 
-        const isUnused = (auditItem: ContractAuditItem) => {
-            return auditItem.status === ContractAuditItemStatus.Unused
+        const isUnused = (item: ContractSourceAnalyzerItem) => {
+            return item.unused
         }
 
         const handleClearAllFiles = () => {

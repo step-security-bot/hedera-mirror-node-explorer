@@ -47,8 +47,8 @@
                         {{ status }}
                     </div>
                     <div class="mb-4 p-3 h-dotted-area" @drop="handleDrop" @dragover="handleDragOver">
-                        <template v-if="auditItems.length >= 1">
-                            <FileList :audit-items="auditItems" @clear-all-files="handleClearAllFiles"/>
+                        <template v-if="items.length >= 1">
+                            <FileList :audit-items="items" @clear-all-files="handleClearAllFiles"/>
                         </template>
                         <div v-else class="is-flex is-justify-content-center is-align-items-center my-5">
                             <img alt="Add file" class="image mr-1" style="width: 30px; height: 30px;"
@@ -78,7 +78,7 @@
                 <div class="is-flex is-justify-content-space-between">
                     <div>
                         <button class="button is-white is-small"
-                                :class="{'is-invisible': auditItems.length === 0}"
+                                :class="{'is-invisible': items.length === 0}"
                                 @click="showFileChooser">
                             ADD MORE FILES
                         </button>
@@ -149,13 +149,12 @@
 
 <script lang="ts">
 
-import {computed, defineComponent, PropType, ref, watch} from "vue"
+import {computed, defineComponent, ref, watch} from "vue"
 import FileList from "@/components/verification/FileList.vue"
-import {SolidityFileImporter} from "@/utils/SolidityFileImporter";
-import {ByteCodeAnalyzer} from "@/utils/analyzer/ByteCodeAnalyzer";
 import ProgressDialog, {Mode} from "@/components/staking/ProgressDialog.vue";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
-import {SourcifySession} from "@/utils/sourcify/SourcifySession";
+import {ContractSourceAnalyzer} from "@/utils/analyzer/ContractSourceAnalyzer";
+import {SourcifyUtils} from "@/utils/sourcify/SourcifyUtils";
 
 export default defineComponent({
     name: "ContractVerificationDialog",
@@ -168,10 +167,6 @@ export default defineComponent({
         contractId: {
             type: String,
             default: null
-        },
-        byteCodeAnalyzer: {
-            type: Object as PropType<ByteCodeAnalyzer>,
-            required: true
         }
     },
     emits: ["update:showDialog", "verifyDidComplete"],
@@ -189,10 +184,10 @@ export default defineComponent({
             }
         }
 
-        const handleFileSelected = () => {
+        const handleFileSelected = async () => {
             const selectedFiles = fileChooser.value?.files ?? null
             if (selectedFiles && selectedFiles.length >= 1) {
-                fileImporter.start(selectedFiles)
+                await contractSourceAnalyzer.chooseFiles(selectedFiles)
             } else {
                 console.log("Selected file is undefined")
             }
@@ -202,19 +197,17 @@ export default defineComponent({
         // Buttons
         //
 
-        const handleCancel = () => {
+        const handleCancel = async () => {
             context.emit('update:showDialog', false)
-            sourcifySession.clear()
+            await contractSourceAnalyzer.reset()
         }
 
-        const verifyButtonEnabled = computed(() => {
-            return !sourcifySession.busy.value && sourcifySession.matchingContractName.value !== null
-        })
+        const verifyButtonEnabled = computed(
+            () => !contractSourceAnalyzer.analyzing.value && contractSourceAnalyzer.matchingContractName.value !== null)
 
         //
         // Drag & drop
         //
-        const fileImporter = new SolidityFileImporter()
         const handleDragOver = (e: DragEvent) => {
             if (e.dataTransfer) {
                 e.dataTransfer.dropEffect = "copy";
@@ -222,32 +215,27 @@ export default defineComponent({
             e.preventDefault()
         }
 
-        const handleDrop = (e: DragEvent) => {
-            if (e.dataTransfer) {
-                e.dataTransfer.dropEffect = "copy";
-                fileImporter.start(e.dataTransfer.items)
-            }
+        const handleDrop = async (e: DragEvent) => {
             e.preventDefault()
+            if (e.dataTransfer) {
+                e.dataTransfer.dropEffect = "copy"
+                await contractSourceAnalyzer.dropFiles(e.dataTransfer.items)
+            }
         }
 
-        const auditItems = computed(() => {
-            return sourcifySession.items.value
-        })
+        const items = computed(() => contractSourceAnalyzer.items.value)
 
         //
-        // Sourcify session
+        // ContractSourceAnalyzer
         //
-        const sourcifySession = new SourcifySession(computed(() => props.contractId))
+
+        const contractSourceAnalyzer = new ContractSourceAnalyzer(computed(() => props.contractId))
         watch(() => props.showDialog, () => {
             if (props.showDialog) {
-                sourcifySession.mount()
+                contractSourceAnalyzer.mount()
             } else {
-                sourcifySession.unmount()
+                contractSourceAnalyzer.unmount()
             }
-        })
-
-        watch(fileImporter.files, (files: Map<string, string>) => {
-            sourcifySession.inputFiles(files)
         })
 
         //
@@ -255,19 +243,7 @@ export default defineComponent({
         //
 
         const handleVerify = async () => {
-            // context.emit('update:showDialog', false)
-            // const audit = sourceAnalyzer.audit.value
-            // if (audit?.status === ContractAuditStatus.Resolved && audit.resolvedMetadata === null) {
-            //     showMetadataDialog.value = true
-            //     metadataMessage.value = "You may proceed as is, or go back and add the metadata file if you have it."
-            //     metadataExtraMessage.value = "Providing the metadata may increase the chances to get a full match."
-            //     showMetadataDialog.value = true
-            // } else {
-            //     showConfirmDialog.value = true
-            // }
-            // console.log(`status: ${sourceAnalyzer.audit.value?.status}`)
-            // console.log(`failure: ${sourceAnalyzer.audit.value?.failure}`)
-            // console.log(`resolvedMetadata: ${sourceAnalyzer.audit.value?.resolvedMetadata}`)
+            showConfirmDialog.value = true
         }
 
         //
@@ -276,18 +252,24 @@ export default defineComponent({
 
         const status = computed(() => {
             let result: string
-            if (fileImporter.started.value) {
-                result = "Importing files…"
-            } else if (sourcifySession.busy.value) {
-                result = "Analyzing source files…"
+            if (contractSourceAnalyzer.analyzing.value) {
+                result = "Analyzing…"
+            } else if (contractSourceAnalyzer.failure.value) {
+                result = "Analysis failed"
+            } else if (contractSourceAnalyzer.matchingContract.value !== null) {
+                const matchingContract = contractSourceAnalyzer.matchingContract.value
+                const note = matchingContract.status == "perfect" ? "full match" : "partial match"
+                result = "Ready to verify contract \"" + contractSourceAnalyzer.matchingContractName.value + "\" (" + note + ")"
+            } else if (contractSourceAnalyzer.contractCount.value == 0 && contractSourceAnalyzer.unusedCount.value >= 1) {
+                result = "Add contract metadata json"
             } else {
-                result = sourcifySession.status.value ?? "Drop files…"
+                result = "Drop files…"
             }
             return result
         })
 
-        const handleClearAllFiles = () => {
-            fileImporter.reset()
+        const handleClearAllFiles = async () => {
+            await contractSourceAnalyzer.reset()
         }
 
         // Metadata dialog
@@ -310,66 +292,49 @@ export default defineComponent({
         const confirmExtraMessage = ref<string|null>(null)
 
         const handleConfirmVerification = async () => {
-            // const audit = sourceAnalyzer.audit.value!
-            //
-            // showConfirmDialog.value = false
-            // showProgressDialog.value = true
-            // showProgressSpinner.value = true
-            // progressDialogMode.value = Mode.Busy
-            // progressMainMessage.value = audit.resolvedContractName
-            //     ? `Verifying ${audit.resolvedContractName} contract…`
-            //     : `Verifying contract…`
-            // progressExtraMessage.value = null
-            // try {
-            //     let response: SourcifyVerifyResponse | null
-            //     const solcMetadata = SolcUtils.castSolcMetadata(audit.resolvedMetadata)
-            //     if (solcMetadata !== null) {
-            //         // We verify using /verify REST call
-            //         const sourceFiles = audit.makeReducedSourceFiles()
-            //         response = await SourcifyUtils.verify(
-            //             props.contractId,
-            //             solcMetadata,
-            //             sourceFiles)
-            //     } else {
-            //         // We verify using /verify/solc-input REST call
-            //         const compilerVersion = "v" + audit.longCompilerVersion!
-            //         const solcInput = SolcUtils.castSolcInput(audit.resolvedMetadata)!
-            //         response = await SourcifyUtils.verifyWithSolcInput(
-            //             props.contractId,
-            //             audit.resolvedContractName!,
-            //             compilerVersion,
-            //             solcInput)
-            //     }
-            //     showProgressSpinner.value = false
-            //     if (response !== null) {
-            //         if (response.result) {
-            //             progressDialogMode.value = Mode.Success
-            //             progressMainMessage.value = "Verification succeeded"
-            //             const status = SourcifyUtils.fetchVerifyStatus(response)
-            //             if (status == "perfect") {
-            //                 progressExtraMessage.value = "Full Match"
-            //             } else if (status == "partial") {
-            //                 progressExtraMessage.value = "Partial Match"
-            //             } else {
-            //                 progressExtraMessage.value = status
-            //             }
-            //         } else {
-            //             progressDialogMode.value = Mode.Error
-            //             progressMainMessage.value = "Verification failed"
-            //             progressExtraMessage.value = response.error ?? null
-            //         }
-            //     } else {
-            //         // Bug
-            //         progressDialogMode.value = Mode.Error
-            //         progressMainMessage.value = "Verification cannot be done"
-            //         progressExtraMessage.value = null
-            //     }
-            // } catch(reason) {
-            //     showProgressSpinner.value = false
-            //     progressDialogMode.value = Mode.Error
-            //     progressMainMessage.value = "Verification failed"
-            //     progressExtraMessage.value = SourcifyUtils.fetchVerifyError(reason)
-            // }
+            const contractId = props.contractId
+            const matchingContract = contractSourceAnalyzer.matchingContract.value!
+
+            showConfirmDialog.value = false
+            showProgressDialog.value = true
+            showProgressSpinner.value = true
+            progressDialogMode.value = Mode.Busy
+            progressMainMessage.value = `Verifying ${matchingContract.name} contract…`
+            progressExtraMessage.value = null
+
+            try {
+                const verificationIds = [matchingContract.verificationId]
+                const response = await SourcifyUtils.verifyChecked(contractId, verificationIds, true)
+                showProgressSpinner.value = false
+
+                const matchingContractBis = SourcifyUtils.fetchMatchingContract(response)
+                if (matchingContractBis !== null) {
+                    const status = matchingContractBis.status
+                    if (status == "perfect" || status == "partial") {
+                        progressDialogMode.value = Mode.Success
+                        progressMainMessage.value = "Verification succeeded"
+                        if (status == "perfect") {
+                            progressExtraMessage.value = "Full Match"
+                        } else {
+                            progressExtraMessage.value = "Partial Match"
+                        }
+                    } else {
+                        progressDialogMode.value = Mode.Error
+                        progressMainMessage.value = "Verification failed"
+                        progressExtraMessage.value = matchingContractBis.statusMessage ?? null
+                    }
+                } else {
+                    // Bug
+                    progressDialogMode.value = Mode.Error
+                    progressMainMessage.value = "Verification cannot be done"
+                    progressExtraMessage.value = null
+                }
+            } catch(reason) {
+                showProgressSpinner.value = false
+                progressDialogMode.value = Mode.Error
+                progressMainMessage.value = "Verification failed"
+                progressExtraMessage.value = (reason as any).toString()
+            }
         }
 
         const handleCancelVerification = () => {
@@ -389,9 +354,8 @@ export default defineComponent({
 
         const progressDialogClosing = () => {
             if (progressDialogMode.value == Mode.Success) {
-                context.emit('update:showDialog', false)
+                context.emit('update:showDialog', false) // => call ContractSourceAnalyzer.unmount()
                 context.emit("verifyDidComplete")
-                fileImporter.reset()
             }
         }
 
@@ -401,7 +365,7 @@ export default defineComponent({
             handleVerify,
             handleDragOver,
             handleDrop,
-            auditItems,
+            items,
             verifyButtonEnabled,
             status,
             handleClearAllFiles,
