@@ -23,9 +23,12 @@ import {routeManager} from "@/router";
 import {ContractByIdCache} from "@/utils/cache/ContractByIdCache";
 import axios, {AxiosResponse} from "axios";
 import {SolcMetadata} from "@/utils/solc/SolcMetadata";
-import {SolcUtils} from "@/utils/solc/SolcUtils";
 
 export class SourcifyUtils {
+
+    //
+    // Stateless verification
+    //
 
     public static async verifyWithSolcInput(contractId: string,
                                contractName: string,
@@ -68,8 +71,7 @@ export class SourcifyUtils {
                 chain: sourcifySetup.chainID.toString(),
                 files: {
                     "metadata.json": JSON.stringify(metadata)
-                },
-                contractName: SolcUtils.fetchCompilationTarget(metadata) ?? undefined
+                }
             }
             for (const [fileName, content] of inputFiles.entries()) {
                 requestBody.files[fileName] = content
@@ -83,6 +85,151 @@ export class SourcifyUtils {
 
         return Promise.resolve(result)
     }
+
+    public static async verifyV2(contractId: string, inputFiles: Map<string, string>): Promise<SourcifyVerifyResponse|null> {
+        let result: SourcifyVerifyResponse|null
+
+        const contractResponse = await ContractByIdCache.instance.lookup(contractId)
+        const address = contractResponse?.evm_address ?? null
+        const sourcifySetup = routeManager.currentNetworkEntry.value.sourcifySetup
+        if (address !== null && sourcifySetup !== null) {
+            const requestBody: SourcifyVerifyBody = {
+                address: address,
+                chain: sourcifySetup.chainID.toString(),
+                files: {}
+            }
+            for (const [fileName, content] of inputFiles.entries()) {
+                requestBody.files[fileName] = content
+            }
+            const url = sourcifySetup.serverURL + "verify"
+            const sourcifyResponse = await axios.post<SourcifyVerifyResponse>(url, requestBody)
+            result = sourcifyResponse.data
+        } else {
+            result = null
+        }
+
+        return Promise.resolve(result)
+    }
+
+    //
+    // Session verification
+    //
+
+    private static readonly withCredentials = true
+
+    public static async sessionData(): Promise<SourcifyInputFilesResponse> {
+        let result: SourcifyInputFilesResponse
+
+        const sourcifySetup = routeManager.currentNetworkEntry.value.sourcifySetup
+        if (sourcifySetup !== null) {
+            const url = sourcifySetup.serverURL + "session/data"
+            const config = { withCredentials: this.withCredentials }
+            const response = await axios.get<SourcifyInputFilesResponse>(url, config)
+            result = response.data
+        } else {
+            throw Error("No sourcify setup for network " + routeManager.currentNetworkEntry.value.name)
+        }
+
+        return Promise.resolve(result)
+    }
+
+    public static async sessionClear(): Promise<string> {
+        let result: string
+
+        const sourcifySetup = routeManager.currentNetworkEntry.value.sourcifySetup
+        if (sourcifySetup !== null) {
+            const url = sourcifySetup.serverURL + "session/clear"
+            const config = { withCredentials: this.withCredentials }
+            const response = await axios.post<string>(url, null, config)
+            result = response.data
+        } else {
+            throw Error("No sourcify setup for network " + routeManager.currentNetworkEntry.value.name)
+        }
+
+        return Promise.resolve(result)
+    }
+
+    public static async sessionInputFiles(files: Map<string, string>): Promise<SourcifyInputFilesResponse> {
+        let result: SourcifyInputFilesResponse
+
+        const sourcifySetup = routeManager.currentNetworkEntry.value.sourcifySetup
+        if (sourcifySetup !== null) {
+            const body: SourcifyInputFilesBody = {
+                files: {}
+            }
+            for (const [f, c] of files) {
+                body.files[f] = c
+            }
+            const url = sourcifySetup.serverURL + "session/input-files"
+            // const config = {
+            //     withCredentials: this.withCredentials ,
+            //     headers: {'content-type': 'application/json'}
+            // }
+            // const response = await axios.post<SourcifyInputFilesResponse>(url, body, config)
+            // result = response.data
+
+            const options: RequestInit = {
+                body: JSON.stringify(body),
+                method: "POST",
+                headers: {'content-type': 'application/json'},
+                credentials: "include",
+            }
+            try {
+                const response = await fetch(url, options)
+                result = JSON.parse(await response.text())
+            } catch(reason) {
+                console.log("reason=" + reason)
+            }
+        } else {
+            throw Error("No sourcify setup for network " + routeManager.currentNetworkEntry.value.name)
+        }
+
+        return Promise.resolve(result)
+    }
+
+    public static async verifyChecked(contractId: string, verificationId: string): Promise<SourcifyVerifyCheckedResponse> {
+        let result: SourcifyVerifyCheckedResponse
+
+        const contractResponse = await ContractByIdCache.instance.lookup(contractId)
+        const address = contractResponse?.evm_address ?? null
+        const sourcifySetup = routeManager.currentNetworkEntry.value.sourcifySetup
+        if (address !== null && sourcifySetup !== null) {
+            const body: SourcifyVerifyCheckedBody = {
+                contracts: [
+                    {
+                        address: address,
+                        chainId: sourcifySetup.chainID.toString(),
+                        verificationId: verificationId,
+                        creatorTxHash: null
+                    }
+                ]
+            }
+            const url = sourcifySetup.serverURL + "session/verify-checked"
+            // const config = {
+            //     withCredentials: this.withCredentials ,
+            //     headers: {'content-type': 'application/json'}
+            // }
+            // const response = await axios.post<SourcifyVerifyCheckedResponse>(url, body, config)
+            // result = response.data
+
+            const options: RequestInit = {
+                body: JSON.stringify(body),
+                method: "POST",
+                headers: {'content-type': 'application/json'},
+                credentials: "include",
+            }
+            const response = await fetch(url, options)
+            result = JSON.parse(await response.text())
+        } else {
+            throw Error("No sourcify setup for network " + routeManager.currentNetworkEntry.value.name)
+        }
+
+        return Promise.resolve(result)
+    }
+
+    //
+    // Tools
+    //
 
     public static fetchVerifyError(reason: unknown): string|null {
         let result: string|null
@@ -120,4 +267,53 @@ export interface SourcifyVerifyResponse {
         status: string,
         library: Record<string, unknown>
     }[]
+}
+
+export interface SourcifyInputFilesBody {
+    files: Record<string, string> // filename x content
+}
+
+export interface SourcifyInputFilesResponse {
+    contracts: {
+        compiledPath: string
+        name: string
+        compilerVersion: string
+        files: {
+            found: string[]
+            missing: string[]
+        }
+        verificationId: string
+        status: string
+    }[]
+    files: string[]
+    unused: string[]
+}
+
+export interface SourcifyVerifyCheckedBody {
+    contracts: {
+        address: string
+        chainId: string
+        creatorTxHash: string|null
+        verificationId: string
+    }[]
+}
+
+
+export interface SourcifyVerifyCheckedResponse {
+    contracts: [{
+        verificationId: string
+        compiledPath: string
+        name: string
+        compilerVersion: string
+        address: string
+        chainId: string
+        files: {
+            found: string[]
+            missing: string[]
+        }
+        status: string
+        storageTimestamp: string
+    }]
+    files: string[]
+    unused: string[]
 }

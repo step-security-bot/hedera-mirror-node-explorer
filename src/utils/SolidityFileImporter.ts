@@ -18,16 +18,14 @@
  *
  */
 
-import {computed, ref} from "vue";
+import {ref} from "vue";
 import {SolcUtils} from "@/utils/solc/SolcUtils";
-import {SolcMetadata} from "@/utils/solc/SolcMetadata";
 import {HHUtils} from "@/utils/hardhat/HHUtils";
-import {HHMetadata} from "@/utils/hardhat/HHMetadata";
 
 export class SolidityFileImporter {
 
     public readonly started = ref(false)
-    public readonly files = ref<Map<string, string|SolcMetadata|HHMetadata>>(new Map())
+    public readonly files = ref<Map<string, string>>(new Map())
     public readonly failure = ref<unknown>(null)
 
     //
@@ -58,7 +56,7 @@ export class SolidityFileImporter {
             const newFiles = new Map<string, string>()
             SolidityFileImporter.importEntries(entries, newFiles)
                 .then(() => {
-                    this.files.value = mergeMap(this.files.value, newFiles)
+                    this.files.value = newFiles
                     this.failure.value = null
 
                 })
@@ -78,51 +76,35 @@ export class SolidityFileImporter {
         this.failure.value = null
     }
 
-    public readonly metadataFileCount = computed(() => {
-        let result = 0
-        for (const content of this.files.value.values()) {
-            if (typeof content === "object") {
-                result += 1
-            }
-        }
-        return result
-    })
-
     //
     // Private
     //
 
-    private static async importEntries(entries: Array<FileSystemEntry | File>, output: Map<string, string | SolcMetadata>): Promise<void> {
+    private static async importEntries(entries: Array<FileSystemEntry | File>, output: Map<string, string>): Promise<void> {
         for (const e of entries) {
             if (e instanceof File) {
-                const topFolder = "/"
-                await this.importFile(e, output, topFolder)
+                await this.importFile(e, output)
             } else {
-                const topFolder = e.isDirectory ? "/" + e.name + "/" : "/"
-                await this.importEntry(e, output, topFolder)
+                await this.importEntry(e, output)
             }
         }
     }
 
-    private static async importEntry(e: FileSystemEntry, output: Map<string, string|SolcMetadata|HHMetadata>, topFolder: string): Promise<void> {
+    private static async importEntry(e: FileSystemEntry, output: Map<string, string>): Promise<void> {
         if (e !== null) {
             if (e.isFile) {
                 const fileName = e!.name
+                const fullPath = e!.fullPath
+                const relativePath = fullPath.indexOf("/") == 0 ? fullPath.substring(1) : fullPath
                 if (hasExtension(fileName, ".sol")) {
-                    const path = removeTopFolder(e.fullPath, topFolder)
                     const content = await asyncReadText(e as FileSystemFileEntry)
-                    output.set(path, content)
+                    output.set(relativePath, content)
                 } else if (hasExtension(fileName, ".json")) {
-                    const path = removeTopFolder(e.fullPath, topFolder)
                     const content = await asyncReadText(e as FileSystemFileEntry)
-                    const solcMetadata = SolcUtils.parseSolcMetadata(content)
-                    if (solcMetadata !== null) {
-                        output.set(path, solcMetadata)
-                    } else {
-                        const hhMetadata = HHUtils.parseMetadata(content)
-                        if (hhMetadata !== null) {
-                            output.set(path, hhMetadata)
-                        }
+                    if (SolcUtils.parseSolcMetadata(content) !== null
+                        || SolcUtils.parseSolcInput(content) !== null
+                        || HHUtils.parseMetadata(content) !== null) {
+                        output.set(relativePath, content)
                     }
                 }
             } else if (e.isDirectory) {
@@ -130,7 +112,7 @@ export class SolidityFileImporter {
                 for (const c of await asyncReadEntries(d)) {
                     const skip = c.name.startsWith(".") || c.name == "node_modules"
                     if (!skip) {
-                        await this.importEntry(c, output, topFolder)
+                        await this.importEntry(c, output)
                     }
                 }
             } else {
@@ -139,24 +121,18 @@ export class SolidityFileImporter {
         }
     }
 
-    private static async importFile(f: File, output: Map<string, string | SolcMetadata | HHMetadata>, topFolder: string): Promise<void> {
+    private static async importFile(f: File, output: Map<string, string>): Promise<void> {
         if (f !== null) {
-            const fileName = f!.name
+            const fileName = f.name
             if (hasExtension(fileName, ".sol")) {
-                const path = removeTopFolder(f.name, topFolder)
                 const content = await asyncReadTextFromFile(f)
-                output.set(path, content)
+                output.set(fileName, content)
             } else if (hasExtension(fileName, ".json")) {
-                const path = removeTopFolder(f.name, topFolder)
                 const content = await asyncReadTextFromFile(f)
-                const solcMetadata = SolcUtils.parseSolcMetadata(content)
-                if (solcMetadata !== null) {
-                    output.set(path, solcMetadata)
-                } else {
-                    const hhMetadata = HHUtils.parseMetadata(content)
-                    if (hhMetadata !== null) {
-                        output.set(path, hhMetadata)
-                    }
+                if (SolcUtils.parseSolcMetadata(content) !== null
+                    || SolcUtils.parseSolcInput(content) !== null
+                    || HHUtils.parseMetadata(content) !== null) {
+                    output.set(fileName, content)
                 }
             }
         }
@@ -197,27 +173,6 @@ async function asyncReadEntries(e: FileSystemDirectoryEntry): Promise<FileSystem
         }
         readEntries()
     })
-}
-
-function mergeMap(m1: Map<string, string|SolcMetadata|HHMetadata>, m2: Map<string, string|SolcMetadata|HHMetadata>): Map<string,string|SolcMetadata|HHMetadata> {
-    const result = new Map<string, string|SolcMetadata|HHMetadata>
-    for (const [p, c] of m1) {
-        result.set(p, c)
-    }
-    for (const [p, c] of m2) {
-        result.set(p, c)
-    }
-    return result
-}
-
-function removeTopFolder(path: string, topFolder: string): string {
-    let result: string
-    if (path.startsWith(topFolder)) {
-        result = path.substring(topFolder.length)
-    } else {
-        result = path
-    }
-    return result
 }
 
 function hasExtension(fileName: string, extension: string): boolean {

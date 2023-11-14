@@ -149,16 +149,13 @@
 
 <script lang="ts">
 
-import {computed, defineComponent, onBeforeUnmount, onMounted, PropType, ref} from "vue"
+import {computed, defineComponent, PropType, ref, watch} from "vue"
 import FileList from "@/components/verification/FileList.vue"
 import {SolidityFileImporter} from "@/utils/SolidityFileImporter";
 import {ByteCodeAnalyzer} from "@/utils/analyzer/ByteCodeAnalyzer";
-import {SourcifyUtils, SourcifyVerifyResponse} from "@/utils/sourcify/SourcifyUtils";
-import {ContractSourceAnalyzer} from "@/utils/analyzer/ContractSourceAnalyzer";
 import ProgressDialog, {Mode} from "@/components/staking/ProgressDialog.vue";
-import {ContractAuditStatus} from "@/utils/analyzer/ContractSourceAudit";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
-import {SolcUtils} from "@/utils/solc/SolcUtils";
+import {SourcifySession} from "@/utils/sourcify/SourcifySession";
 
 export default defineComponent({
     name: "ContractVerificationDialog",
@@ -207,12 +204,11 @@ export default defineComponent({
 
         const handleCancel = () => {
             context.emit('update:showDialog', false)
-            fileImporter.reset()
+            sourcifySession.clear()
         }
 
         const verifyButtonEnabled = computed(() => {
-            return !sourceAnalyzer.analyzing.value
-                && sourceAnalyzer.audit.value?.status == ContractAuditStatus.Resolved
+            return !sourcifySession.busy.value && sourcifySession.matchingContractName.value !== null
         })
 
         //
@@ -235,35 +231,43 @@ export default defineComponent({
         }
 
         const auditItems = computed(() => {
-            return sourceAnalyzer.audit.value?.items ?? []
+            return sourcifySession.items.value
         })
 
         //
-        // Source analysis
+        // Sourcify session
         //
+        const sourcifySession = new SourcifySession(computed(() => props.contractId))
+        watch(() => props.showDialog, () => {
+            if (props.showDialog) {
+                sourcifySession.mount()
+            } else {
+                sourcifySession.unmount()
+            }
+        })
 
-        const sourceAnalyzer = new ContractSourceAnalyzer(props.byteCodeAnalyzer, fileImporter.files)
-        onMounted(() => sourceAnalyzer.mount())
-        onBeforeUnmount(() => sourceAnalyzer.unmount())
+        watch(fileImporter.files, (files: Map<string, string>) => {
+            sourcifySession.inputFiles(files)
+        })
 
         //
         // Verify
         //
 
         const handleVerify = async () => {
-            context.emit('update:showDialog', false)
-            const audit = sourceAnalyzer.audit.value
-            if (audit?.status === ContractAuditStatus.Resolved && audit.resolvedMetadata === null) {
-                showMetadataDialog.value = true
-                metadataMessage.value = "You may proceed as is, or go back and add the metadata file if you have it."
-                metadataExtraMessage.value = "Providing the metadata may increase the chances to get a full match."
-                showMetadataDialog.value = true
-            } else {
-                showConfirmDialog.value = true
-            }
-            console.log(`status: ${sourceAnalyzer.audit.value?.status}`)
-            console.log(`failure: ${sourceAnalyzer.audit.value?.failure}`)
-            console.log(`resolvedMetadata: ${sourceAnalyzer.audit.value?.resolvedMetadata}`)
+            // context.emit('update:showDialog', false)
+            // const audit = sourceAnalyzer.audit.value
+            // if (audit?.status === ContractAuditStatus.Resolved && audit.resolvedMetadata === null) {
+            //     showMetadataDialog.value = true
+            //     metadataMessage.value = "You may proceed as is, or go back and add the metadata file if you have it."
+            //     metadataExtraMessage.value = "Providing the metadata may increase the chances to get a full match."
+            //     showMetadataDialog.value = true
+            // } else {
+            //     showConfirmDialog.value = true
+            // }
+            // console.log(`status: ${sourceAnalyzer.audit.value?.status}`)
+            // console.log(`failure: ${sourceAnalyzer.audit.value?.failure}`)
+            // console.log(`resolvedMetadata: ${sourceAnalyzer.audit.value?.resolvedMetadata}`)
         }
 
         //
@@ -274,47 +278,10 @@ export default defineComponent({
             let result: string
             if (fileImporter.started.value) {
                 result = "Importing files…"
-            } else if (sourceAnalyzer.analyzing.value) {
+            } else if (sourcifySession.busy.value) {
                 result = "Analyzing source files…"
-            } else if (sourceAnalyzer.audit.value !== null) {
-                switch(sourceAnalyzer.audit.value.status) {
-                    case ContractAuditStatus.NoSourceFile:
-                        result = "Drop the Solidity source files (and metadata if available) in the area below"
-                        break
-                    case ContractAuditStatus.Failure:
-                        result = "Compilation failed. Check your source files."
-                        break
-                    case ContractAuditStatus.UnknownCompilerVersion:
-                        const compilerVersion = props.byteCodeAnalyzer.solcVersion.value ?? "?"
-                        result = "Cannot find compiler for version " + compilerVersion
-                        break
-                    case ContractAuditStatus.CompilationErrors:
-                        if (sourceAnalyzer.audit.value.missingFiles.length >= 1) {
-                            result = "File '" + sourceAnalyzer.audit.value.missingFiles[0] + "' is missing."
-                        } else {
-                            result = "Compiler reports some errors. Check your source files."
-                        }
-                        break
-                    case ContractAuditStatus.Resolved: {
-                        const contractName = sourceAnalyzer.audit.value.resolvedContractName
-                        if (contractName !== null) {
-                            result = "Contract \"" + contractName + "\" is ready to be verified"
-                        } else {
-                            result = "Contract is ready to be verified"
-                        }
-                        break
-                    }
-                    case ContractAuditStatus.Unresolved: {
-                        const metadataFileCount = sourceAnalyzer.audit.value.countMetadataFiles()
-                        if (metadataFileCount >= 2) {
-                            result = "Multiple metadata files are present. Make sure to drop only a single one."
-                        } else {
-                            result = "Drop the Solidity source files (and metadata if available) in the area below"
-                        }
-                    }
-                }
             } else {
-                result = "Drop the Solidity source files (and metadata if available) in the area below"
+                result = sourcifySession.status.value ?? "Drop files…"
             }
             return result
         })
@@ -343,66 +310,66 @@ export default defineComponent({
         const confirmExtraMessage = ref<string|null>(null)
 
         const handleConfirmVerification = async () => {
-            const audit = sourceAnalyzer.audit.value!
-
-            showConfirmDialog.value = false
-            showProgressDialog.value = true
-            showProgressSpinner.value = true
-            progressDialogMode.value = Mode.Busy
-            progressMainMessage.value = audit.resolvedContractName
-                ? `Verifying ${audit.resolvedContractName} contract…`
-                : `Verifying contract…`
-            progressExtraMessage.value = null
-            try {
-                let response: SourcifyVerifyResponse | null
-                const solcMetadata = SolcUtils.castSolcMetadata(audit.resolvedMetadata)
-                if (solcMetadata !== null) {
-                    // We verify using /verify REST call
-                    const sourceFiles = audit.makeReducedSourceFiles()
-                    response = await SourcifyUtils.verify(
-                        props.contractId,
-                        solcMetadata,
-                        sourceFiles)
-                } else {
-                    // We verify using /verify/solc-input REST call
-                    const compilerVersion = "v" + audit.longCompilerVersion!
-                    const solcInput = SolcUtils.castSolcInput(audit.resolvedMetadata)!
-                    response = await SourcifyUtils.verifyWithSolcInput(
-                        props.contractId,
-                        audit.resolvedContractName!,
-                        compilerVersion,
-                        solcInput)
-                }
-                showProgressSpinner.value = false
-                if (response !== null) {
-                    if (response.result) {
-                        progressDialogMode.value = Mode.Success
-                        progressMainMessage.value = "Verification succeeded"
-                        const status = SourcifyUtils.fetchVerifyStatus(response)
-                        if (status == "perfect") {
-                            progressExtraMessage.value = "Full Match"
-                        } else if (status == "partial") {
-                            progressExtraMessage.value = "Partial Match"
-                        } else {
-                            progressExtraMessage.value = status
-                        }
-                    } else {
-                        progressDialogMode.value = Mode.Error
-                        progressMainMessage.value = "Verification failed"
-                        progressExtraMessage.value = response.error ?? null
-                    }
-                } else {
-                    // Bug
-                    progressDialogMode.value = Mode.Error
-                    progressMainMessage.value = "Verification cannot be done"
-                    progressExtraMessage.value = null
-                }
-            } catch(reason) {
-                showProgressSpinner.value = false
-                progressDialogMode.value = Mode.Error
-                progressMainMessage.value = "Verification failed"
-                progressExtraMessage.value = SourcifyUtils.fetchVerifyError(reason)
-            }
+            // const audit = sourceAnalyzer.audit.value!
+            //
+            // showConfirmDialog.value = false
+            // showProgressDialog.value = true
+            // showProgressSpinner.value = true
+            // progressDialogMode.value = Mode.Busy
+            // progressMainMessage.value = audit.resolvedContractName
+            //     ? `Verifying ${audit.resolvedContractName} contract…`
+            //     : `Verifying contract…`
+            // progressExtraMessage.value = null
+            // try {
+            //     let response: SourcifyVerifyResponse | null
+            //     const solcMetadata = SolcUtils.castSolcMetadata(audit.resolvedMetadata)
+            //     if (solcMetadata !== null) {
+            //         // We verify using /verify REST call
+            //         const sourceFiles = audit.makeReducedSourceFiles()
+            //         response = await SourcifyUtils.verify(
+            //             props.contractId,
+            //             solcMetadata,
+            //             sourceFiles)
+            //     } else {
+            //         // We verify using /verify/solc-input REST call
+            //         const compilerVersion = "v" + audit.longCompilerVersion!
+            //         const solcInput = SolcUtils.castSolcInput(audit.resolvedMetadata)!
+            //         response = await SourcifyUtils.verifyWithSolcInput(
+            //             props.contractId,
+            //             audit.resolvedContractName!,
+            //             compilerVersion,
+            //             solcInput)
+            //     }
+            //     showProgressSpinner.value = false
+            //     if (response !== null) {
+            //         if (response.result) {
+            //             progressDialogMode.value = Mode.Success
+            //             progressMainMessage.value = "Verification succeeded"
+            //             const status = SourcifyUtils.fetchVerifyStatus(response)
+            //             if (status == "perfect") {
+            //                 progressExtraMessage.value = "Full Match"
+            //             } else if (status == "partial") {
+            //                 progressExtraMessage.value = "Partial Match"
+            //             } else {
+            //                 progressExtraMessage.value = status
+            //             }
+            //         } else {
+            //             progressDialogMode.value = Mode.Error
+            //             progressMainMessage.value = "Verification failed"
+            //             progressExtraMessage.value = response.error ?? null
+            //         }
+            //     } else {
+            //         // Bug
+            //         progressDialogMode.value = Mode.Error
+            //         progressMainMessage.value = "Verification cannot be done"
+            //         progressExtraMessage.value = null
+            //     }
+            // } catch(reason) {
+            //     showProgressSpinner.value = false
+            //     progressDialogMode.value = Mode.Error
+            //     progressMainMessage.value = "Verification failed"
+            //     progressExtraMessage.value = SourcifyUtils.fetchVerifyError(reason)
+            // }
         }
 
         const handleCancelVerification = () => {
