@@ -65,19 +65,6 @@ export class SourcifyUtils {
             }
             const response = await axios.post<SourcifyInputFilesResponse>(url, body, config)
             result = response.data
-
-            const options: RequestInit = {
-                body: JSON.stringify(body),
-                method: "POST",
-                headers: {'content-type': 'application/json'},
-                credentials: "include",
-            }
-            try {
-                const response = await fetch(url, options)
-                result = JSON.parse(await response.text())
-            } catch(reason) {
-                console.log("reason=" + reason)
-            }
         } else {
             throw Error("No sourcify setup for network " + routeManager.currentNetworkEntry.value.name)
         }
