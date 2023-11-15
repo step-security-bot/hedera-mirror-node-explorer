@@ -83,20 +83,11 @@ export class ContractSourceAnalyzer {
         const result: ContractSourceAnalyzerItem[] = []
 
         if (this.verifyResponse.value !== null) {
-            const jsonExtension = ".json"
             const response = this.verifyResponse.value
             const matchingContract = this.matchingContract.value
             for (const f of response.files) {
-                let unused: boolean
-                if (f.toLowerCase().lastIndexOf(jsonExtension) == f.length - jsonExtension.length) {
-                    // It's a metadata file
-                    unused = false
-                } else if (matchingContract !== null) {
-                    unused = SourcifyUtils.findCompiledPath(f, matchingContract) === null
-                } else {
-                    unused = response.unused.indexOf(f) != -1
-                }
-                const target = matchingContract !== null && matchingContract.compiledPath == f
+                const unused = response.unused.indexOf(f) != -1
+                const target = !unused && matchingContract !== null && matchingContract.compiledPath == f
                 result.push({ path: f, unused, target })
             }
         } else if (this.inputFilesResponse.value !== null) {
