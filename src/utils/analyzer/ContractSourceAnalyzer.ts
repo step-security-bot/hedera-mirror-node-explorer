@@ -164,7 +164,7 @@ export class ContractSourceAnalyzer {
         this.inputFilesResponse.value = await SourcifyUtils.sessionInputFiles(newFiles)
         const verificationIds = SourcifyUtils.fetchVerificationIds(this.inputFilesResponse.value)
         if (verificationIds.length >= 1) {
-            this.verifyResponse.value = await SourcifyUtils.verifyChecked(contractId, verificationIds, false)
+            this.verifyResponse.value = await SourcifyUtils.sessionVerifyChecked(contractId, verificationIds, false)
         } else {
             this.verifyResponse.value = null
         }

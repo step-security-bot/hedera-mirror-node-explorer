@@ -304,7 +304,7 @@ export default defineComponent({
 
             try {
                 const verificationIds = [matchingContract.verificationId]
-                const response = await SourcifyUtils.verifyChecked(contractId, verificationIds, true)
+                const response = await SourcifyUtils.sessionVerifyChecked(contractId, verificationIds, true)
                 showProgressSpinner.value = false
 
                 const matchingContractBis = SourcifyUtils.fetchMatchingContract(response)

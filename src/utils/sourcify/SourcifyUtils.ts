@@ -85,9 +85,9 @@ export class SourcifyUtils {
         return Promise.resolve(result)
     }
 
-    public static async verifyChecked(contractId: string,
-                                      verificationIds: string[],
-                                      store: boolean): Promise<SourcifyVerifyCheckedResponse> {
+    public static async sessionVerifyChecked(contractId: string,
+                                             verificationIds: string[],
+                                             store: boolean): Promise<SourcifyVerifyCheckedResponse> {
         let result: SourcifyVerifyCheckedResponse
 
         const contractResponse = await ContractByIdCache.instance.lookup(contractId)
