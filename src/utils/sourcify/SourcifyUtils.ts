@@ -98,6 +98,9 @@ export class SourcifyUtils {
             const body: SourcifyVerifyCheckedBody = {
                 contracts: []
             }
+            if (store) {
+                body.storeResult = true
+            }
             for (const vid of verificationIds) {
                 body.contracts.push({
                     address: address,
@@ -192,6 +195,7 @@ export interface SourcifyInputFilesResponse {
 }
 
 export interface SourcifyVerifyCheckedBody {
+    storeResult?: boolean,
     contracts: {
         address: string
         chainId: string
