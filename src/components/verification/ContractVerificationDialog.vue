@@ -149,7 +149,7 @@
 
 <script lang="ts">
 
-import {computed, defineComponent, ref, watch} from "vue"
+import {computed, defineComponent, ref} from "vue"
 import FileList from "@/components/verification/FileList.vue"
 import ProgressDialog, {Mode} from "@/components/staking/ProgressDialog.vue";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
