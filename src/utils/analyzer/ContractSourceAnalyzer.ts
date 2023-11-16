@@ -32,6 +32,7 @@ export class ContractSourceAnalyzer {
     private readonly contractId: Ref<string|null>
     private readonly analyzingRef = ref(false)
     private readonly failureRef = ref<unknown>(null)
+    private readonly inputFiles = ref<Map<string, string>>(new Map())
     private readonly inputFilesResponse = shallowRef<SourcifyInputFilesResponse|null>(null)
     private readonly verifyResponse = shallowRef<SourcifyVerifyCheckedResponse|null>(null)
 
@@ -41,16 +42,6 @@ export class ContractSourceAnalyzer {
 
     public constructor(contractId: Ref<string|null>) {
         this.contractId = contractId
-    }
-
-
-    public mount(): void {
-        this.reset().then()
-    }
-
-    public unmount(): void {
-        this.inputFilesResponse.value = null
-        this.verifyResponse.value = null
     }
 
     public readonly analyzing = computed( () => this.analyzingRef.value)
@@ -82,18 +73,14 @@ export class ContractSourceAnalyzer {
     public readonly items = computed<ContractSourceAnalyzerItem[]>(() => {
         const result: ContractSourceAnalyzerItem[] = []
 
-        if (this.verifyResponse.value !== null) {
-            const response = this.verifyResponse.value
-            const matchingContract = this.matchingContract.value
-            for (const f of response.files) {
-                const unused = response.unused.indexOf(f) != -1
+        for (const f of this.inputFiles.value.keys()) {
+            if (this.verifyResponse.value !== null) {
+                const matchingContract = this.matchingContract.value
+                const unused = this.verifyResponse.value.unused.indexOf(f) != -1
                 const target = !unused && matchingContract !== null && matchingContract.compiledPath == f
                 result.push({ path: f, unused, target })
-            }
-        } else if (this.inputFilesResponse.value !== null) {
-            const response = this.inputFilesResponse.value
-            for (const f of response.files) {
-                const unused = response.unused.indexOf(f) != -1
+            } else if (this.inputFilesResponse.value !== null) {
+                const unused = this.inputFilesResponse.value.unused.indexOf(f) != -1
                 const target = false
                 result.push({ path: f, unused, target })
             }
@@ -106,7 +93,8 @@ export class ContractSourceAnalyzer {
             this.analyzingRef.value = true
             try {
                 const newFiles = await importFromDrop(transferList)
-                await this.verifyWithoutStore(this.contractId.value, newFiles)
+                this.inputFiles.value = new Map([...this.inputFiles.value, ...newFiles])
+                await this.verifyWithoutStore(this.contractId.value)
                 this.failureRef.value = null
             } catch(reason) {
                 // Leaves this.inputFilesResponse and this.verifyResponse unchanged
@@ -122,7 +110,8 @@ export class ContractSourceAnalyzer {
             this.analyzingRef.value = true
             try {
                 const newFiles = await importFromChooser(fileList)
-                await this.verifyWithoutStore(this.contractId.value, newFiles)
+                this.inputFiles.value = new Map([...this.inputFiles.value, ...newFiles])
+                await this.verifyWithoutStore(this.contractId.value)
                 this.failureRef.value = null
             } catch(reason) {
                 // Leaves this.inputFilesResponse and this.verifyResponse unchanged
@@ -134,25 +123,19 @@ export class ContractSourceAnalyzer {
     }
 
     public async reset(): Promise<void> {
-        this.analyzingRef.value = true
-        try {
-            await SourcifyUtils.sessionClear()
-            this.failureRef.value = null
-        } catch(reason) {
-            this.failureRef.value = reason
-        } finally {
-            this.inputFilesResponse.value = null
-            this.verifyResponse.value = null
-            this.analyzingRef.value = false
-        }
+        this.inputFiles.value.clear()
+        this.inputFilesResponse.value = null
+        this.verifyResponse.value = null
+        this.analyzingRef.value = false
     }
 
     //
     // Private
     //
 
-    private async verifyWithoutStore(contractId: string, newFiles: Map<string, string>): Promise<void> {
-        this.inputFilesResponse.value = await SourcifyUtils.sessionInputFiles(newFiles)
+    private async verifyWithoutStore(contractId: string): Promise<void> {
+        await SourcifyUtils.sessionClear()
+        this.inputFilesResponse.value = await SourcifyUtils.sessionInputFiles(this.inputFiles.value)
         const verificationIds = SourcifyUtils.fetchVerificationIds(this.inputFilesResponse.value)
         if (verificationIds.length >= 1) {
             this.verifyResponse.value = await SourcifyUtils.sessionVerifyChecked(contractId, verificationIds, false)

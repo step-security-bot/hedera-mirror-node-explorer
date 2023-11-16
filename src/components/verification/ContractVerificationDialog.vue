@@ -230,13 +230,6 @@ export default defineComponent({
         //
 
         const contractSourceAnalyzer = new ContractSourceAnalyzer(computed(() => props.contractId))
-        watch(() => props.showDialog, () => {
-            if (props.showDialog) {
-                contractSourceAnalyzer.mount()
-            } else {
-                contractSourceAnalyzer.unmount()
-            }
-        })
 
         //
         // Verify
