@@ -173,7 +173,7 @@ export class WalletDriver_Metamask extends WalletDriver {
                 params: {
                     "type":"ERC20",
                     "options":{
-                        "address": tokenAddress,
+                        "address": '0x'+tokenAddress,
                         "symbol": symbol,
                         "decimals": decimals,
                         "image": HederaLogo

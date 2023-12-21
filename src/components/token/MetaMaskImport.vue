@@ -24,7 +24,7 @@
 
 <template class="">
   <button id="showStakingDialog" class="button is-white h-is-smaller"
-          @click="handleAction">IMPORT TO METAMASK</button>
+          @click="handleAction">IMPORT TO {{ walletName.toUpperCase() }}</button>
   <span style="display: inline-block">
 
   <ProgressDialog v-model:show-dialog="showProgressDialog"
@@ -117,7 +117,8 @@ export default defineComponent({
         progressMainMessage,
         progressExtraMessage,
         progressExtraTransactionId,
-        showProgressSpinner
+        showProgressSpinner,
+        walletName: walletManager.walletName
     }
   }
 })
