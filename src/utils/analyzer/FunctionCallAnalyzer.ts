@@ -273,9 +273,24 @@ export class FunctionCallAnalyzer {
     private readonly updateInputResult = () => {
         const ff = this.functionFragment.value
         const inputArgs = this.inputArgsOnly.value
+        const HTS_CONTRACT_ID = "0.0.359"
+        const REDIRECT_FOR_TOKEN_BYTES_SIGNATURE = "0x618dc65e"
+
         if (ff !== null && inputArgs !== null) {
             try {
-                this.inputResult.value = ethers.AbiCoder.defaultAbiCoder().decode(ff.inputs, inputArgs)
+                // please refer to the ticket below for more information on this logic for redirectForToken(address,bytes) method on HTS System Contract 
+                // https://github.com/hashgraph/hedera-mirror-node-explorer/issues/921
+                if (
+                    this.contractAnalyzer.contractId.value === HTS_CONTRACT_ID &&
+                    this.functionHash.value === REDIRECT_FOR_TOKEN_BYTES_SIGNATURE
+                ) {
+                    const tokenAddress = inputArgs.slice(0, 42)
+                    const encodedFunctionSelector = inputArgs.slice(42)
+                    this.inputResult.value = new ethers.Result(tokenAddress, encodedFunctionSelector)
+                } else {
+                    this.inputResult.value = ethers.AbiCoder.defaultAbiCoder().decode(ff.inputs, inputArgs)
+                }
+
                 this.inputDecodingFailure.value = null
             } catch(failure) {
                 this.inputResult.value = null
