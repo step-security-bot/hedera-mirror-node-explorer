@@ -52,6 +52,7 @@ import AdminKeyDetails from "@/pages/AdminKeyDetails.vue";
 import AddressDetails from "@/pages/AddressDetails.vue";
 import RoutingSpec from "@/pages/RoutingSpec.vue";
 import AccountCollection from "@/pages/AccountCollection.vue"
+import {gtag, gtagPageView} from "@/gtag";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -325,6 +326,10 @@ router.beforeEach((to) => {
 
 router.beforeEach(() => {
   AxiosMonitor.instance.clearErrorResponses()
+})
+
+router.afterEach((to) => {
+  gtagPageView(to.fullPath)
 })
 
 export default router

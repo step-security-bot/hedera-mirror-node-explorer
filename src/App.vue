@@ -159,10 +159,11 @@ function insertGoogleTag(tagId: string) {
   s1.setAttribute( 'src', src1 );
   document.head.appendChild( s1 );
 
+  // https://developers.google.com/analytics/devguides/collection/ga4/views?client_type=gtag#manual_pageviews
   const src2 = `window.dataLayer = window.dataLayer || [];
     function gtag() {dataLayer.push(arguments);}
     gtag('js', new Date());
-    gtag('config', '${import.meta.env.VITE_APP_GOOGLE_TAG_ID}');`
+    gtag('config', '${import.meta.env.VITE_APP_GOOGLE_TAG_ID}', send_page_view: false);`
   let s2 = document.createElement( 'script' );
   s2.innerHTML = src2;
   document.head.appendChild( s2 );
