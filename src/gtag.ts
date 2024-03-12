@@ -39,17 +39,22 @@ export function gtagConfig(targetId: string, options: object) {
 }
 
 export function gtagEvent(eventName: string, options: object) {
+    // https://developers.google.com/tag-platform/gtagjs/reference#event
     if (window.gtag) {
         window.gtag(["event", eventName, options])
     }
 }
 
-export function gtagPageView(path: string) {
-    const tagId = import.meta.env.VITE_APP_GOOGLE_TAG_ID
-    if (tagId) {
-        gtagConfig(tagId, {
-            page_path: path,
-            send_page_view: true,
-        })
-    }
+export function gtagPageView(url: string) {
+    // https://developers.google.com/tag-platform/gtagjs/reference/events#page_view
+    gtagEvent("page_view", {
+        page_location: url
+    })
+}
+
+export function gtagSearch(searchTerm: string): void {
+    // https://developers.google.com/tag-platform/gtagjs/reference/events#search
+    gtagEvent("search", {
+        search_term: searchTerm
+    })
 }

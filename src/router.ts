@@ -328,10 +328,9 @@ router.beforeEach(() => {
   AxiosMonitor.instance.clearErrorResponses()
 })
 
-router.afterEach((to) => {
-  gtagPageView(to.fullPath)
-  if (to.name) {
-    gtagPageView(to.name as string)
+router.afterEach((to: RouteLocationNormalized, from: RouteLocationNormalized) => {
+  if (to.path !== from.path) {
+    gtagPageView(to.path)
   }
 })
 
