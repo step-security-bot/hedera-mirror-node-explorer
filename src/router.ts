@@ -52,7 +52,7 @@ import AdminKeyDetails from "@/pages/AdminKeyDetails.vue";
 import AddressDetails from "@/pages/AddressDetails.vue";
 import RoutingSpec from "@/pages/RoutingSpec.vue";
 import AccountCollection from "@/pages/AccountCollection.vue"
-import {gtag, gtagPageView} from "@/gtag";
+import {gtagPageView} from "@/gtag";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -330,6 +330,9 @@ router.beforeEach(() => {
 
 router.afterEach((to) => {
   gtagPageView(to.fullPath)
+  if (to.name) {
+    gtagPageView(to.name as string)
+  }
 })
 
 export default router
