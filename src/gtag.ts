@@ -26,19 +26,21 @@
 //
 
 declare global {
-    let gtag: Function|undefined
+    interface Window {
+        gtag: Function|undefined
+    }
 }
 
 export function gtagConfig(targetId: string, options: object) {
     // https://developers.google.com/tag-platform/gtagjs/reference#config
-    if (gtag) {
-        gtag(["config", targetId, options])
+    if (window.gtag) {
+        window.gtag(["config", targetId, options])
     }
 }
 
 export function gtagEvent(eventName: string, options: object) {
-    if (gtag) {
-        gtag(["event", eventName, options])
+    if (window.gtag) {
+        window.gtag(["event", eventName, options])
     }
 }
 
