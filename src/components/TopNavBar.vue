@@ -178,6 +178,7 @@ import {WalletDriverCancelError, WalletDriverError} from '@/utils/wallet/WalletD
 import ProgressDialog, { Mode } from './staking/ProgressDialog.vue';
 import {defineComponent, inject, ref} from "vue";
 import WalletInfo from '@/components/wallet/WalletInfo.vue'
+import {gtagWalletConnect, gtagWalletConnectionFailure} from "@/gtag";
 
 export default defineComponent({
   name: "TopNavBar",
@@ -234,10 +235,12 @@ export default defineComponent({
                       progressMainMessage.value = "Unexpected error"
                       progressExtraMessage.value = JSON.stringify(reason)
                   }
+                  gtagWalletConnectionFailure(wallet.name)
               }
           })
           .finally(() => connecting.value = false)
       walletIconURL.value = walletManager.getActiveDriver().iconURL || ""
+      gtagWalletConnect(wallet.name)
     }
 
     //
