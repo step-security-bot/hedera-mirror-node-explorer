@@ -163,7 +163,7 @@ function insertGoogleTag(tagId: string) {
   const src2 = `window.dataLayer = window.dataLayer || [];
     function gtag() {dataLayer.push(arguments);}
     gtag('js', new Date());
-    gtag('config', '${import.meta.env.VITE_APP_GOOGLE_TAG_ID}', send_page_view: false);`
+    gtag('config', '${tagId}',{ send_page_view: false });`
   let s2 = document.createElement( 'script' );
   s2.innerHTML = src2;
   document.head.appendChild( s2 );
