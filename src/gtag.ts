@@ -53,15 +53,15 @@ export function gtagSearch(searchTerm: string): void {
 }
 
 export function gtagWalletConnect(walletName: string): void {
-    gtagEvent("Connect", {
-        'event_category': "Wallet",
+    gtagEvent("connect", {
+        'event_category': "wallet",
         'event_label': walletName
     })
 }
 
 export function gtagWalletConnectionFailure(walletName: string): void {
-    gtagEvent("Connection Failure", {
-        'event_category': "Wallet",
+    gtagEvent("connection_failure", {
+        'event_category': "wallet",
         'event_label': walletName
     })
 }
