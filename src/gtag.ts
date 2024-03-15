@@ -31,13 +31,6 @@ declare global {
     }
 }
 
-export function gtagConfig(targetId: string, options: object) {
-    // https://developers.google.com/tag-platform/gtagjs/reference#config
-    if (window.gtag) {
-        window.gtag(["config", targetId, options])
-    }
-}
-
 export function gtagEvent(eventName: string, options: object) {
     // https://developers.google.com/tag-platform/gtagjs/reference#event
     if (window.gtag) {
