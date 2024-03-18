@@ -20,8 +20,8 @@
 
 import {computed, ComputedRef, ref, Ref, shallowRef, watch, WatchStopHandle} from "vue";
 import {ethers} from "ethers";
-import {labelForResponseCode} from "@/schemas/HederaUtils";
 import {ContractAnalyzer} from "@/utils/analyzer/ContractAnalyzer";
+import {decodeRedirectForTokenInput, labelForResponseCode} from "@/schemas/HederaUtils";
 import {SignatureCache, SignatureRecord, SignatureResponse} from "@/utils/cache/SignatureCache";
 
 export class FunctionCallAnalyzer {
@@ -284,9 +284,7 @@ export class FunctionCallAnalyzer {
                     this.contractAnalyzer.contractId.value === HTS_CONTRACT_ID &&
                     this.functionHash.value === REDIRECT_FOR_TOKEN_BYTES_SIGNATURE
                 ) {
-                    const tokenAddress = inputArgs.slice(0, 42)
-                    const encodedFunctionSelector = inputArgs.slice(42)
-                    this.inputResult.value = new ethers.Result(tokenAddress, encodedFunctionSelector)
+                    this.inputResult.value = decodeRedirectForTokenInput(inputArgs)
                 } else {
                     this.inputResult.value = ethers.AbiCoder.defaultAbiCoder().decode(ff.inputs, inputArgs)
                 }

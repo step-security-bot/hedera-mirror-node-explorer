@@ -218,3 +218,10 @@ export function labelForResponseCode(responseCode: bigint): string|null {
     const result = Object.keys(responseCodeEnum).find((key: any) => BigInt(responseCodeEnum[key]) === responseCode);
     return result || null;
 }
+
+
+export function decodeRedirectForTokenInput(inputArgs: string): ethers.Result {
+    const tokenAddress = `0x${inputArgs.slice(2, 42)}`
+    const encodedFunctionSelector = `0x${inputArgs.slice(42)}`
+    return new ethers.Result(tokenAddress, encodedFunctionSelector)
+}
