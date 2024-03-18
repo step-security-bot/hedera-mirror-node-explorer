@@ -225,3 +225,8 @@ export function decodeRedirectForTokenInput(inputArgs: string): ethers.Result {
     const encodedFunctionSelector = `0x${inputArgs.slice(42)}`
     return new ethers.Result(tokenAddress, encodedFunctionSelector)
 }
+
+export function getFunctionForHTSProxyContract(functionFragment: ethers.FunctionFragment | null): ethers.FunctionFragment {
+    const proxyOutputs = functionFragment?.outputs.filter(ff => ff.name === "response")
+    return ethers.FunctionFragment.from({...functionFragment, outputs: proxyOutputs})
+}
