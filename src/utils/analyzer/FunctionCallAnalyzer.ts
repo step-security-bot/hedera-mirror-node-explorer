@@ -21,8 +21,9 @@
 import {computed, ComputedRef, ref, Ref, shallowRef, watch, WatchStopHandle} from "vue";
 import {ethers} from "ethers";
 import {ContractAnalyzer} from "@/utils/analyzer/ContractAnalyzer";
-import {decodeRedirectForTokenInput, labelForResponseCode} from "@/schemas/HederaUtils";
 import {SignatureCache, SignatureRecord, SignatureResponse} from "@/utils/cache/SignatureCache";
+import {HTS_PRECOMPILE_CONTRACT_ID, REDIRECT_FOR_TOKEN_FUNCTION_SIGHASH} from '@/schemas/HederaSchemas';
+import {decodeRedirectForTokenInput, getFunctionForHTSProxyContract, labelForResponseCode} from "@/schemas/HederaUtils";
 
 export class FunctionCallAnalyzer {
 
@@ -231,11 +232,23 @@ export class FunctionCallAnalyzer {
         const i = this.contractAnalyzer.interface.value
         const r = this.signatureResponse.value
         const functionHash = this.functionHash.value
+        const contractId = this.contractAnalyzer.contractId.value
+
         if (functionHash !== null) {
             if (i !== null) {
                 try {
-                    this.functionFragment.value = i.getFunction(functionHash)
-                    this.functionDecodingFailure.value = null
+                    let currentFunctionFragment = i.getFunction(functionHash)
+
+                    // please refer to the ticket below for more information on this logic for redirectForToken(address,bytes) method on HTS System Contract 
+                    // https://github.com/hashgraph/hedera-mirror-node-explorer/issues/921
+                    if (
+                        contractId === HTS_PRECOMPILE_CONTRACT_ID &&
+                        functionHash === REDIRECT_FOR_TOKEN_FUNCTION_SIGHASH
+                    ) {
+                        currentFunctionFragment = getFunctionForHTSProxyContract(currentFunctionFragment)
+                    }
+
+                    this.functionFragment.value = currentFunctionFragment
                 } catch(failure) {
                     this.functionFragment.value = null
                     this.functionDecodingFailure.value = failure
@@ -273,16 +286,16 @@ export class FunctionCallAnalyzer {
     private readonly updateInputResult = () => {
         const ff = this.functionFragment.value
         const inputArgs = this.inputArgsOnly.value
-        const HTS_CONTRACT_ID = "0.0.359"
-        const REDIRECT_FOR_TOKEN_BYTES_SIGNATURE = "0x618dc65e"
+        const contractId = this.contractAnalyzer.contractId.value
+        const functionHash = this.functionHash.value
 
         if (ff !== null && inputArgs !== null) {
             try {
                 // please refer to the ticket below for more information on this logic for redirectForToken(address,bytes) method on HTS System Contract 
                 // https://github.com/hashgraph/hedera-mirror-node-explorer/issues/921
                 if (
-                    this.contractAnalyzer.contractId.value === HTS_CONTRACT_ID &&
-                    this.functionHash.value === REDIRECT_FOR_TOKEN_BYTES_SIGNATURE
+                    contractId === HTS_PRECOMPILE_CONTRACT_ID &&
+                    functionHash === REDIRECT_FOR_TOKEN_FUNCTION_SIGHASH
                 ) {
                     this.inputResult.value = decodeRedirectForTokenInput(inputArgs)
                 } else {
