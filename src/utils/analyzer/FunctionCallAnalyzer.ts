@@ -291,21 +291,22 @@ export class FunctionCallAnalyzer {
 
         if (ff !== null && inputArgs !== null) {
             try {
+                this.inputResult.value = ethers.AbiCoder.defaultAbiCoder().decode(ff.inputs, inputArgs)
+                this.inputDecodingFailure.value = null
+            } catch(failure) {
+                const f = failure as ethers.EthersError
                 // please refer to the ticket below for more information on this logic for redirectForToken(address,bytes) method on HTS System Contract 
                 // https://github.com/hashgraph/hedera-mirror-node-explorer/issues/921
                 if (
+                    f.code === "BUFFER_OVERRUN" &&
                     contractId === HTS_PRECOMPILE_CONTRACT_ID &&
                     functionHash === REDIRECT_FOR_TOKEN_FUNCTION_SIGHASH
                 ) {
                     this.inputResult.value = decodeRedirectForTokenInput(inputArgs)
                 } else {
-                    this.inputResult.value = ethers.AbiCoder.defaultAbiCoder().decode(ff.inputs, inputArgs)
+                    this.inputResult.value = null
+                    this.inputDecodingFailure.value = failure
                 }
-
-                this.inputDecodingFailure.value = null
-            } catch(failure) {
-                this.inputResult.value = null
-                this.inputDecodingFailure.value = failure
             }
         } else {
             this.inputResult.value = null
