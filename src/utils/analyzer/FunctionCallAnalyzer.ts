@@ -23,7 +23,7 @@ import {ethers} from "ethers";
 import {ContractAnalyzer} from "@/utils/analyzer/ContractAnalyzer";
 import {SignatureCache, SignatureRecord, SignatureResponse} from "@/utils/cache/SignatureCache";
 import {HTS_PRECOMPILE_CONTRACT_ID, REDIRECT_FOR_TOKEN_FUNCTION_SIGHASH} from '@/schemas/HederaSchemas';
-import {decodeRedirectForTokenInput, getFunctionForHTSProxyContract, labelForResponseCode} from "@/schemas/HederaUtils";
+import {decodeRedirectForTokenInput, resolveFunctionFragmentForHTSProxyContract, labelForResponseCode} from "@/schemas/HederaUtils";
 
 export class FunctionCallAnalyzer {
 
@@ -233,8 +233,10 @@ export class FunctionCallAnalyzer {
         const r = this.signatureResponse.value
         const functionHash = this.functionHash.value
         const contractId = this.contractAnalyzer.contractId.value
+        const inputArgs = this.inputArgsOnly.value
 
-        if (functionHash !== null) {
+
+        if (functionHash !== null && inputArgs !== null) {
             if (i !== null) {
                 try {
                     let currentFunctionFragment = i.getFunction(functionHash)
@@ -242,10 +244,11 @@ export class FunctionCallAnalyzer {
                     // please refer to the ticket below for more information on this logic for redirectForToken(address,bytes) method on HTS System Contract 
                     // https://github.com/hashgraph/hedera-mirror-node-explorer/issues/921
                     if (
+                        currentFunctionFragment !== null &&
                         contractId === HTS_PRECOMPILE_CONTRACT_ID &&
                         functionHash === REDIRECT_FOR_TOKEN_FUNCTION_SIGHASH
                     ) {
-                        currentFunctionFragment = getFunctionForHTSProxyContract(currentFunctionFragment)
+                        currentFunctionFragment = resolveFunctionFragmentForHTSProxyContract(currentFunctionFragment, inputArgs)
                     }
 
                     this.functionFragment.value = currentFunctionFragment
@@ -298,7 +301,7 @@ export class FunctionCallAnalyzer {
                 // please refer to the ticket below for more information on this logic for redirectForToken(address,bytes) method on HTS System Contract 
                 // https://github.com/hashgraph/hedera-mirror-node-explorer/issues/921
                 if (
-                    f.code === "BUFFER_OVERRUN" &&
+                    (f.code === "BUFFER_OVERRUN" || f.code === "INVALID_ARGUMENT") &&
                     contractId === HTS_PRECOMPILE_CONTRACT_ID &&
                     functionHash === REDIRECT_FOR_TOKEN_FUNCTION_SIGHASH
                 ) {
