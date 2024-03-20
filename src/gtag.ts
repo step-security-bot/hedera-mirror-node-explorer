@@ -34,7 +34,7 @@ declare global {
 export function gtagEvent(eventName: string, options: object) {
     // https://developers.google.com/tag-platform/gtagjs/reference#event
     if (window.gtag) {
-        window.gtag(["event", eventName, options])
+        window.gtag("event", eventName, options)
     }
 }
 
