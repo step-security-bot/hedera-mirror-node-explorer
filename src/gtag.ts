@@ -65,3 +65,16 @@ export function gtagWalletConnectionFailure(walletName: string): void {
         'event_label': walletName
     })
 }
+
+export function gtagTransaction(transactionType: string): void {
+    gtagEvent(transactionType, {
+        'event_category': "transaction",
+    })
+}
+
+export function gtagVerifyContract(matchResult: string): void {
+    gtagEvent("verify_contract", {
+        'event_category': "contract",
+        'event_label': matchResult
+    })
+}

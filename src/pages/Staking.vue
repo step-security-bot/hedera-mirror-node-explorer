@@ -236,6 +236,7 @@ import {RewardDownloader} from "@/utils/downloader/RewardDownloader";
 import {NodeAnalyzer} from "@/utils/analyzer/NodeAnalyzer";
 import {AccountLocParser} from "@/utils/parser/AccountLocParser";
 import {TransactionByIdCache} from "@/utils/cache/TransactionByIdCache";
+import {gtagTransaction} from "@/gtag";
 
 export default defineComponent({
   name: 'Staking',
@@ -450,6 +451,7 @@ export default defineComponent({
 
       } finally {
         accountLocParser.remount()
+        gtagTransaction("change_staking")
       }
 
     }
