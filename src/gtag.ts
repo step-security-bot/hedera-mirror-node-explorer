@@ -78,3 +78,10 @@ export function gtagVerifyContract(matchResult: string): void {
         'event_label': matchResult
     })
 }
+
+export function gtagCallContract(signature: string): void {
+    gtagEvent("call_contract", {
+        'event_category': "contract",
+        'event_label': signature
+    })
+}
