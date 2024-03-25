@@ -10,7 +10,7 @@ Explorer reports the following [Google Analytics recommended events](https://dev
 
 
 
-Explorer reports the [Google Analytics custom events](https://developers.google.com/analytics/devguides/collection/gtagjs/events):
+Explorer reports the following [Google Analytics custom events](https://developers.google.com/analytics/devguides/collection/gtagjs/events):
 
 | `action`             | `event_category`                                                                            | `event_label`                                 | Reported each time…                        |
 |----------------------|---------------------------------------------------------------------------------------------|-----------------------------------------------|--------------------------------------------|
