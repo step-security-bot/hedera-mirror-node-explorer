@@ -31,17 +31,9 @@
     <div class="columns">
 
       <div class="column">
-        <DashboardCard data-cy="cryptoTransfers">
-          <template v-slot:title>
-            <span class="h-is-secondary-title">Crypto Transfers</span>
-          </template>
-          <template v-slot:control>
-            <PlayPauseButton v-bind:controller="cryptoTableController"/>
-          </template>
-          <template v-slot:content>
-            <CryptoTransactionTable v-bind:controller="cryptoTableController"/>
-          </template>
-        </DashboardCard>
+          <Chart :controller="tpsChartController">
+              <template v-slot:chartTitle><span class="h-is-secondary-title">TPS</span></template>
+          </Chart>
       </div>
 
     </div>
@@ -102,11 +94,14 @@ import {TransactionType} from "@/schemas/HederaSchemas";
 import Footer from "@/components/Footer.vue";
 import {TransactionTableController} from "@/components/transaction/TransactionTableController";
 import {useRouter} from "vue-router";
+import Chart from "@/components/chart/base/Chart.vue";
+import {TPSChartController} from "@/components/chart/TPSChartController";
 
 export default defineComponent({
   name: 'MainDashboard',
 
   components: {
+    Chart,
     Footer,
     PlayPauseButton,
     DashboardCard,
@@ -159,6 +154,14 @@ export default defineComponent({
       contractTableController.startAutoRefresh()
     })
 
+    const tpsChartController = new TPSChartController()
+    onMounted(() => {
+        tpsChartController.mount()
+    })
+    onBeforeUnmount(() => {
+        tpsChartController.unmount()
+    })
+
     return {
       isSmallScreen,
       isTouchDevice,
@@ -166,7 +169,9 @@ export default defineComponent({
       cryptoTableController,
       messageTableController,
       contractTableController,
-      TransactionType}
+      TransactionType,
+      tpsChartController
+    }
   }
 
 });
