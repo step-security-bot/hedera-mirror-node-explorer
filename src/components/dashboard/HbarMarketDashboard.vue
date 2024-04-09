@@ -31,7 +31,8 @@
         <DashboardItem :name="hbarPriceLabel" :value="'$' + hbarPrice" :variation="hbarPriceVariation"/>
         <DashboardItem :name="hbarMarketCapLabel" :value="'$' + hbarMarketCap" :variation="hbarMarketCapVariation"/>
         <DashboardItem :name="hbarReleasedLabel" :value="hbarReleased"/>
-        <DashboardItem :name="hbarTotalLabel" :value="hbarTotal"/>
+<!--        <DashboardItem :name="hbarTotalLabel" :value="hbarTotal"/>-->
+        <DashboardItem :name="tpsLabel" :is-numeric="true" :value="tps"/>
       </div>
     </div>
 
@@ -43,7 +44,8 @@
         </div>
         <div class="is-flex is-flex-direction-column is-align-items-start">
           <DashboardItem :is-numeric="true" :name="hbarReleasedLabel" :value="hbarReleased"/>
-          <DashboardItem :is-numeric="true" :name="hbarTotalLabel" :value="hbarTotal"/>
+<!--          <DashboardItem :is-numeric="true" :name="hbarTotalLabel" :value="hbarTotal"/>-->
+          <DashboardItem :name="tpsLabel" :is-numeric="true" :value="tps"/>
         </div>
       </div>
     </div>
@@ -54,7 +56,8 @@
           <DashboardItem :is-numeric="true" :name="hbarPriceLabel" :value="'$' + hbarPrice" :variation="hbarPriceVariation"/>
           <DashboardItem :is-numeric="true" :name="hbarMarketCapLabel" :value="'$' + hbarMarketCap" :variation="hbarMarketCapVariation"/>
           <DashboardItem :is-numeric="true" :name="hbarReleasedLabel" :value="hbarReleased"/>
-          <DashboardItem :is-numeric="true" :name="hbarTotalLabel" :value="hbarTotal"/>
+<!--          <DashboardItem :is-numeric="true" :name="hbarTotalLabel" :value="hbarTotal"/>-->
+          <DashboardItem :name="tpsLabel" :is-numeric="true" :value="tps"/>
         </div>
       </div>
     </div>
@@ -81,6 +84,7 @@ import DashboardItem from "@/components/dashboard/DashboardItem.vue";
 import {NetworkRegistry, networkRegistry} from "@/schemas/NetworkRegistry";
 import router from "@/router";
 import {MarketDataCache} from "@/components/dashboard/MarketDataCache";
+import {TpsCache} from "@/utils/cache/TpsCache";
 
 export default defineComponent({
 
@@ -108,10 +112,27 @@ export default defineComponent({
     const hbarMarketCapLabel = 'HBAR MARKET CAP'
     const hbarReleasedLabel = 'HBAR RELEASED'
     const hbarTotalLabel = 'HBAR TOTAL'
+    const tpsLabel = "TPS"
 
     // marketDataCache
     onMounted(() => MarketDataCache.instance.mount())
     onBeforeUnmount(() => MarketDataCache.instance.unmount())
+
+    const tpsLookup = TpsCache.instance.makeAutoRefreshLookup(30000)
+    onMounted(() => tpsLookup.mount())
+    onBeforeUnmount(() => tpsLookup.unmount())
+
+    const tps = computed(() => {
+        let result: string
+        if (tpsLookup.entity.value !== null) {
+            const tps = Math.round(tpsLookup.entity.value.tps)
+            result = tps > 0 ? tps.toString() : "-"
+        } else {
+            result = "-"
+        }
+        return result
+    })
+
 
     return {
       isMainNetwork,
@@ -122,6 +143,7 @@ export default defineComponent({
       hbarMarketCapLabel,
       hbarReleasedLabel,
       hbarTotalLabel,
+      tpsLabel,
       marketDataCache: MarketDataCache.instance, // For testing purpose
       hbarReleased: MarketDataCache.instance.hbarReleased,
       hbarTotal: MarketDataCache.instance.hbarTotal,
@@ -129,6 +151,7 @@ export default defineComponent({
       hbarPriceVariation: MarketDataCache.instance.hbarPriceVariation,
       hbarMarketCap: MarketDataCache.instance.hbarMarketCap,
       hbarMarketCapVariation: MarketDataCache.instance.hbarMarketCapVariation,
+      tps
     }
   },
 });
