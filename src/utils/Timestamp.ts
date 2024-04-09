@@ -20,8 +20,8 @@
 
 export class Timestamp {
 
-    public readonly seconds: number
-    public readonly nanoseconds: number
+    public readonly seconds: bigint
+    public readonly nanoseconds: bigint
 
     //
     // Public
@@ -34,12 +34,12 @@ export class Timestamp {
         const s = i != -1 ? timestamp.slice(0, i) : null
         const n = i != -1 ? timestamp.slice(i+1) : null
         if (s !== null && n !== null && n.indexOf(".") == -1) {
-            const seconds = parseInt(s)
-            const nanoseconds = parseInt(n)
-            if (isNaN(seconds) || isNaN(nanoseconds)) {
-                result = null
-            } else {
+            try {
+                const seconds = BigInt(s)
+                const nanoseconds = BigInt(n)
                 result = new Timestamp(seconds, nanoseconds)
+            } catch {
+                result = null
             }
         } else {
             result = null
@@ -52,11 +52,21 @@ export class Timestamp {
         return this.seconds + "." + this.nanoseconds.toString().padStart(9, "0")
     }
 
+    public toEpochMillis(): number {
+        return Number(this.seconds) * 1000 + Number(this.nanoseconds / 1_000_000n)
+    }
+
+    public secondInterval(since: Timestamp): number {
+        const s = Number(this.seconds - since.seconds)
+        const n = Number(this.nanoseconds - since.nanoseconds)
+        return s + n / 1_000_000_000
+    }
+
     //
     // Private
     //
 
-    private constructor(seconds: number, nanoseconds: number) {
+    private constructor(seconds: bigint, nanoseconds: bigint) {
         this.seconds = seconds
         this.nanoseconds = nanoseconds
     }

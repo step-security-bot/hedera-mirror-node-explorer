@@ -50,6 +50,7 @@ import { ContractResultsLogsByContractIdCache } from "@/utils/cache/ContractResu
 import {NftCollectionCache} from "@/utils/cache/NftCollectionCache";
 import {VerifiedContractsByAccountIdCache} from "@/utils/cache/VerifiedContractsByAccountIdCache";
 import {VerifiedContractsCache} from "@/utils/cache/VerifiedContractsCache";
+import {TpsCache} from "@/utils/cache/TpsCache";
 
 export class CacheUtils {
 
@@ -79,6 +80,7 @@ export class CacheUtils {
         TokenAssociationCache.instance.clear()
         TokenInfoCache.instance.clear()
         TokenRelationshipCache.instance.clear()
+        TpsCache.instance.clear()
         TransactionByHashCache.instance.clear()
         TransactionByIdCache.instance.clear()
         TransactionByTsCache.instance.clear()
