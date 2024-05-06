@@ -137,6 +137,9 @@
     </DashboardCard>
 
     <ContractResultsSection :contract-id="normalizedTokenId ?? undefined"/>
+
+    <MirrorLink :network="network" entityUrl="tokens" :loc="normalizedTokenId + '/nfts/' + serialNumber"/>
+
   </section>
 
   <Footer/>
@@ -147,15 +150,7 @@
 <!-- --------------------------------------------------------------------------------------------------------------- -->
 
 <script lang="ts">
-import {
-  computed,
-  defineComponent,
-  inject,
-  onBeforeUnmount,
-  onMounted,
-  ref,
-  watch,
-} from "vue"
+import {computed, defineComponent, inject, onBeforeUnmount, onMounted, ref, watch} from "vue"
 import router, {routeManager} from "@/router"
 import TimestampValue from "@/components/values/TimestampValue.vue"
 import DashboardCard from "@/components/DashboardCard.vue"
@@ -174,11 +169,13 @@ import TransactionFilterSelect from "@/components/transaction/TransactionFilterS
 import {makeTokenSymbol} from "@/schemas/HederaUtils";
 import {TokenInfoCache} from "@/utils/cache/TokenInfoCache";
 import TokenLink from "@/components/values/link/TokenLink.vue";
+import MirrorLink from "@/components/MirrorLink.vue";
 
 export default defineComponent({
   name: "NftDetails",
 
   components: {
+    MirrorLink,
     TokenLink,
     ContractResultsSection,
     PlayPauseButton,
