@@ -27,7 +27,7 @@
       :class="{ 'h-mobile-background': isTouchDevice || !isSmallScreen }"
       class="section"
   >
-    <DashboardCard>
+    <DashboardCard collapsible-key="nftDetails">
       <template #title>
         <span class="h-is-primary-title mr-3">Serial Number {{ serialNumber }}</span>
         <div
@@ -121,7 +121,7 @@
       </template>
     </DashboardCard>
 
-    <DashboardCard v-if="nftInfo">
+    <DashboardCard v-if="nftInfo" collapsible-key="recentNftTransactions">
       <template #title>
         <p id="recentTransactions" class="h-is-secondary-title">
           Recent Transactions
