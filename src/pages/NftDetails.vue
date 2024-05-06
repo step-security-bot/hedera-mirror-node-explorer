@@ -37,6 +37,12 @@
             </figure>
           </a>
         </div>
+        <div v-else class="is-inline-block mr-4">
+          <figure>
+            <img style="height: 80px" alt=""
+                 src="@/assets/image-missing.jpg">
+          </figure>
+        </div>
         <span class="h-is-primary-title mr-3">Serial Number {{ serialNumber }}</span>
         <div
             class="is-inline-block h-is-tertiary-text h-is-extra-text should-wrap"

@@ -36,6 +36,13 @@
             </figure>
           </a>
         </div>
+        <div v-else class="is-inline-block mr-4">
+          <figure>
+            <img style="height: 80px" alt=""
+                 src="@/assets/image-missing.jpg">
+          </figure>
+        </div>
+
         <span v-if="tokenInfo" class="h-is-primary-title">
           <span v-if="tokenInfo.type === 'NON_FUNGIBLE_UNIQUE'">Non Fungible</span>
           <span v-else>Fungible</span>
