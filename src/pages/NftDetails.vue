@@ -38,6 +38,17 @@
         </div>
       </template>
 
+      <template #control>
+        <div v-if="imageUrl" class="mt-1 has-text-right is-inline-block">
+          <a :href="imageUrl">
+            <figure>
+              <img style="height: 80px" alt=""
+                   :src="imageUrl">
+            </figure>
+          </a>
+        </div>
+      </template>
+
       <template #content>
         <NotificationBanner
             v-if="notification"
@@ -138,6 +149,8 @@
 
     <ContractResultsSection :contract-id="normalizedTokenId ?? undefined"/>
 
+    <MetadataSection :metadata-analyzer="metadataAnalyzer"/>
+
     <MirrorLink :network="network" entityUrl="tokens" :loc="normalizedTokenId + '/nfts/' + serialNumber"/>
 
   </section>
@@ -150,7 +163,7 @@
 <!-- --------------------------------------------------------------------------------------------------------------- -->
 
 <script lang="ts">
-import {computed, defineComponent, inject, onBeforeUnmount, onMounted, ref, watch} from "vue"
+import {computed, defineComponent, inject, onBeforeUnmount, onMounted, ref, watch,} from "vue"
 import router, {routeManager} from "@/router"
 import TimestampValue from "@/components/values/TimestampValue.vue"
 import DashboardCard from "@/components/DashboardCard.vue"
@@ -169,13 +182,16 @@ import TransactionFilterSelect from "@/components/transaction/TransactionFilterS
 import {makeTokenSymbol} from "@/schemas/HederaUtils";
 import {TokenInfoCache} from "@/utils/cache/TokenInfoCache";
 import TokenLink from "@/components/values/link/TokenLink.vue";
+import MetadataSection from "@/components/token/MetadataSection.vue";
 import MirrorLink from "@/components/MirrorLink.vue";
+import {TokenMetadataAnalyzer} from "@/components/token/TokenMetadataAnalyzer";
 
 export default defineComponent({
   name: "NftDetails",
 
   components: {
     MirrorLink,
+    MetadataSection,
     TokenLink,
     ContractResultsSection,
     PlayPauseButton,
@@ -228,6 +244,11 @@ export default defineComponent({
     )
     onMounted(() => nftLookup.mount())
     onBeforeUnmount(() => nftLookup.unmount())
+
+    const metadata = computed(() => nftLookup.entity.value?.metadata ?? '')
+    const metadataAnalyzer = new TokenMetadataAnalyzer(metadata)
+    onMounted(() => metadataAnalyzer.mount())
+    onBeforeUnmount(() => metadataAnalyzer.unmount())
 
     const notification = computed(() => {
       let result
@@ -307,7 +328,10 @@ export default defineComponent({
       parseBigIntString,
       transactionTableController,
       transactionType: transactionTableController.transactionType,
-      symbol
+      symbol,
+      metadata,
+      metadataAnalyzer,
+      imageUrl: metadataAnalyzer.imageUrl,
     }
   },
 })

@@ -26,7 +26,7 @@
 
   <DashboardCard v-if="metadataString" class="h-card" collapsible-key="messageSubmitted">
     <template #title>
-      <span class="h-is-secondary-title">Metadata</span>
+      <span class="h-is-secondary-title">Metadata Content</span>
     </template>
 
     <template #leftContent>
