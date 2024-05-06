@@ -53,11 +53,11 @@
         </template>
         <template #value>
           <a v-if="imageUrl" :href="imageUrl">
-            <figure class="has-text-right">
+            <figure class="has-text-right mt-1">
               <img style="min-width: 250px" :src="imageUrl" alt="">
             </figure>
           </a>
-          <figure v-else class="has-text-right">
+          <figure v-else class="has-text-right mt-1">
             <img style="height: 100px" src="@/assets/image-missing.jpg" alt="">
           </figure>
         </template>
