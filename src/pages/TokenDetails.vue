@@ -28,6 +28,14 @@
 
     <DashboardCard collapsible-key="tokenDetails">
       <template v-slot:title>
+        <div v-if="imageUrl" class="is-inline-block mr-4">
+          <a :href="imageUrl">
+            <figure>
+              <img style="height: 80px" alt=""
+                   :src="imageUrl">
+            </figure>
+          </a>
+        </div>
         <span v-if="tokenInfo" class="h-is-primary-title">
           <span v-if="tokenInfo.type === 'NON_FUNGIBLE_UNIQUE'">Non Fungible</span>
           <span v-else>Fungible</span>
@@ -305,6 +313,8 @@
 
     <ContractResultsSection :contract-id="normalizedTokenId ?? undefined"/>
 
+    <MetadataSection :metadata-analyzer="metadataAnalyzer"/>
+
     <MirrorLink :network="network" entityUrl="tokens" :loc="tokenId"/>
 
   </section>
@@ -348,12 +358,15 @@ import {TokenInfoAnalyzer} from "@/components/token/TokenInfoAnalyzer";
 import ContractResultsSection from "@/components/contracts/ContractResultsSection.vue";
 import Copyable from "@/components/Copyable.vue";
 import MirrorLink from "@/components/MirrorLink.vue";
+import {TokenMetadataAnalyzer} from "@/components/token/TokenMetadataAnalyzer";
+import MetadataSection from "@/components/token/MetadataSection.vue";
 
 export default defineComponent({
 
   name: 'TokenDetails',
 
   components: {
+    MetadataSection,
     MirrorLink,
     Copyable,
     ContractResultsSection,
@@ -402,6 +415,11 @@ export default defineComponent({
     const tokenAnalyzer = new TokenInfoAnalyzer(tokenLookup.entity)
     onMounted(() => tokenAnalyzer.mount())
     onBeforeUnmount(() => tokenAnalyzer.unmount())
+
+    const metadata = computed(() => tokenLookup.entity.value?.metadata ?? '')
+    const metadataAnalyzer = new TokenMetadataAnalyzer(metadata)
+    onMounted(() => metadataAnalyzer.mount())
+    onBeforeUnmount(() => metadataAnalyzer.unmount())
 
     const displaySymbol = computed(() => makeTokenSymbol(tokenLookup.entity.value, 256))
 
@@ -468,6 +486,9 @@ export default defineComponent({
       isWalletConnected,
       tokenBalanceTableController,
       nftHolderTableController,
+      metadata,
+      metadataAnalyzer,
+      imageUrl: metadataAnalyzer.imageUrl,
     }
   },
 });
