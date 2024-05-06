@@ -29,23 +29,20 @@
   >
     <DashboardCard collapsible-key="nftDetails">
       <template #title>
-        <span class="h-is-primary-title mr-3">Serial Number {{ serialNumber }}</span>
-        <div
-            class="is-inline-block h-is-tertiary-text h-is-extra-text should-wrap"
-            style="word-break: break-all"
-        >
-          {{ symbol }}
-        </div>
-      </template>
-
-      <template #control>
-        <div v-if="imageUrl" class="mt-1 has-text-right is-inline-block">
+        <div v-if="imageUrl" class="is-inline-block mr-4">
           <a :href="imageUrl">
             <figure>
               <img style="height: 80px" alt=""
                    :src="imageUrl">
             </figure>
           </a>
+        </div>
+        <span class="h-is-primary-title mr-3">Serial Number {{ serialNumber }}</span>
+        <div
+            class="is-inline-block h-is-tertiary-text h-is-extra-text should-wrap"
+            style="word-break: break-all"
+        >
+          {{ symbol }}
         </div>
       </template>
 
