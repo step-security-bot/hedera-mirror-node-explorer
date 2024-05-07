@@ -124,6 +124,8 @@
       </template>
     </DashboardCard>
 
+    <MetadataSection :metadata-analyzer="metadataAnalyzer"/>
+
     <DashboardCard v-if="nftInfo" collapsible-key="recentNftTransactions">
       <template #title>
         <p id="recentTransactions" class="h-is-secondary-title">
@@ -151,8 +153,6 @@
     </DashboardCard>
 
     <ContractResultsSection :contract-id="normalizedTokenId ?? undefined"/>
-
-    <MetadataSection :metadata-analyzer="metadataAnalyzer"/>
 
     <MirrorLink :network="network" entityUrl="tokens" :loc="normalizedTokenId + '/nfts/' + serialNumber"/>
 
