@@ -26,12 +26,12 @@
 
   <DashboardCard v-if="metadataString" class="h-card" collapsible-key="metadataContent">
     <template #title>
-      <span class="h-is-secondary-title">Metadata Content</span>
+      <span class="h-is-secondary-title">Metadata Details</span>
     </template>
 
-    <template #leftContent>
+    <template #content>
       <template v-for="key in metadataKeys" :key="key">
-        <Property :full-width="false">
+        <Property :full-width="true">
           <template #name>
             {{ key }}
           </template>
@@ -46,23 +46,23 @@
       </template>
     </template>
 
-    <template #rightContent>
-      <Property>
-        <template #name>
-          {{ imageUrl ? 'Image Content' : 'Image not available' }}
-        </template>
-        <template #value>
-          <a v-if="imageUrl" :href="imageUrl">
-            <figure class="has-text-right mt-1">
-              <img style="min-width: 250px" :src="imageUrl" alt="">
-            </figure>
-          </a>
-          <figure v-else class="has-text-right mt-1">
-            <img style="height: 100px" src="@/assets/image-missing.jpg" alt="">
-          </figure>
-        </template>
-      </Property>
-    </template>
+<!--    <template #rightContent>-->
+<!--      <Property>-->
+<!--        <template #name>-->
+<!--          {{ imageUrl ? 'Image Content' : 'Image not available' }}-->
+<!--        </template>-->
+<!--        <template #value>-->
+<!--          <a v-if="imageUrl" :href="imageUrl">-->
+<!--            <figure class="has-text-right mt-1">-->
+<!--              <img style="min-width: 250px" :src="imageUrl" alt="">-->
+<!--            </figure>-->
+<!--          </a>-->
+<!--          <figure v-else class="has-text-right mt-1">-->
+<!--            <img style="height: 100px" src="@/assets/image-missing.jpg" alt="">-->
+<!--          </figure>-->
+<!--        </template>-->
+<!--      </Property>-->
+<!--    </template>-->
 
   </DashboardCard>
 
