@@ -29,26 +29,15 @@
   >
     <DashboardCard collapsible-key="nftDetails">
       <template #title>
-        <div v-if="imageUrl" class="is-inline-block mr-4">
-          <a :href="imageUrl">
-            <figure>
-              <img style="height: 80px" alt=""
-                   :src="imageUrl">
-            </figure>
-          </a>
-        </div>
-        <div v-else class="is-inline-block mr-4">
-          <figure>
-            <img style="height: 80px" alt=""
-                 src="@/assets/image-missing.jpg">
-          </figure>
-        </div>
-        <span class="h-is-primary-title mr-3">Serial Number {{ serialNumber }}</span>
-        <div
-            class="is-inline-block h-is-tertiary-text h-is-extra-text should-wrap"
-            style="word-break: break-all"
-        >
-          {{ symbol }}
+        <div class="is-flex is-align-items-baseline h-is-tertiary-text">
+          <span class="mr-2">Non Fungible Token</span>
+          <div
+              class="is-inline-block h-is-extra-text should-wrap mr-3"
+              style="word-break: break-all"
+          >
+            {{ symbol }}
+          </div>
+          <span class="">#{{ serialNumber }}</span>
         </div>
       </template>
 
@@ -60,23 +49,33 @@
       </template>
 
       <template #leftContent>
+        <a v-if="imageUrl" :href="imageUrl">
+          <figure class="has-text-left mt-1">
+            <img style="height: 400px" :src="imageUrl" alt="">
+          </figure>
+        </a>
+        <figure v-else class="has-text-left mt-1">
+          <img style="height: 100px" src="@/assets/image-missing.jpg" alt="">
+        </figure>
+      </template>
+
+      <template #rightContent>
         <Property id="tokenId">
-          <template #name>Token ID</template>
+          <template #name>NFT Collection</template>
           <template #value>
             <TokenLink :token-id="tokenId"/>
           </template>
         </Property>
         <Property id="accountId">
-          <template #name>Account ID</template>
+          <template #name>Owner</template>
           <template #value>
             <AccountLink
                 :account-id="nftInfo?.account_id"
-                :show-none="true"
             />
           </template>
         </Property>
         <Property id="createdTimestamp">
-          <template #name>Created Timestamp</template>
+          <template #name>Created</template>
           <template #value>
             <TimestampValue
                 :show-none="true"
@@ -85,7 +84,7 @@
           </template>
         </Property>
         <Property id="modifiedTimeStamp">
-          <template #name>Modified Timestamp</template>
+          <template #name>Modified</template>
           <template #value>
             <TimestampValue
                 :timestamp="nftInfo?.modified_timestamp"
@@ -94,7 +93,7 @@
           </template>
         </Property>
         <Property id="metadata">
-          <template #name>Metadata</template>
+          <template #name>Metadata Location</template>
           <template #value>
             <BlobValue
                 :base64="true"
@@ -104,11 +103,10 @@
           </template>
         </Property>
         <Property id="spenderId">
-          <template #name>Spender ID</template>
+          <template #name>Spender</template>
           <template #value>
             <AccountLink
                 :account-id="nftInfo?.spender_id"
-                :show-none="true"
             />
           </template>
         </Property>
@@ -117,7 +115,6 @@
           <template #value>
             <AccountLink
                 :account-id="nftInfo?.delegating_spender"
-                :show-none="true"
             />
           </template>
         </Property>
