@@ -24,7 +24,11 @@
 
 <template>
 
-  <DashboardCard v-if="metadataString" class="h-card" collapsible-key="metadataContent">
+  <DashboardCard v-if="metadataString"
+                 class="h-card"
+                 collapsible-key="metadataContent"
+                 :collapsed="true"
+  >
     <template #title>
       <span class="h-is-secondary-title">Metadata Details</span>
     </template>
