@@ -50,15 +50,15 @@
       <template #leftContent>
         <a v-if="imageUrl" :href="imageUrl">
           <figure class="has-text-left mt-1">
-            <img style="width: 400px; height: 400px" :src="imageUrl" alt="">
+            <img style="width: 400px" :src="imageUrl" alt="">
           </figure>
         </a>
-        <video v-else-if="videoUrl" autoplay loop width="400" height="400">
+        <video v-else-if="videoUrl" autoplay loop width="400">
           <source :src="videoUrl" :type="mimeType ?? ''"/>
           Download the video from <a :href="videoUrl">there</a>.
         </video>
         <figure v-else class="has-text-left mt-1">
-          <img style="width: 100Px; height: 100px" src="@/assets/image-missing.jpg" alt="">
+          <img style="width: 100px" src="@/assets/image-missing.jpg" alt="">
         </figure>
       </template>
 
