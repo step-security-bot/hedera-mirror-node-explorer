@@ -28,7 +28,7 @@
     <a v-else-if="decodedURL" :href="decodedURL.toString()">{{ decodedURL }}</a>
     <a v-else-if="ipfsAddress" :href="ipfsAddress">{{ decodedValue }}</a>
     <div v-else-if="jsonValue && isNaN(jsonValue)" style="max-height: 200px; padding: 10px"
-         class="h-is-json mt-1 h-code-box h-has-page-background is-inline-block has-text-left is-family-monospace h-is-text-size-3 should-wrap">
+         class="h-is-json mt-1 h-code-box h-has-page-background is-inline-block has-text-left h-is-text-size-3 should-wrap">
       {{ jsonValue }}
     </div>
     <template v-else-if="blobValue">
@@ -39,7 +39,7 @@
            :style="{'max-width': windowWidth-limitingFactor+200 + 'px'}">{{ decodedValue }}
       </div>
       <div v-else-if="decodedValue.length > 128"  style="max-height: 200px; padding: 10px"
-           class="h-is-json mt-1 h-code-box h-has-page-background is-inline-block has-text-left is-family-monospace h-is-text-size-3 should-wrap">
+           class="h-is-json mt-1 h-code-box h-has-page-background is-inline-block has-text-left h-is-text-size-3 should-wrap">
       <span id="blob-main">
         {{ (b64EncodingFound && showBase64AsExtra) ? blobValue : decodedValue }}
       </span>
