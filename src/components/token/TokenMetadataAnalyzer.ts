@@ -24,7 +24,7 @@ import {EntityID} from "@/utils/EntityID";
 import axios from "axios";
 import {Timestamp} from "@/utils/Timestamp";
 import {TopicMessageCache} from "@/utils/cache/TopicMessageCache";
-import { IPFS_GATEWAY_PREFIX } from "../values/BlobValue.vue";
+import {IPFS_GATEWAY_PREFIX} from "../values/BlobValue.vue";
 
 export class TokenMetadataAnalyzer {
 
@@ -73,13 +73,67 @@ export class TokenMetadataAnalyzer {
 
     public metadataContent = computed<any>(() => this.metadataContentRef.value)
 
+    public name = computed<string | null>(
+        () => {
+            let result: string | null = null
+            for (const key of this.metadataKeys.value) {
+                if (key.toLowerCase() === 'name') {
+                    result = this.metadataContent.value[key] as string
+                    break
+                }
+            }
+            return result
+        }
+    )
+
+    public creator = computed<string | null>(
+        () => {
+            let result: string | null = null
+            for (const key of this.metadataKeys.value) {
+                if (key.toLowerCase() === 'creator') {
+                    result = this.metadataContent.value[key] as string
+                    break
+                }
+            }
+            return result
+        }
+    )
+
+    public description = computed<string | null>(
+        () => {
+            let result: string | null = null
+            for (const key of this.metadataKeys.value) {
+                if (key.toLowerCase() === 'description') {
+                    result = this.metadataContent.value[key] as string
+                    break
+                }
+            }
+            return result
+        }
+    )
+
+    public mimeType = computed<string | null>(
+        () => {
+            let result: string | null = null
+            for (const key of this.metadataKeys.value) {
+                if (key.toLowerCase() === 'type') {
+                    result = this.metadataContent.value[key] as string
+                    break
+                }
+            }
+            return result
+        }
+    )
+
     public imageUrl = computed<string | null>(
         () => {
             let result: string | null = null
             for (const key of this.metadataKeys.value) {
                 const lowerKey = key.toLowerCase()
                 if (lowerKey === 'image' || lowerKey === 'picture') {
-                    result = this.metadataContent.value[key]
+                    if (!this.mimeType.value?.startsWith('video')) {
+                        result = this.metadataContent.value[key]
+                    }
                     break
                 }
             }
@@ -87,10 +141,29 @@ export class TokenMetadataAnalyzer {
                 result = `${IPFS_GATEWAY_PREFIX}${result.substring(7)}`
             }
             console.log(`imageUrl: ${result}`)
-
+            console.log(`mimeType: ${this.mimeType.value}`)
             return result
         })
 
+    public videoUrl = computed<string | null>(
+        () => {
+            let result: string | null = null
+            for (const key of this.metadataKeys.value) {
+                const lowerKey = key.toLowerCase()
+                if (lowerKey === 'image' || lowerKey === 'picture') {
+                    if (this.mimeType.value?.startsWith('video/mp4')) {
+                        result = this.metadataContent.value[key]
+                    }
+                    break
+                }
+            }
+            if (result && result.startsWith("ipfs://") && result.length > 7) {
+                result = `${IPFS_GATEWAY_PREFIX}${result.substring(7)}`
+            }
+            console.log(`videoUrl: ${result}`)
+            console.log(`mimeType: ${this.mimeType.value}`)
+            return result
+        })
 
     //
     // Private

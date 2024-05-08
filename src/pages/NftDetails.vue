@@ -30,14 +30,13 @@
     <DashboardCard collapsible-key="nftDetails">
       <template #title>
         <div class="is-flex is-align-items-baseline h-is-tertiary-text">
-          <span class="mr-2">Non Fungible Token</span>
           <div
               class="is-inline-block h-is-extra-text should-wrap mr-3"
               style="word-break: break-all"
           >
-            {{ symbol }}
+            {{ name ?? symbol }}
           </div>
-          <span class="">#{{ serialNumber }}</span>
+          <span class="mr-2 has-text-grey">Non Fungible Token</span>
         </div>
       </template>
 
@@ -51,19 +50,35 @@
       <template #leftContent>
         <a v-if="imageUrl" :href="imageUrl">
           <figure class="has-text-left mt-1">
-            <img style="height: 400px" :src="imageUrl" alt="">
+            <img style="width: 400px; height: 400px" :src="imageUrl" alt="">
           </figure>
         </a>
+        <video v-else-if="videoUrl" autoplay loop width="400" height="400">
+          <source :src="videoUrl" :type="mimeType ?? ''"/>
+          Download the video from <a :href="videoUrl">there</a>.
+        </video>
         <figure v-else class="has-text-left mt-1">
-          <img style="height: 100px" src="@/assets/image-missing.jpg" alt="">
+          <img style="width: 100Px; height: 100px" src="@/assets/image-missing.jpg" alt="">
         </figure>
       </template>
 
       <template #rightContent>
+        <Property v-if="description" id="description">
+          <template #name>Description</template>
+          <template #value>
+            <BlobValue :blob-value="description"/>
+          </template>
+        </Property>
         <Property id="tokenId">
           <template #name>NFT Collection</template>
           <template #value>
             <TokenLink :token-id="tokenId"/>
+          </template>
+        </Property>
+        <Property id="serialNumber">
+          <template #name>Serial #</template>
+          <template #value>
+            {{ serialNumber }}
           </template>
         </Property>
         <Property id="accountId">
@@ -72,6 +87,12 @@
             <AccountLink
                 :account-id="nftInfo?.account_id"
             />
+          </template>
+        </Property>
+        <Property v-if="creator" id="creator">
+          <template #name>Creator</template>
+          <template #value>
+            {{ creator }}
           </template>
         </Property>
         <Property id="createdTimestamp">
@@ -331,7 +352,12 @@ export default defineComponent({
       symbol,
       metadata,
       metadataAnalyzer,
+      name: metadataAnalyzer.name,
+      creator: metadataAnalyzer.creator,
+      description: metadataAnalyzer.description,
+      mimeType: metadataAnalyzer.mimeType,
       imageUrl: metadataAnalyzer.imageUrl,
+      videoUrl: metadataAnalyzer.videoUrl,
     }
   },
 })
